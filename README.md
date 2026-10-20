@@ -6,7 +6,7 @@ VOX is a support-operations workspace with live Gemma planning/drafting, ElevenL
 
 ## Hosted workspace
 
-[Open VOX](https://getvox.tech/app). Guests can inspect an isolated synthetic workspace; live provider calls and approvals require the configured, verified Auth0 owner. DigitalOcean remains disconnected by owner choice. The sponsor-only expansion uses self-hosted Temporal with Tiger; the approved free US hosting migration is pending a Render service slot. [Integration evidence and limits](docs/SPONSORS.md).
+[Open VOX](https://getvox.tech/app). Guests can inspect an isolated synthetic workspace; live provider calls and approvals require the configured, verified Auth0 owner. DigitalOcean remains disconnected by owner choice. The sponsor-only expansion uses self-hosted Temporal with Tiger; the hosted voice journey now runs on free Render in Virginia beside Tiger. [Integration evidence and limits](docs/SPONSORS.md).
 
 ## Run
 
@@ -36,9 +36,9 @@ Without provider credentials, the app explicitly uses local rules and templates.
 6. Play the ElevenLabs briefing. Replays use persisted generated audio; changing the briefing creates a different cache key.
 7. Export the saved evidence. No external message is sent.
 
-The expansion adds bounded TabPFN escalation estimates, Tiger hybrid retrieval and Ultramarine advisory draft review. Each has individual live proof; their combined hosted journey is pending migration. [Implementation and evaluation limits](docs/ADVANCED-INTEGRATIONS.md).
+The expansion adds bounded TabPFN escalation estimates, Tiger hybrid retrieval and Ultramarine advisory draft review. Their combined hosted voice journey passed, including a full service restart while approvals were pending. [Implementation and evaluation limits](docs/ADVANCED-INTEGRATIONS.md).
 
-A requested draft count is limited to six. The deliberate label interruption retries once before its write. Model requests have no automatic SDK retries. Completed model responses are cached before the draft step commits, so resuming a failed step reuses them.
+A requested draft count is limited to six. The deliberate label interruption retries once before its write. Model requests have no automatic SDK retries. Provider access, rate-limit, availability and validation failures receive safe checkpoint explanations without exposing upstream bodies. Completed model responses are cached before the draft step commits, so resuming a failed step reuses them.
 
 ## Provider configuration
 
@@ -83,7 +83,7 @@ npm run build
 npm start
 ```
 
-39 automated checks pass. Type checking covers the AI SDK adapter. Browser verification exercised the real provider chain with a synthetic spoken file: live Scribe transcription → live Gemma plan → two live Gemma drafts → Mastra approval suspension/resume → live ElevenLabs briefing. Replay and process restart reused the saved audio. Provider receipts and a real Mastra snapshot were exported. Physical microphone testing was deferred by the user.
+41 automated checks pass. Type checking covers the AI SDK adapter. Browser verification exercised the real provider chain with a synthetic spoken file: live Scribe transcription → live Gemma plan → two live Gemma drafts → Mastra approval suspension/resume → live ElevenLabs briefing. Replay and process restart reused the saved audio. The expanded hosted pass produced 15 successful provider receipts, real Temporal history through completion, and a Mastra success state. A full service stop/resume preserved both approvals and every completed provider receipt. Two Google internal-error failures required explicit checkpoint resumes. Physical microphone testing was deferred by the user. [Hosted evidence](docs/evidence/hosted-expansion.json).
 
 The workspace and landing share Geist typography, soft white surfaces, near-black headings, cobalt accents and motion tokens. Mobile/tablet/desktop checks cover menus, dialogs, plan cards, approvals and evidence.
 

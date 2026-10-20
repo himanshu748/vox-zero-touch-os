@@ -1,0 +1,107 @@
+{
+  "observedAt": "2026-10-20T16:25:27.302060+00:00",
+  "url": "https://getvox.tech/app",
+  "mode": "fictional helpdesk; real provider requests; simulated sends",
+  "runId": "089a5cae-9d54-46ca-814a-7adcbf1317ca",
+  "workflowExecutingCommit": "e4ce349e4d8e6e6dfd39f2b6769149ccfb7559c7",
+  "scope": {
+    "runtimeIntegrations": 15,
+    "developmentIntegrations": 2,
+    "domain": 1,
+    "totalCategories": 18,
+    "excluded": ["DigitalOcean", "Arduino"]
+  },
+  "voice": {
+    "input": "existing synthetic spoken WAV",
+    "durationSeconds": 7.791,
+    "liveTranscription": true,
+    "edited": false,
+    "physicalMicrophoneVerified": false
+  },
+  "result": {
+    "tickets": 24,
+    "triaged": 24,
+    "labels": 2,
+    "drafts": 2,
+    "pending": 0,
+    "sent": 1,
+    "rejected": 1,
+    "urgent": 6,
+    "retries": 2
+  },
+  "mastra": {
+    "status": "success",
+    "attempts": 4
+  },
+  "providerReceipts": {
+    "ElevenLabs": 2,
+    "Backboard": 1,
+    "Tinker": 1,
+    "Gemma endpoint": 3,
+    "TabPFN": 1,
+    "Tiger Data": 2,
+    "SerpApi": 2,
+    "Browserbase": 1,
+    "Ultramarine": 2
+  },
+  "successfulReceipts": 15,
+  "speech": {
+    "model": "eleven_multilingual_v2",
+    "bytes": 255834,
+    "playbackCompleted": true,
+    "cachedReplayObserved": true
+  },
+  "temporal": {
+    "server": "1.32.1 full self-hosted server",
+    "database": "restricted Tiger workflow and visibility schemas",
+    "startupGate": {
+      "activityAttempts": 3,
+      "historyEvents": 21,
+      "retried": true,
+      "decisionResumed": true,
+      "providerCalls": 0
+    },
+    "restart": {
+      "sameExecution": true,
+      "beforeEvents": 10,
+      "afterEvents": 10,
+      "pendingApprovals": 2,
+      "sameProviderReceiptIds": true,
+      "sameCompletedProviderTasks": true
+    },
+    "finalStatus": "COMPLETED",
+    "finalHistoryEvents": 21,
+    "decisionSignals": 1
+  },
+  "hosting": {
+    "provider": "Render",
+    "region": "Virginia",
+    "plan": "free",
+    "oldSingaporeService": "suspended",
+    "atlasActiveRanges": ["74.220.49.0/24", "74.220.57.0/24"],
+    "publicTemporalRPC": false,
+    "ownerLogin": "verified Auth0 owner; previous workspace restored",
+    "guestProviders": "HTTP 401"
+  },
+  "observedFailures": [
+    "Two Gemma generation attempts failed; Sentry showed a Google internal error. Explicit checkpoint resumes reused completed responses.",
+    "One search returned irrelevant references. That synthetic reply was rejected; advisory review is not a correctness guarantee."
+  ],
+  "limits": [
+    "Tinker private checkpoint expires October 27, 2026.",
+    "No physical microphone check, external customer delivery, production accuracy, uptime SLA or prize eligibility is claimed.",
+    "No new paid plan or top-up. Promotional provider usage only; estimates are not invoices."
+  ],
+  "finalDeployment": {
+    "commit": "02dd26c974e087cfd0573f6984478b00bc0e1e56",
+    "deploy": "dep-dbbpbaafngtc73a2r7b0",
+    "status": "live",
+    "finishedAt": "2026-10-20T16:26:25.293351Z",
+    "safeFailureLabels": "41 automated tests passed; no upstream error bodies exposed",
+    "completedRunPreserved": true,
+    "providerReceiptIdsUnchanged": true,
+    "cachedSpeechReplayAfterDeployment": true,
+    "healthHttpStatus": 200,
+    "guestPlanHttpStatus": 401
+  }
+}

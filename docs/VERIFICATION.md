@@ -4,7 +4,7 @@ Date: October 20, 2026 (India time).
 
 ## Automated
 
-- `npm test`: 39 tests passed.
+- `npm test`: 41 tests passed.
 - `npm run typecheck`: passed; covers the AI SDK adapter against installed package types.
 - `npm run build`: passed; landing and workspace load in separate JS chunks.
 - SQLite persistence, worker restart/resume, read-only previews, bounded scopes, retries, idempotency, ownership, single-use decisions, expired plans/approvals, saved preferences, reset, route parsing and useful error messages are covered.
@@ -59,7 +59,7 @@ Hosted owner/transcript/preference persistence across a real deployment was veri
 
 ## Limits
 
-The user deferred physical microphone testing. Browser speech hardware and Safari/Firefox were not assessed. All helpdesk identities and sends remain synthetic. Hosted integration evidence and the remaining hosted Temporal and DigitalOcean boundaries are tracked in [SPONSORS.md](SPONSORS.md).
+The user deferred physical microphone testing. Browser speech hardware and Safari/Firefox were not assessed. All helpdesk identities and sends remain synthetic. Hosted integration evidence and the current provider boundaries and excluded DigitalOcean category are tracked in [SPONSORS.md](SPONSORS.md).
 
 The npm audit reports an unpatched transitive `sprintf-js` formatter DoS advisory through Mastra's frontmatter chain; five package entries are affected. VOX does not expose frontmatter parsing or user-controlled format strings.
 
@@ -69,8 +69,19 @@ Earlier dark/copper screenshots show superseded designs. Current workspace and v
 
 ## Sponsor expansion verification
 
-Tinker training and HTTP normalization, TabPFN REST prediction, Ultramarine review, and Tiger hybrid retrieval passed individual live checks. The public evaluation reports retain their small synthetic-dataset limits. Injected regression tests verify that predictions and retrieved passages reach approved execution once, review remains advisory, retries do not duplicate paid requests, and the rule-based attention floor is preserved. These injected checks are not a combined live-provider journey.
+The fresh hosted run `089a5cae-9d54-46ca-814a-7adcbf1317ca` at https://getvox.tech/app exercised the 15 runtime integrations together. Copilot and Entire retain separate development evidence; getvox.tech is the eighteenth category. DigitalOcean and Arduino are excluded. [Curated receipt](evidence/hosted-expansion.json).
 
-The full Temporal Server 1.32.1 profile against Tiger remains incomplete. A standalone direct driver passed transactions, parameterized/bytea queries and concurrency with strict TLS. The provider-free retry/approval gate passed on the CLI dev server but failed on the Singapore Render replacement. That deployment was rejected before HTTP startup; getvox.tech/healthz still returned HTTP 200 from the previous working deployment.
+- Existing 7.791-second synthetic WAV → real ElevenLabs transcript → Tinker intent normalization → Gemma streamed plan. The transcript was not edited.
+- TabPFN scored all 24 tickets. Tiger performed two live hybrid retrievals. SerpApi performed two searches returning six references. Browserbase saved one internal note through the hosted form.
+- Two real Gemma drafts received two Ultramarine advisory reviews. The run saved 24 triages and two new labels. Both replies remained pending until individual owner decisions.
+- Two Gemma attempts failed; Sentry's actual Agent Activity showed `AI_APICallError` and Google's “Internal error encountered.” Explicit resume reused completed activities and cached model responses. No configured-provider fallback was used.
+- A full free-service suspend/resume preserved the same Temporal workflow execution and its ten history events, both approvals, every successful provider receipt ID and every completed provider-task result. No provider request was repeated during that restart.
+- One reply was rejected and one approved inside the fictional helpdesk. Mastra reached `success`; Temporal reached `COMPLETED` with 21 history events and the recorded owner-decision signal.
+- ElevenLabs generated 255,834 bytes of briefing audio. The browser's playing state returned to ready; a replay explicitly reported saved ElevenLabs audio and no new generation request. The run has 15 successful request receipts across nine external API/data providers.
+- Sentry displayed the correlated model/tool trace with prompt/output capture disabled. Its cost estimates are not invoices.
 
-A free US Render replacement is approved but creation reached the workspace's 25-service limit. No Supabase project was created. Hosted expansion, restart and refreshed browser checks remain pending that migration. The physical microphone check remains deferred.
+The deployment moved from Singapore to free Render Virginia beside the isolated Tiger database. The full pinned Temporal Server 1.32.1 passed its real provider-free retry/approval startup gate: three activity attempts, 21 events, zero provider calls. The US driver reported a one-millisecond median for three verified-TLS probes. The old Singapore web service is suspended; Atlas now permits only `74.220.49.0/24` and `74.220.57.0/24`. Both apex and www certificates were issued; www redirects to the apex. Auth0 restored the previous four runs under the same owner. Guest provider access returned HTTP 401.
+
+One search returned irrelevant dictionary/general-interest references; that draft was rejected. Retrieval and AI review do not guarantee factual correctness or useful citations. Physical microphone, a second live unauthorized account, production accuracy and high availability remain unverified. No Supabase project, paid Temporal Cloud account, new paid plan or top-up was used. The Tinker checkpoint expires October 27, 2026.
+
+This live journey ran on commit `e4ce349e4d8e6e6dfd39f2b6769149ccfb7559c7`. The subsequent safe failure-label change `02dd26c974e087cfd0573f6984478b00bc0e1e56` is live as deployment `dep-dbbpbaafngtc73a2r7b0`. The completed run, every receipt ID and the cached audio survived that deployment; replay again reported no new generation. Trusted HTTPS health returned 200 and a guest plan request returned 401. Local automated SDK/provider tests use mocks or injected transports where stated; they do not substitute for these live receipts. No GitHub CI run is claimed for this release.

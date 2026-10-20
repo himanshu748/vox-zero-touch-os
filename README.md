@@ -6,7 +6,7 @@ VOX is a support-operations workspace with live Gemma planning/drafting, ElevenL
 
 ## Hosted workspace
 
-[Open VOX](https://vox-zero-touch-os.onrender.com/app). Guests can inspect an isolated synthetic workspace; live provider calls and approvals require the configured, verified Auth0 owner. DigitalOcean is disconnected by owner choice, and Temporal Cloud awaits account recovery. [Integration evidence and limits](docs/SPONSORS.md).
+[Open VOX](https://getvox.tech/app). Guests can inspect an isolated synthetic workspace; live provider calls and approvals require the configured, verified Auth0 owner. DigitalOcean remains disconnected by owner choice. The sponsor-only expansion uses self-hosted Temporal with Tiger; the approved free US hosting migration is pending a Render service slot. [Integration evidence and limits](docs/SPONSORS.md).
 
 ## Run
 
@@ -30,11 +30,13 @@ Without provider credentials, the app explicitly uses local rules and templates.
 
 1. Choose the voice button and consent to ElevenLabs processing. Record up to 60 seconds, or upload an audio command smaller than 8 MB.
 2. Review and edit the transcript. Voice provenance follows the saved plan and run.
-3. Create a streamed Gemma plan. Inspect the ticket scope, action cards, requested draft count, provider mode and boundaries.
+3. Create a streamed Gemma plan. A configured, unexpired Tinker adapter first normalizes the allowed intent. Inspect the ticket scope, action cards, requested draft count, provider mode and boundaries.
 4. Approve the plan. Mastra runs inspection, triage, research, labels, drafts and briefing as named workflow steps. Only requested steps execute.
 5. Review each proposed simulated send. Mastra suspends at its approval gate until the individual decisions are complete. Approvals can be filtered by run.
 6. Play the ElevenLabs briefing. Replays use persisted generated audio; changing the briefing creates a different cache key.
 7. Export the saved evidence. No external message is sent.
+
+The expansion adds bounded TabPFN escalation estimates, Tiger hybrid retrieval and Ultramarine advisory draft review. Each has individual live proof; their combined hosted journey is pending migration. [Implementation and evaluation limits](docs/ADVANCED-INTEGRATIONS.md).
 
 A requested draft count is limited to six. The deliberate label interruption retries once before its write. Model requests have no automatic SDK retries. Completed model responses are cached before the draft step commits, so resuming a failed step reuses them.
 
@@ -64,7 +66,7 @@ Set `PUBLIC_ORIGIN`, Auth0's issuer/client credentials/session secret and `AUTH0
 
 `MONGODB_URI` enables acknowledged Atlas workspace, session and audio snapshots. Startup hydrates SQLite from Atlas; failed acknowledgments return an error. Run one web/worker instance. A revision check rejects concurrent writers. Speech cache entries expire after seven days.
 
-`TEMPORAL_ADDRESS`, namespace and scoped API key enable the real Temporal worker. `npm run build` precompiles its deterministic workflow. Temporal owns scheduling, retries and approval signals; Mastra executes validated activities. Only owner/run identifiers enter Temporal payloads. `node scripts/verify-temporal.mjs` verifies restart/retry against a real local Temporal server without model calls.
+`TEMPORAL_ADDRESS`, namespace and scoped API key enable an external Temporal worker. Alternatively, `TEMPORAL_SELF_HOSTED=true`, the restricted `TEMPORAL_POSTGRES_URI` and `TIGER_CA_PEM` start the checksum-verified full server with loopback-only RPCs and persistent Tiger workflow/visibility schemas. A provider-free retry/approval startup workflow must finish before HTTP starts. `npm run build` precompiles its deterministic workflow. Temporal owns scheduling, retries and approval signals; Mastra executes validated activities. Only owner/run identifiers enter Temporal payloads. `node scripts/verify-temporal.mjs` verifies restart/retry against a real local Temporal server without model calls.
 
 `SERPAPI_API_KEY` enables up to two live searches per approved research plan. URLs, timestamps and provider search IDs are retained. `BACKBOARD_API_KEY` stores and recalls the workspace's reply-style preference. A returned memory ID follows the next plan. `SENTRY_DSN` enables actual AI SDK and tool tracing with prompt/response recording disabled and exact environment-secret redaction.
 
@@ -81,7 +83,7 @@ npm run build
 npm start
 ```
 
-32 automated checks pass. Type checking covers the AI SDK adapter. Browser verification exercised the real provider chain with a synthetic spoken file: live Scribe transcription → live Gemma plan → two live Gemma drafts → Mastra approval suspension/resume → live ElevenLabs briefing. Replay and process restart reused the saved audio. Provider receipts and a real Mastra snapshot were exported. Physical microphone testing was deferred by the user.
+39 automated checks pass. Type checking covers the AI SDK adapter. Browser verification exercised the real provider chain with a synthetic spoken file: live Scribe transcription → live Gemma plan → two live Gemma drafts → Mastra approval suspension/resume → live ElevenLabs briefing. Replay and process restart reused the saved audio. Provider receipts and a real Mastra snapshot were exported. Physical microphone testing was deferred by the user.
 
 The workspace and landing share Geist typography, soft white surfaces, near-black headings, cobalt accents and motion tokens. Mobile/tablet/desktop checks cover menus, dialogs, plan cards, approvals and evidence.
 

@@ -1,15 +1,17 @@
-# Remaining product requirements
+# Remaining requirements
 
-The hosted app uses real providers against a synthetic helpdesk. See [SPONSORS.md](SPONSORS.md) for integration evidence; configuring a provider alone is not a qualification claim.
+The [hosted workspace](https://getvox.tech/app) uses real providers against a fictional helpdesk. The requested expansion targets 18 categories; see [SPONSORS.md](SPONSORS.md) for the actual proof level of each.
 
-- **Temporal Cloud:** real local Temporal retry, worker restart and approval recovery passed. Hosted Cloud configuration remains unavailable because the owner could not sign in. Render currently uses Mastra plus acknowledged Atlas application checkpoints.
-- **DigitalOcean:** the existing account has no inference balance. The owner declined the proposed $5 top-up, so DigitalOcean remains disconnected. Gemma runs through Google's API.
-- **Physical microphone:** deferred by the owner. Live STT was exercised with a synthetic spoken WAV; this does not verify the user's microphone, browser permissions or audio hardware.
-- **Authorization breadth:** the hosted allowed-owner login and anonymous provider denial were checked. Different-owner and unverified-email denial are automated tests, not a second live account walkthrough.
-- **Production scale:** one web/worker process is supported. Atlas revisions reject conflicting writers. Mastra snapshots use local libSQL; this is not a multi-worker scheduler or a substitute for Temporal Cloud.
-- **Customer integrations:** tickets and recipients are fictional. Browserbase operates the hosted synthetic helpdesk form. Approvals produce simulated sends; no external customer delivery is enabled.
-- **Measurement:** latency and tokens come from actual receipts where returned. Provider cost, time saved, p50/p95 and comparative model quality have not been measured.
-- **Release:** a judge-facing film, public project article, eligibility review and final competition submission remain separate work. No entry has been submitted.
-- **Additional categories:** TabPFN, Tinker, Ultramarine, Tiger Data, a .tech domain and Arduino hardware are outside the requested fourteen core sponsors.
+- **US migration:** the owner approved a free Virginia Render replacement, VOX-only private configuration, revised Atlas outbound ranges, domain cutover after checks, and suspension of the old service. Render rejected creation because the workspace is at its 25-service limit. Any deletion of another service requires the exact cleanup approval currently requested.
+- **Hosted Temporal:** the full self-hosted server starts against Tiger, but the Singapore workflow failed its startup guard. The US replacement must pass retry, persisted approval wait, decision signal, completion and restart verification before being described as durable. No paid Temporal Cloud service is used.
+- **Expanded hosted journey:** Tinker, TabPFN, Ultramarine and Tiger each passed individual live requests. A fresh recorded-voice run must exercise their combined hosted path with Gemma, ElevenLabs, Mastra, Browserbase, SerpApi, Auth0, Atlas and Sentry after migration.
+- **Adapter expiry:** the approved private Tinker checkpoint expires October 27, 2026. Expired checkpoints are reported disconnected. Extending storage or retraining requires a new approved budget; no automatic top-up exists.
+- **Physical microphone:** deferred by the owner. Recorded-WAV STT does not verify microphone hardware or browser recording permissions.
+- **Authorization breadth:** allowed-owner login and guest provider denial were checked on the hosted baseline. Other-owner and unverified-email denial have automated coverage, not a second live-account walkthrough.
+- **Scale:** one application writer is supported. Free Render can sleep or restart; no uptime or multi-worker production SLA is claimed. Mastra snapshots are local; Atlas persists application checkpoints and Temporal's database must persist workflow history.
+- **Customer actions:** tickets and recipients are fictional. Browserbase uses the hosted synthetic form. Approvals perform simulated sends; no external customer delivery is enabled.
+- **Measurement:** tokens and latency come from actual receipts. Small authored evaluations are not customer accuracy or calibration claims. Token-based cost estimates are not invoices; production p50/p95 and time saved have not been established.
+- **Excluded categories:** DigitalOcean remains off by owner choice; no Arduino hardware integration is claimed.
+- **Release:** a judge-facing video, public project article, eligibility review and final competition submission remain separate work. No entry has been submitted.
 
-The known dependency audit includes an unpatched transitive formatter DoS advisory through Mastra's frontmatter chain. The application does not expose that parsing path. The exposed Google and SerpApi keys were rotated on October 20, 2026; both old keys return HTTP 401, and the hosted recorded-voice flow passed with their replacements in Render's private configuration. Neither credential was committed or packaged.
+The dependency audit includes an unpatched transitive formatter DoS advisory through Mastra's frontmatter chain. VOX does not expose that parsing path. Previously exposed Google and SerpApi keys were rotated, their old values rejected with HTTP 401, and their replacements passed the earlier hosted voice journey. Credentials remain excluded from source and packages.

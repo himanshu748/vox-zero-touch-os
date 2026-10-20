@@ -4,7 +4,7 @@ Date: October 20, 2026 (India time).
 
 ## Automated
 
-- `npm test`: 32 tests passed.
+- `npm test`: 39 tests passed.
 - `npm run typecheck`: passed; covers the AI SDK adapter against installed package types.
 - `npm run build`: passed; landing and workspace load in separate JS chunks.
 - SQLite persistence, worker restart/resume, read-only previews, bounded scopes, retries, idempotency, ownership, single-use decisions, expired plans/approvals, saved preferences, reset, route parsing and useful error messages are covered.
@@ -59,10 +59,18 @@ Hosted owner/transcript/preference persistence across a real deployment was veri
 
 ## Limits
 
-The user deferred physical microphone testing. Browser speech hardware and Safari/Firefox were not assessed. All helpdesk identities and sends remain synthetic. Hosted integration evidence and the remaining Temporal Cloud and DigitalOcean boundaries are tracked in [SPONSORS.md](SPONSORS.md).
+The user deferred physical microphone testing. Browser speech hardware and Safari/Firefox were not assessed. All helpdesk identities and sends remain synthetic. Hosted integration evidence and the remaining hosted Temporal and DigitalOcean boundaries are tracked in [SPONSORS.md](SPONSORS.md).
 
 The npm audit reports an unpatched transitive `sprintf-js` formatter DoS advisory through Mastra's frontmatter chain; five package entries are affected. VOX does not expose frontmatter parsing or user-controlled format strings.
 
 Earlier Google and SerpApi portal responses exposed their key values. Both keys were rotated on October 20, 2026, and both old keys now return HTTP 401. The Google replacement preserves the existing Gemini API restriction and service-account binding. Both replacements were saved in Render's private server configuration. A fresh hosted recorded-voice flow passed planning, live searches, browser execution, reply approvals and ElevenLabs briefing playback after rotation. No credential values were committed or packaged.
 
 Earlier dark/copper screenshots show superseded designs. Current workspace and voice-flow screenshots use the Geist/white/cobalt system.
+
+## Sponsor expansion verification
+
+Tinker training and HTTP normalization, TabPFN REST prediction, Ultramarine review, and Tiger hybrid retrieval passed individual live checks. The public evaluation reports retain their small synthetic-dataset limits. Injected regression tests verify that predictions and retrieved passages reach approved execution once, review remains advisory, retries do not duplicate paid requests, and the rule-based attention floor is preserved. These injected checks are not a combined live-provider journey.
+
+The full Temporal Server 1.32.1 profile against Tiger remains incomplete. A standalone direct driver passed transactions, parameterized/bytea queries and concurrency with strict TLS. The provider-free retry/approval gate passed on the CLI dev server but failed on the Singapore Render replacement. That deployment was rejected before HTTP startup; getvox.tech/healthz still returned HTTP 200 from the previous working deployment.
+
+A free US Render replacement is approved but creation reached the workspace's 25-service limit. No Supabase project was created. Hosted expansion, restart and refreshed browser checks remain pending that migration. The physical microphone check remains deferred.

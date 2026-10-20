@@ -12,6 +12,36 @@ import { retrieveKnowledge } from "../server/knowledge-retrieval.mjs";
 import { createEngine } from "../server/engine.mjs";
 import { createStore } from "../server/store.mjs";
 import { buildPlan } from "../server/planner.mjs";
+import { selfHostedConfig } from "../server/temporal-self-host.mjs";
+
+test("self-hosted durability refuses admin or foreign connections and keeps RPCs private", () => {
+  const uri =
+    "postgresql://vox_temporal:test-only@vox-test.tsdb.cloud.timescale.com:5432/tsdb";
+  for (const bad of [
+    uri.replace("vox_temporal:", "tsdbadmin:"),
+    uri.replace("vox-test.tsdb.cloud.timescale.com", "untrusted.example"),
+    uri.replace("/tsdb", "/other"),
+  ])
+    assert.throws(
+      () => selfHostedConfig(bad, "/test/ca.pem", "/test/dynamic.json"),
+      /restricted VOX/,
+    );
+  const config = selfHostedConfig(uri, "/test/ca.pem", "/test/dynamic.json");
+  assert.ok(
+    Object.values(config.services).every(
+      (service) => service.rpc.bindOnLocalHost,
+    ),
+  );
+  for (const { sql } of Object.values(config.persistence.datastores)) {
+    assert.equal(sql.tls.enabled, true);
+    assert.equal(sql.tls.enableHostVerification, true);
+    assert.equal(sql.user, "vox_temporal");
+    assert.match(
+      sql.connectAttributes.search_path,
+      /^vox_(temporal|visibility),public$/,
+    );
+  }
+});
 
 const input = {
   ticket: { title: "Deploy error", body: "Our build stopped." },

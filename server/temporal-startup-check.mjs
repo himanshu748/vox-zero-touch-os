@@ -19,7 +19,8 @@ export async function verifySelfHostedTemporal() {
   let worker,
     running,
     handle,
-    calls = 0;
+    calls = 0,
+    stage = "worker";
   try {
     worker = await Worker.create({
       connection: native,
@@ -47,6 +48,7 @@ export async function verifySelfHostedTemporal() {
     // Attach immediately so worker failure is never an unhandled rejection.
     running.catch(() => {});
     const client = new Client({ connection, namespace });
+    stage = "start";
     await connection.withDeadline(Date.now() + 60000, async () => {
       handle = await client.workflow.start("voxWorkflow", {
         workflowId: `vox-startup-${id}`,
@@ -55,6 +57,7 @@ export async function verifySelfHostedTemporal() {
         workflowExecutionTimeout: "60 seconds",
       });
       const deadline = Date.now() + 45000;
+      stage = "approval-gate";
       let gated = false;
       while (Date.now() < deadline) {
         const history = await handle.fetchHistory();
@@ -67,6 +70,7 @@ export async function verifySelfHostedTemporal() {
         await new Promise((resolve) => setTimeout(resolve, 250));
       }
       if (!gated) throw new Error("Workflow did not persist its approval gate");
+      stage = "decision-signal";
       await handle.signal("ownerDecision");
       const result = await handle.result();
       if (calls !== 3 || result.status !== "completed")
@@ -84,6 +88,14 @@ export async function verifySelfHostedTemporal() {
       );
     });
   } catch {
+    console.error(
+      JSON.stringify({
+        temporalStartupCheck: "failed",
+        stage,
+        activityAttempts: calls,
+        providerCalls: 0,
+      }),
+    );
     await connection
       .withDeadline(Date.now() + 5000, () =>
         handle?.terminate("Startup check failed").catch(() => {}),

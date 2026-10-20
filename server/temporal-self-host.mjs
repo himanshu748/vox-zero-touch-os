@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { mkdtemp, writeFile, rm } from "node:fs/promises";
+import { mkdtemp, writeFile, readFile, rm } from "node:fs/promises";
 import { openSync, closeSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -22,7 +22,7 @@ export const temporalLimits = {
   "system.enableParentClosePolicyWorker": false,
 };
 
-export function selfHostedConfig(uri, caFile, dynamicFile, hostAddress) {
+function restrictedTemporalUri(uri) {
   const u = new URL(uri);
   if (
     u.username !== "vox_temporal" ||
@@ -32,6 +32,11 @@ export function selfHostedConfig(uri, caFile, dynamicFile, hostAddress) {
     throw new Error(
       "Self-hosted Temporal requires its restricted VOX PostgreSQL connection.",
     );
+  return u;
+}
+
+export function selfHostedConfig(uri, caFile, dynamicFile, hostAddress) {
+  const u = restrictedTemporalUri(uri);
   const sql = (schema) => ({
     sql: {
       pluginName: "postgres12",
@@ -119,6 +124,36 @@ export async function startSelfHostedTemporal() {
     throw new Error(
       "Pinned Temporal server binary is missing. Run the build installer.",
     );
+  const uri = restrictedTemporalUri(process.env.TEMPORAL_POSTGRES_URI);
+  uri.searchParams.delete("sslmode");
+  const { default: pg } = await import("pg");
+  const probe = new pg.Client({
+    connectionString: uri.href,
+    ssl: { rejectUnauthorized: true, ca: process.env.TIGER_CA_PEM },
+    application_name: "vox-temporal-readiness",
+    connectionTimeoutMillis: 10000,
+    query_timeout: 5000,
+  });
+  try {
+    await probe.connect();
+    const timings = [];
+    for (let i = 0; i < 3; i++) {
+      const start = performance.now();
+      await probe.query("SELECT 1");
+      timings.push(Math.round(performance.now() - start));
+    }
+    console.log(
+      JSON.stringify({
+        temporalDatabaseRoundTripMs: timings.sort((a, b) => a - b)[1],
+        samples: 3,
+        tlsVerified: true,
+      }),
+    );
+  } catch {
+    throw new Error("The restricted Temporal database readiness probe failed.");
+  } finally {
+    await probe.end();
+  }
   const directory = await mkdtemp(join(tmpdir(), "vox-temporal-"));
   const caFile = join(directory, "ca.pem"),
     dynamicFile = join(directory, "dynamic.yaml"),
@@ -228,10 +263,37 @@ export async function startSelfHostedTemporal() {
   } finally {
     await connection?.close();
   }
+  let memoryBucket = 0;
+  async function sampleMemory() {
+    if (process.platform !== "linux" || exited) return;
+    try {
+      const status = await readFile(`/proc/${child.pid}/status`, "utf8");
+      const goPeakKiB = Number(status.match(/^VmHWM:\s+(\d+)\s+kB/m)?.[1]);
+      const sumMiB = Math.ceil(
+        (process.resourceUsage().maxRSS + goPeakKiB) / 1024,
+      );
+      if (Number.isFinite(sumMiB) && Math.ceil(sumMiB / 16) > memoryBucket) {
+        memoryBucket = Math.ceil(sumMiB / 16);
+        console.log(
+          JSON.stringify({
+            temporalMemoryPeakSumMiB: sumMiB,
+            measurement:
+              "sum of Node and Temporal process RSS high-water marks",
+          }),
+        );
+      }
+    } catch {
+      /* Process may have exited between samples. */
+    }
+  }
+  const memoryTimer = setInterval(() => void sampleMemory(), 5000);
+  memoryTimer.unref();
+  void sampleMemory();
   active = {
     pid: child.pid,
     async close() {
       stopping = true;
+      clearInterval(memoryTimer);
       child.kill("SIGTERM");
       const timer = setTimeout(() => child.kill("SIGKILL"), 15000);
       await finished;

@@ -4,12 +4,12 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=22.14"
+    "node": ">=22.18"
   },
   "scripts": {
-    "dev": "node server/index.mjs",
-    "build": "vite build",
-    "start": "NODE_ENV=production node server/index.mjs",
+    "dev": "node server/bootstrap.mjs",
+    "build": "vite build && node scripts/build-workflows.mjs",
+    "start": "NODE_ENV=production node server/bootstrap.mjs",
     "test": "node --test tests/*.test.mjs",
     "seed": "node server/seed.mjs",
     "typecheck": "tsc -p tsconfig.ai.json"
@@ -18,11 +18,20 @@
     "@ai-sdk/google": "4.0.101",
     "@ai-sdk/openai-compatible": "^3.0.74",
     "@ai-sdk/react": "^4.0.150",
+    "@browserbasehq/sdk": "2.22.0",
+    "@browserbasehq/stagehand": "4.3.0",
     "@mastra/core": "1.78.0",
     "@mastra/libsql": "1.26.2",
+    "@sentry/node": "11.8.0",
+    "@temporalio/activity": "1.24.0",
+    "@temporalio/client": "1.24.0",
+    "@temporalio/worker": "1.24.0",
+    "@temporalio/workflow": "1.24.0",
     "ai": "^7.0.146",
     "express": "^4.21.2",
+    "express-openid-connect": "3.4.0",
     "lucide-react": "^0.468.0",
+    "mongodb": "7.7.0",
     "motion": "^12.23.24",
     "music-metadata": "12.2.3",
     "react": "^18.3.1",

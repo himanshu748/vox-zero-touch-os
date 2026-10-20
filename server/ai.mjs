@@ -78,6 +78,12 @@ export async function generateStructured({ schema, messages, model, signal }) {
     temperature: 0.1,
     maxOutputTokens: 1200,
     maxRetries: 0,
+    telemetry: {
+      isEnabled: Boolean(process.env.SENTRY_DSN),
+      functionId: "vox-gemma-structured",
+      recordInputs: false,
+      recordOutputs: false,
+    },
     abortSignal: AbortSignal.any([
       AbortSignal.timeout(60000),
       ...(signal ? [signal] : []),
@@ -107,6 +113,12 @@ export function streamStructured({ schema, messages, signal, model }) {
     temperature: 0.1,
     maxOutputTokens: 1200,
     maxRetries: 0,
+    telemetry: {
+      isEnabled: Boolean(process.env.SENTRY_DSN),
+      functionId: "vox-gemma-plan",
+      recordInputs: false,
+      recordOutputs: false,
+    },
     abortSignal: AbortSignal.any([signal, AbortSignal.timeout(60000)]),
   });
   // The route exposes only raw JSON text. Partial data never becomes an executable plan.

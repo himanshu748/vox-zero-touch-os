@@ -2,15 +2,14 @@ import { resolve } from "node:path";
 import express from "express";
 import { createStore } from "./store.mjs";
 import { createApp } from "./app.mjs";
-try {
-  process.loadEnvFile(".env");
-} catch (e) {
-  if (e.code !== "ENOENT") throw e;
-}
+import { flushTelemetry } from "./telemetry.mjs";
+import { connectAtlas } from "./atlas.mjs";
 const store = createStore(
   resolve(process.env.DATA_DIR || "data", "vox.sqlite"),
 );
+const atlas = await connectAtlas(store);
 const { app, engine } = createApp(store);
+await engine.ready;
 let vite;
 if (process.env.NODE_ENV === "production") {
   app.use(express.static("dist"));
@@ -35,6 +34,8 @@ async function shutdown() {
   const stopped = new Promise((resolve) => server.close(resolve));
   await engine.close();
   await vite?.close();
+  await flushTelemetry();
+  await atlas?.close();
   server.closeAllConnections();
   await stopped;
   store.close();

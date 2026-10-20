@@ -2,11 +2,11 @@
 
 Say it once. Get your day back.
 
-VOX is a local support-operations workspace with live Gemma planning/drafting, ElevenLabs transcription/speech and Mastra workflow orchestration. The helpdesk contains 24 fictional tickets. Its writes, plans, approvals and evidence are persisted; external customer delivery is disabled.
+VOX is a support-operations workspace with live Gemma planning/drafting, ElevenLabs transcription/speech and Mastra workflow orchestration. The helpdesk contains 24 fictional tickets. Its writes, plans, approvals and evidence are persisted; external customer delivery is disabled. The expanded hosted adapters and their verification boundaries are listed in [SPONSORS.md](docs/SPONSORS.md).
 
 ## Run
 
-Requires Node.js 22.14 or newer. SQLite uses Node's built-in experimental `node:sqlite` API.
+Requires Node.js 22.18 or newer. SQLite uses Node's built-in experimental `node:sqlite` API.
 
 ```bash
 npm ci
@@ -20,7 +20,7 @@ npm run dev
 - Evidence: http://localhost:4310/app#evidence
 - Health: http://localhost:4310/healthz
 
-Without provider credentials, the app explicitly uses local rules and templates. A configured provider failure does not silently fall back to local generation. Each guest session has an isolated workspace. Keep this build on localhost; public hosting/authentication and infrastructure hardening are separate work.
+Without provider credentials, the app explicitly uses local rules and templates. A configured provider failure does not silently fall back to local generation. Each guest session has an isolated workspace. Production live providers require HTTPS, Auth0 and a verified allowed owner email; paid provider routes and approvals reject guests.
 
 ## Voice to execution
 
@@ -52,7 +52,21 @@ Generated briefings are saved separately in a bounded SQLite audio cache, keyed 
 
 `data/vox.sqlite` stores workspace state, activity cursors, model-response caches, decisions, request receipts and the idempotency ledger. `data/mastra.sqlite` stores Mastra snapshots. A suspended run resumes its saved Mastra instance. Recovery after an unfinished attempt uses the saved application cursor and ledger; a new Mastra attempt skips completed activities. A crash before a provider response is committed can leave an uncertain provider charge, so provider work remains bounded by the plan's call ceiling.
 
-An opaque HttpOnly, SameSite cookie identifies the guest session. Foreign sessions cannot retrieve voice provenance, execute another session's plan, decide its drafts or read its generated audio. JSON mutation routes reject foreign browser origins. This is local session authorization, not Auth0.
+An opaque HttpOnly, SameSite cookie identifies the guest session. Auth0 identities use stable issuer/subject-bound owners. Foreign sessions cannot retrieve voice provenance, execute another session's plan, decide its drafts or read its generated audio. JSON mutation routes reject foreign browser origins.
+
+## Hosted adapters
+
+Set `PUBLIC_ORIGIN`, Auth0's issuer/client credentials/session secret and `AUTH0_ALLOWED_EMAIL` for a public deployment. Auth0 callback is `/auth/callback`; login/logout are under `/auth`. Only `openid profile email` are requested.
+
+`MONGODB_URI` enables acknowledged Atlas workspace, session and audio snapshots. Startup hydrates SQLite from Atlas; failed acknowledgments return an error. Run one web/worker instance. A revision check rejects concurrent writers. Speech cache entries expire after seven days.
+
+`TEMPORAL_ADDRESS`, namespace and scoped API key enable the real Temporal worker. `npm run build` precompiles its deterministic workflow. Temporal owns scheduling, retries and approval signals; Mastra executes validated activities. Only owner/run identifiers enter Temporal payloads. `node scripts/verify-temporal.mjs` verifies restart/retry against a real local Temporal server without model calls.
+
+`SERPAPI_API_KEY` enables up to two live searches per approved research plan. URLs, timestamps and provider search IDs are retained. `BACKBOARD_API_KEY` stores and recalls the workspace's reply-style preference. A returned memory ID follows the next plan. `SENTRY_DSN` enables actual AI SDK and tool tracing with prompt/response recording disabled and exact environment-secret redaction.
+
+`BROWSERBASE_API_KEY` and project ID enable two bounded Stagehand actions against VOX's hosted synthetic helpdesk: fill and save one internal note. An HttpOnly, three-minute signed grant permits only the approved run/ticket/note. The saved field, session ID and ledger are checked before execution continues. No external helpdesk credentials or customer data are used. Browser agent model configuration is separate from the primary Gemma planner.
+
+On Render, use `npm ci --include=dev && npm run build`, `npm start`, `/healthz`, one instance and Node 22.18+. Store keys in a secret file and set `VOX_ENV_FILE=/etc/secrets/vox.env`. Do not put keys in Vite client variables. Atlas must allow only the service's outbound ranges. Hosted provider verification is distinct from local tests and physical microphone checks.
 
 ## Verification
 

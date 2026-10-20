@@ -1,0 +1,125 @@
+● Remote index: queued himanshu748/vox-zero-touch-os for indexing
+
+### 1. Ticket input can crash before the guarded request
+
+**Issue:** `ticket.title.slice(...)` throws when `ticket`, `title`, or `title`’s type is invalid. `ticket.id` can likewise be missing, producing malformed source records.
+
+**Minimal fix:**
+```ts
+const title = z.string().min(1).max(10_000).parse(ticket?.title);
+const ticketId = z.string().min(1).parse(ticket?.id);
+const query = `${title.slice(0, 160)} official documentation troubleshooting`;
+```
+
+Use `ticketId` in the returned sources and validate the public function’s input at its boundary.
+
+**Test:** Call `searchGuidance({})`, `{ title: 123 }`, and a valid ticket; assert invalid inputs fail with a deliberate validation error and valid input generates the bounded query.
+
+---
+
+### 2. API key is placed in a URL and may be exposed through infrastructure logs
+
+**Issue:** `api_key` is embedded in the request URL. Fetch proxies, HTTP access logs, tracing systems, browser-like diagnostics, and exception telemetry commonly record full URLs. A leaked key permits unauthorized SerpApi usage.
+
+**Minimal fix:** Prefer SerpApi’s supported authorization header if available in the deployed API contract:
+```ts
+const url = new URL('https://serpapi.com/search.json');
+url.search = new URLSearchParams({
+  engine: 'google',
+  q: query,
+  num: '3',
+}).toString();
+
+response = await fetchImpl(url, {
+  headers: { 'X-API-KEY': process.env.SERPAPI_API_KEY },
+  signal: requestSignal,
+});
+```
+
+If SerpApi requires the query parameter, ensure URL logging is redacted and never include `url.toString()` in errors or telemetry.
+
+**Test:** Mock `fetchImpl` and assert the API key is absent from the URL and present only in the approved header; separately test URL-redaction behavior in request logging.
+
+---
+
+### 3. Ticket content is sent to a third party without an explicit privacy boundary
+
+**Issue:** Up to 160 characters of a ticket title—including potentially confidential customer, incident, or credential-related information—are transmitted to SerpApi/Google. This may violate data-handling expectations even though the request is technically bounded.
+
+**Minimal fix:** Normalize/redact sensitive data before building the query, or make external research explicitly configurable:
+```ts
+if (process.env.ENABLE_LIVE_RESEARCH !== 'true') return null;
+const safeTitle = redactSensitiveText(title);
+```
+
+At minimum, document that ticket titles leave the system and add an allowlist/consent flag for sensitive deployments.
+
+**Test:** Verify live research is disabled by default or when the feature flag is false, and verify known secret/token patterns are removed before `fetchImpl` is called.
+
+---
+
+### 4. Untrusted SerpApi response shape can cause uncaught runtime errors
+
+**Issue:** `(data.organic_results || []).slice(...)` assumes `organic_results` is an array. A malformed or adversarial upstream response such as `{ organic_results: {} }` causes `TypeError`. `data.search_metadata.id` is also used without validating its type.
+
+**Minimal fix:**
+```ts
+const resultSchema = z.object({
+  search_metadata: z.object({
+    status: z.literal('Success'),
+    id: z.string().min(1),
+  }),
+  organic_results: z.array(z.unknown()).default([]),
+  error: z.unknown().optional(),
+});
+
+const parsedData = resultSchema.safeParse(data);
+if (!parsedData.success || parsedData.data.error) {
+  throw new Error('SerpApi did not return a successful search.');
+}
+
+const { search_metadata, organic_results } = parsedData.data;
+```
+
+Use `search_metadata.id` from the validated result.
+
+**Test:** Return malformed payloads with `organic_results: {}`, missing metadata, and non-string IDs; assert the function emits the documented SerpApi error rather than a `TypeError`.
+
+---
+
+### 5. Response size is not bounded
+
+**Issue:** `response.json()` reads an unbounded response body. A compromised or malfunctioning upstream can cause excessive memory use.
+
+**Minimal fix:** Enforce a response size limit before parsing, using the project’s standard bounded-response helper. If none exists, read the body incrementally and abort/reject after a fixed limit, such as 1 MB.
+
+**Test:** Mock a response exceeding the limit and assert it is rejected without attempting JSON parsing; test a normal SerpApi response still succeeds.
+
+---
+
+### 6. Runtime compatibility risk from `AbortSignal.any` and `AbortSignal.timeout`
+
+**Issue:** These APIs are unavailable in some supported Node/Worker runtimes. The failure occurs inside the `try`, so it is misleadingly reported as a network failure.
+
+**Minimal fix:** Use the repository’s supported timeout/abort helper, or feature-detect and compose signals with a portable controller:
+```ts
+const controller = new AbortController();
+const timer = setTimeout(() => controller.abort(), 30_000);
+signal?.addEventListener('abort', () => controller.abort(), { once: true });
+
+try {
+  response = await fetchImpl(url, { signal: controller.signal });
+} finally {
+  clearTimeout(timer);
+}
+```
+
+**Test:** Run under the minimum supported runtime and test both timeout cancellation and caller-supplied cancellation.
+
+
+
+
+Changes    +0 -0
+AI Credits 0.55 (40s)
+Tokens     ↑ 16.9k (16.9k written) • ↓ 1.6k (472 reasoning)
+Resume     copilot --resume=93041358-8a15-446f-b6a7-051549f9f954

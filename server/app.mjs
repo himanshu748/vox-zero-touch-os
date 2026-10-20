@@ -13,12 +13,22 @@ import {
   integrationStatus,
 } from "./providers.mjs";
 import { createEngine, event, summary, briefing } from "./engine.mjs";
+import {
+  configureIdentity,
+  authenticatedOwner,
+  requireIdentity,
+} from "./identity.mjs";
+import { createMemory } from "./memory.mjs";
+import { configureBrowserOperations } from "./browser-operations.mjs";
 export function createApp(
   store,
   { delay = 700, voice = createVoiceServices() } = {},
 ) {
   const app = express(),
     engine = createEngine(store, { delay });
+  const identityEnabled = configureIdentity(app),
+    memory = createMemory();
+  configureBrowserOperations(app, store);
   app.disable("x-powered-by");
   app.use((req, res, next) => {
     res.set({
@@ -41,6 +51,34 @@ export function createApp(
   });
   app.use("/api", express.json({ limit: "20kb" }));
   app.use("/api", (req, res, next) => {
+    if (store.flush) {
+      const json = res.json.bind(res);
+      res.json = (body) => {
+        void store.flush().then(
+          () => {
+            if (!res.destroyed) json(body);
+          },
+          () => {
+            if (!res.destroyed) {
+              res.status(503);
+              json({
+                error:
+                  "Atlas did not acknowledge this update. Retry when database access is restored.",
+              });
+            }
+          },
+        );
+        return res;
+      };
+    }
+    next();
+  });
+  app.use("/api", (req, res, next) => {
+    const identityOwner = authenticatedOwner(req);
+    if (identityOwner) {
+      req.owner = identityOwner;
+      return next();
+    }
     let token = req.headers.cookie
       ?.split("; ")
       .find((c) => c.startsWith("vox_session="))
@@ -64,12 +102,36 @@ export function createApp(
       });
     }
     req.owner = session.owner;
-    next();
+    if (store.saveSession)
+      store.saveSession(hash, session.owner).then(() => next(), next);
+    else next();
   });
   const wrap = (fn) => (req, res, next) =>
     Promise.resolve(fn(req, res)).catch(next);
+  app.use("/api", (req, res, next) => {
+    if (
+      process.env.VOX_REQUIRE_PROVIDER_LOGIN === "true" &&
+      req.method === "POST" &&
+      /^\/(plans(?:\/stream)?|transcribe|speech|preferences|runs(?:\/.*)?)$/.test(
+        req.path,
+      ) &&
+      !authenticatedOwner(req)
+    )
+      return res
+        .status(401)
+        .json({
+          error:
+            "Sign in with an authorized Auth0 account to use live providers.",
+          login: "/auth/login",
+        });
+    next();
+  });
   app.get("/healthz", (_, res) =>
-    res.json({ status: "ok", storage: "sqlite", mode: "synthetic sandbox" }),
+    res.json({
+      status: "ok",
+      storage: store.storageMode || "sqlite",
+      mode: "synthetic sandbox",
+    }),
   );
   app.get("/api/state", (req, res) => {
     const s = store.get(req.owner);
@@ -82,19 +144,31 @@ export function createApp(
         metrics: summary(s, r),
         briefing: r.finishedAt ? briefing(s, r) : null,
       })),
-      integrations: integrationStatus(s.receipts),
+      integrations: integrationStatus(s.receipts, {
+        storage: store.storageMode,
+        identity: identityEnabled,
+      }),
       capabilities: {
         gemma: gemmaEnabled(),
         elevenlabs: voiceEnabled(),
         speech: voiceEnabled() && Boolean(process.env.ELEVENLABS_VOICE_ID),
         aiSdk: "7.0.146",
         orchestration: "Mastra 1.78.0",
+        temporal: Boolean(process.env.TEMPORAL_ADDRESS),
+        identity: identityEnabled,
+        authenticated: Boolean(authenticatedOwner(req)),
+        storage: store.storageMode || "SQLite",
         gemmaModel: gemmaEnabled() ? modelConnection().model : null,
         voiceId: voiceEnabled()
           ? process.env.ELEVENLABS_VOICE_ID || null
           : null,
       },
-      session: { id: req.owner.slice(0, 8), kind: "isolated guest session" },
+      session: {
+        id: req.owner.slice(-8),
+        kind: authenticatedOwner(req)
+          ? "Auth0 identity"
+          : "isolated guest session",
+      },
     });
   });
   app.get("/api/plans/:id", (req, res) => {
@@ -103,6 +177,21 @@ export function createApp(
       return res.status(404).json({ error: "Plan not found in your session." });
     res.json(plan);
   });
+  app.get(
+    "/api/runs/:id/temporal",
+    wrap(async (req, res) => {
+      if (!store.get(req.owner).runs.some((run) => run.id === req.params.id))
+        return res
+          .status(404)
+          .json({ error: "Run not found in your workspace." });
+      const history = await engine.temporalHistory(req.owner, req.params.id);
+      if (!history)
+        return res
+          .status(404)
+          .json({ error: "This run has no Temporal history." });
+      res.json(history);
+    }),
+  );
   app.post(
     "/api/plans/stream",
     wrap(async (req, res) => {
@@ -131,6 +220,7 @@ export function createApp(
           .json({ error: "This plan request already exists." });
       const local = localIntent(input.command),
         controller = new AbortController();
+      const remembered = await memory.recall(store, req.owner);
       // Check the scope before any model request or streaming response starts.
       buildPlan(input.command, input.scope, local, state.tickets, "local");
       res.on("close", () => {
@@ -194,7 +284,8 @@ export function createApp(
           createdAt: new Date().toISOString(),
           status: "preview",
           injectFailure: state.preferences.injectFailure,
-          style: state.preferences.style,
+          style: remembered?.style || state.preferences.style,
+          memory: remembered || null,
           ui: "schema-driven plan cards",
           input: transcript
             ? {
@@ -208,6 +299,7 @@ export function createApp(
           s.plans.push(plan);
           if (receipt) s.receipts.push(receipt);
         });
+        await store.flush?.();
         if (!gemmaEnabled()) res.write(JSON.stringify(intent));
         res.end();
       } catch (error) {
@@ -246,6 +338,7 @@ export function createApp(
             "Plan limit reached. Reset this synthetic workspace to continue.",
         });
       localIntent(command);
+      const remembered = await memory.recall(store, req.owner);
       let intent, receipt;
       if (gemmaEnabled()) {
         ({ intent, receipt } = await planWithGemma(command));
@@ -262,7 +355,8 @@ export function createApp(
         createdAt: new Date().toISOString(),
         status: "preview",
         injectFailure: s.preferences.injectFailure,
-        style: s.preferences.style,
+        style: remembered?.style || s.preferences.style,
+        memory: remembered || null,
         input: transcript
           ? {
               kind: "voice",
@@ -373,7 +467,7 @@ export function createApp(
     void engine.start(req.owner, req.params.id);
     res.json({ ok: true });
   });
-  app.post("/api/approvals/:id", (req, res) => {
+  app.post("/api/approvals/:id", requireIdentity, (req, res) => {
     const { decision } = z
       .object({ decision: z.enum(["approve", "reject"]) })
       .strict()
@@ -423,18 +517,23 @@ export function createApp(
       void engine.approvalsChanged(req.owner, run.id);
     res.json({ ok: true });
   });
-  app.post("/api/preferences", (req, res) => {
-    const prefs = z
-      .object({
-        style: z.enum(["concise", "friendly", "detailed"]),
-        injectFailure: z.boolean(),
-        scope: z.enum(["all", "urgent", "untriaged"]).default("all"),
-      })
-      .strict()
-      .parse(req.body);
-    store.mutate(req.owner, (s) => (s.preferences = prefs));
-    res.json(prefs);
-  });
+  app.post(
+    "/api/preferences",
+    wrap(async (req, res) => {
+      const prefs = z
+        .object({
+          style: z.enum(["concise", "friendly", "detailed"]),
+          injectFailure: z.boolean(),
+          scope: z.enum(["all", "urgent", "untriaged"]).default("all"),
+        })
+        .strict()
+        .parse(req.body);
+      store.mutate(req.owner, (s) => (s.preferences = prefs));
+      await memory.saveStyle(store, req.owner, prefs.style);
+      await store.flush?.();
+      res.json(prefs);
+    }),
+  );
   app.post("/api/reset", (req, res) => {
     if (store.get(req.owner).runs.some((r) => r.status === "running"))
       return res
@@ -531,6 +630,7 @@ export function createApp(
         store.mutate(req.owner, (state) =>
           state.receipts.push({ id: randomUUID(), ...result.receipt }),
         );
+      await store.flush?.();
       res
         .set("X-VOX-Audio-Cache", result.cached ? "hit" : "miss")
         .type("audio/mpeg")
@@ -549,7 +649,10 @@ export function createApp(
         ledger: s.ledger,
         receipts: s.receipts,
         transcripts: s.transcripts || [],
-        integrations: integrationStatus(s.receipts),
+        integrations: integrationStatus(s.receipts, {
+          storage: store.storageMode,
+          identity: identityEnabled,
+        }),
       });
   });
   app.use("/api", (_, res) =>

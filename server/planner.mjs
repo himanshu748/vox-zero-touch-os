@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { intentSchema } from "../shared/contracts.mjs";
+import { browserEnabled } from "./browser-operations.mjs";
 export { intentSchema };
 export const commandSchema = z
   .object({
@@ -72,6 +73,9 @@ export function localIntent(command) {
   });
 }
 export function buildPlan(command, scope, intent, tickets, provider) {
+  const liveResearch =
+    Boolean(process.env.SERPAPI_API_KEY) && provider !== "local";
+  const liveBrowser = browserEnabled() && provider !== "local";
   const chosen = tickets.filter((t) =>
     scope === "urgent"
       ? risk(t).score >= 75
@@ -111,15 +115,17 @@ export function buildPlan(command, scope, intent, tickets, provider) {
     steps.push({
       kind: "research",
       title: "Find relevant guidance",
-      detail:
-        "Retrieve checked-in support playbooks and official documentation links.",
+      detail: liveResearch
+        ? "Search current guidance for up to two priority tickets with SerpApi; save source URLs and timestamps."
+        : "Retrieve checked-in support playbooks and official documentation links.",
     });
   if (actions.includes("tag"))
     steps.push({
       kind: "tag",
       title: "Update internal labels",
-      detail:
-        "Add attention-needed tags to urgent and high-priority sandbox tickets.",
+      detail: liveBrowser
+        ? "Use Browserbase to save one internal review note through the helpdesk UI, then label urgent and high-priority tickets."
+        : "Add attention-needed tags to urgent and high-priority sandbox tickets.",
     });
   if (actions.includes("draft"))
     steps.push({
@@ -141,6 +147,10 @@ export function buildPlan(command, scope, intent, tickets, provider) {
     draftCount,
     steps,
     provider,
+    researchMode: liveResearch ? "serpapi" : "local",
+    maxSearchCalls: liveResearch && actions.includes("research") ? 2 : 0,
+    browserMode: liveBrowser ? "browserbase" : "local",
+    maxBrowserModelCalls: liveBrowser && actions.includes("tag") ? 2 : 0,
     estimatedCalls: provider === "local" ? 0 : 1 + draftCount,
     maxProviderCalls: 8,
     boundaries: [

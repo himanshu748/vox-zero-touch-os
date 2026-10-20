@@ -1,5 +1,6 @@
 import { generateStructured, modelConnection } from "./ai.mjs";
 import { intentSchema } from "./planner.mjs";
+import { browserEnabled } from "./browser-operations.mjs";
 export const gemmaEnabled = () => modelConnection().ready;
 export const voiceEnabled = () => Boolean(process.env.ELEVENLABS_API_KEY);
 export async function planWithGemma(command) {
@@ -29,19 +30,39 @@ export async function planWithGemma(command) {
     },
   };
 }
-export function integrationStatus(receipts) {
+export function integrationStatus(receipts, { storage, identity } = {}) {
   const defs = [
     ["gemma", "Gemma", "Open-weight planning", gemmaEnabled()],
     ["elevenlabs", "ElevenLabs", "Speech in and out", voiceEnabled()],
-    ["temporal", "Temporal", "Cloud workflow durability", false],
-    ["mongodb", "MongoDB Atlas", "Operational persistence", false],
-    ["browserbase", "Browserbase", "Browser-based actions", false],
-    ["auth0", "Auth0", "Identity and approvals", false],
-    ["mastra", "Mastra", "Local workflow orchestration", true],
-    ["render", "Render", "Public hosting", false],
-    ["serpapi", "SerpApi", "Fresh web research", false],
-    ["backboard", "Backboard", "Cross-run memory", false],
-    ["sentry", "Sentry", "Agent tracing", false],
+    [
+      "temporal",
+      "Temporal",
+      "Workflow durability",
+      Boolean(process.env.TEMPORAL_ADDRESS),
+    ],
+    ["mongodb", "MongoDB Atlas", "Operational persistence", Boolean(storage)],
+    ["browserbase", "Browserbase", "Browser-based actions", browserEnabled()],
+    ["auth0", "Auth0", "Identity and approvals", Boolean(identity)],
+    ["mastra", "Mastra", "Validated workflow graph", true],
+    [
+      "render",
+      "Render",
+      "Public hosting",
+      Boolean(process.env.RENDER_SERVICE_ID),
+    ],
+    [
+      "serpapi",
+      "SerpApi",
+      "Fresh web research",
+      Boolean(process.env.SERPAPI_API_KEY),
+    ],
+    [
+      "backboard",
+      "Backboard",
+      "Cross-run memory",
+      Boolean(process.env.BACKBOARD_API_KEY),
+    ],
+    ["sentry", "Sentry", "Agent tracing", Boolean(process.env.SENTRY_DSN)],
     ["digitalocean", "DigitalOcean", "Inference hosting", false],
     ["entire", "Entire", "Development sessions", false],
     ["copilot", "GitHub Copilot", "Development evidence", false],
@@ -56,14 +77,13 @@ export function integrationStatus(receipts) {
     id,
     name,
     role,
-    status:
-      id === "mastra" ? "local" : configured ? "configured" : "not connected",
+    status: configured ? "configured" : "not connected",
     proofCount:
       id === "gemma"
         ? receipts.filter((r) => r.provider === "Gemma endpoint").length
         : id === "elevenlabs"
           ? receipts.filter((r) => r.provider === "ElevenLabs").length
-          : 0,
+          : receipts.filter((r) => r.provider === name).length,
     claimable: false,
   }));
 }

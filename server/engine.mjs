@@ -4,6 +4,10 @@ import { risk } from "./planner.mjs";
 import { knowledge } from "./seed.mjs";
 import { generateStructured } from "./ai.mjs";
 import { createWorkflowRuntime } from "./workflow-runtime.mjs";
+import { createTemporalRuntime } from "./temporal-runtime.mjs";
+import { searchGuidance } from "./research.mjs";
+import { traceActivity } from "./telemetry.mjs";
+import { reviewTicketInBrowser } from "./browser-operations.mjs";
 const stamp = () => new Date().toISOString();
 export function event(run, title, detail, status = "completed") {
   run.events.push({ id: randomUUID(), title, detail, status, at: stamp() });
@@ -85,6 +89,36 @@ export function createEngine(
       throw new Error("Recoverable pre-write label interruption");
     }
     controllers.set(id, new AbortController());
+    if (kind === "tag" && run.plan.browserMode === "browserbase")
+      await reviewTicketInBrowser(store, owner, id);
+    if (kind === "research" && run.plan.researchMode === "serpapi") {
+      const selected = state.tickets
+        .filter((t) => run.plan.ticketIds.includes(t.id))
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 2);
+      for (const ticket of selected) {
+        if (
+          store
+            .get(owner)
+            .runs.find((item) => item.id === id)
+            ?.liveSources?.some((source) => source.ticketId === ticket.id)
+        )
+          continue;
+        const result = await searchGuidance(ticket, {
+          signal: controllers.get(id)?.signal,
+        });
+        if (!result)
+          throw new Error(
+            "The approved live research provider is no longer configured.",
+          );
+        store.mutate(owner, (s) => {
+          const current = s.runs.find((item) => item.id === id);
+          (current.liveSources ||= []).push(...result.sources);
+          s.receipts.push({ id: randomUUID(), runId: id, ...result.receipt });
+        });
+        await store.flush?.();
+      }
+    }
     let modelDrafts = null;
     if (step.kind === "draft" && run.plan.provider === "gemma") {
       const sorted = state.tickets
@@ -131,6 +165,13 @@ export function createEngine(
               content: JSON.stringify({
                 ticket: { title: ticket.title, body: ticket.body },
                 playbook: knowledge[ticket.category],
+                liveSources:
+                  store
+                    .get(owner)
+                    .runs.find((item) => item.id === id)
+                    ?.liveSources?.filter(
+                      (source) => source.ticketId === ticket.id,
+                    ) || [],
               }),
             },
           ],
@@ -185,15 +226,20 @@ export function createEngine(
         );
       }
       if (step.kind === "research") {
-        r.sources = [...new Set(tickets.map((t) => t.category))].map((c) => ({
-          ...knowledge[c],
-          kind: "checked-in playbook",
-          retrievedAt: stamp(),
-        }));
+        r.sources = [
+          ...(r.liveSources || []),
+          ...[...new Set(tickets.map((t) => t.category))].map((c) => ({
+            ...knowledge[c],
+            kind: "checked-in playbook",
+            retrievedAt: stamp(),
+          })),
+        ];
         event(
           r,
           "Support playbooks retrieved",
-          `${r.sources.length} local playbooks selected. Their documentation links have not been fetched live.`,
+          r.liveSources?.length
+            ? `${r.liveSources.length} live SerpApi results saved alongside checked-in playbooks. Search snippets are untrusted reference material.`
+            : `${r.sources.length} local playbooks selected. Their documentation links have not been fetched live.`,
         );
       }
       if (step.kind === "tag") {
@@ -227,6 +273,9 @@ export function createEngine(
           .forEach((t) =>
             record(s, r, t, "draft", () => {
               const source = knowledge[t.category];
+              const liveSources = (r.liveSources || []).filter(
+                (item) => item.ticketId === t.id,
+              );
               const greeting =
                 r.style === "friendly"
                   ? `Hi ${t.name.split(" ")[0]}, thanks for getting in touch. `
@@ -237,7 +286,9 @@ export function createEngine(
               t.drafts.push({
                 id: randomUUID(),
                 runId: id,
-                body,
+                body: liveSources.length
+                  ? `${body}\n\nReferences retrieved for this reply:\n${liveSources.map((item) => `${item.title}: ${item.url}`).join("\n")}`
+                  : body,
                 status: "pending",
                 source: {
                   title: source.title,
@@ -245,6 +296,7 @@ export function createEngine(
                   kind: "checked-in reference, not live research",
                 },
                 confidence: "Needs human review",
+                liveSources,
                 createdAt: stamp(),
                 expiresAt: new Date(Date.now() + 86400000).toISOString(),
                 provider:
@@ -270,6 +322,7 @@ export function createEngine(
     });
 
     controllers.delete(id);
+    await store.flush?.();
     return (
       !closed &&
       store.get(owner).runs.find((run) => run.id === id)?.status !== "cancelled"
@@ -277,7 +330,18 @@ export function createEngine(
   }
   const runtime = createWorkflowRuntime({
     store,
-    applyActivity,
+    applyActivity: (owner, id, kind) =>
+      traceActivity(
+        id,
+        kind,
+        () => applyActivity(owner, id, kind),
+        (traceId) =>
+          store.mutate(owner, (s) => {
+            const run = s.runs.find((item) => item.id === id);
+            if (run && !run.traces?.includes(traceId))
+              (run.traces ||= []).push(traceId);
+          }),
+      ),
     event,
     summary,
     delay,
@@ -295,9 +359,40 @@ export function createEngine(
       });
     },
   });
+  let temporal;
+  const ready = createTemporalRuntime({
+    store,
+    execute: runtime.start,
+    event,
+  }).then((value) => {
+    temporal = value;
+  });
+  async function start(owner, id) {
+    await ready;
+    try {
+      return await (temporal
+        ? temporal.start(owner, id)
+        : runtime.start(owner, id));
+    } catch {
+      store.mutate(owner, (state) => {
+        const run = state.runs.find((item) => item.id === id);
+        if (run?.status === "running") {
+          run.status = "failed";
+          event(
+            run,
+            "Orchestration unavailable",
+            "The configured workflow service could not schedule this run. No local fallback was started.",
+            "failed",
+          );
+        }
+      });
+    }
+  }
   return {
-    start: runtime.start,
-    approvalsChanged: runtime.start,
+    ready,
+    start,
+    approvalsChanged: start,
+    temporalHistory: (owner, id) => temporal?.history(owner, id),
     snapshot: runtime.snapshot,
     cancel(id) {
       controllers.get(id)?.abort();
@@ -314,12 +409,14 @@ export function createEngine(
               "Loaded the saved cursor. Completed writes and model responses are protected from replay.",
             ),
           );
-          void runtime.start(owner, run.id);
+          void start(owner, run.id);
         }
     },
     async close() {
       closed = true;
       for (const controller of controllers.values()) controller.abort();
+      await ready;
+      await temporal?.close();
       await runtime.close();
     },
   };

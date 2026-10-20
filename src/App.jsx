@@ -1036,7 +1036,13 @@ export default function App() {
           <div className="user-card">
             <span className="user-avatar">H</span>
             <span>
-              My workspace<small>Guest session · {state.session.id}</small>
+              My workspace
+              <small>
+                {state.capabilities.authenticated
+                  ? "Auth0 account"
+                  : "Guest session"}{" "}
+                · {state.session.id}
+              </small>
             </span>
             <button
               className="icon-button"
@@ -1054,6 +1060,20 @@ export default function App() {
               <MoreHorizontal size={18} />
             </button>
           </div>
+          {state.capabilities.identity && (
+            <a
+              className="nav-item"
+              href={
+                state.capabilities.authenticated
+                  ? "/auth/logout"
+                  : "/auth/login"
+              }
+            >
+              {state.capabilities.authenticated
+                ? "Sign out"
+                : "Sign in with Auth0"}
+            </a>
+          )}
         </div>
       </aside>
       <div className="main-shell" inert={menuOpen ? "" : undefined}>
@@ -2061,11 +2081,11 @@ export default function App() {
                       <div>
                         <h3>Working in this workspace</h3>
                         <p>
-                          SQLite persistence, bounded planning, ticket scoring,
-                          saved labels, drafts, approvals, checkpoints and
-                          idempotent retries.
+                          {state.capabilities.storage || "SQLite"} persistence,
+                          bounded planning, ticket scoring, saved labels,
+                          drafts, approvals, checkpoints and idempotent retries.
                         </p>
-                        <Badge kind="local">Local implementation</Badge>
+                        <Badge kind="local">Saved operational state</Badge>
                       </div>
                     </div>
                     <div className="panel evidence-local">
@@ -2075,9 +2095,10 @@ export default function App() {
                       <div>
                         <h3>Honest about the missing pieces</h3>
                         <p>
-                          Mastra runs locally; provider usage is shown below.
-                          Configuring an API key is only the first step. Live
-                          usage and independent evidence are still required.
+                          Mastra executes the validated workflow; provider usage
+                          is shown below. Configuring an API key is only the
+                          first step. Live usage and independent evidence are
+                          still required.
                         </p>
                         <Badge>0 categories claimed</Badge>
                       </div>
@@ -2118,9 +2139,7 @@ export default function App() {
                                   : "Not connected"}
                             </Badge>
                             {p.proofCount > 0 && (
-                              <small>
-                                {p.proofCount} local request receipts
-                              </small>
+                              <small>{p.proofCount} request receipts</small>
                             )}
                           </div>
                         </div>
@@ -2767,9 +2786,15 @@ export default function App() {
                     {state.capabilities.elevenlabs
                       ? "ElevenLabs handles transcription and spoken briefings."
                       : "ElevenLabs requires server configuration."}{" "}
-                    Mastra orchestrates the saved execution steps. Temporal,
-                    Auth0, Browserbase and other cloud integrations are not
-                    implemented or claimed in this build.
+                    Mastra orchestrates the saved execution steps.{" "}
+                    {state.capabilities.temporal
+                      ? "Temporal schedules durable execution. "
+                      : ""}
+                    {state.capabilities.identity
+                      ? "Auth0 protects signed-in actions. "
+                      : ""}
+                    The evidence view reports each provider’s current
+                    configuration and actual requests.
                   </p>
                 </div>
                 <div className="modal-actions">

@@ -1,0 +1,758 @@
+{
+  "verifiedAt": "2026-10-20T06:18:12.259Z",
+  "scope": "real local Temporal server; synthetic helpdesk; no provider requests",
+  "workerRestarted": true,
+  "metrics": {
+    "tickets": 24,
+    "triaged": 24,
+    "labels": 0,
+    "drafts": 2,
+    "pending": 0,
+    "sent": 0,
+    "rejected": 2,
+    "urgent": 6,
+    "retries": 1
+  },
+  "run": {
+    "id": "fb81e51a-908d-4122-b416-452af18f0513",
+    "plan": {
+      "command": "Triage tickets, research and draft two replies",
+      "scope": "all",
+      "actions": [
+        "triage",
+        "research",
+        "draft"
+      ],
+      "objective": "Get the support queue ready for a human review.",
+      "ticketIds": [
+        "VX-1042",
+        "VX-1043",
+        "VX-1044",
+        "VX-1045",
+        "VX-1046",
+        "VX-1047",
+        "VX-1048",
+        "VX-1049",
+        "VX-1050",
+        "VX-1051",
+        "VX-1052",
+        "VX-1053",
+        "VX-1054",
+        "VX-1055",
+        "VX-1056",
+        "VX-1057",
+        "VX-1058",
+        "VX-1059",
+        "VX-1060",
+        "VX-1061",
+        "VX-1062",
+        "VX-1063",
+        "VX-1064",
+        "VX-1065"
+      ],
+      "draftCount": 2,
+      "steps": [
+        {
+          "kind": "inspect",
+          "title": "Inspect the queue",
+          "detail": "Read 24 synthetic tickets and their response deadlines."
+        },
+        {
+          "kind": "triage",
+          "title": "Prioritize with evidence",
+          "detail": "Rank response deadlines and reported impact. Save the reasons."
+        },
+        {
+          "kind": "research",
+          "title": "Find relevant guidance",
+          "detail": "Retrieve checked-in support playbooks and official documentation links."
+        },
+        {
+          "kind": "draft",
+          "title": "Prepare reply drafts",
+          "detail": "Create up to 2 sourced drafts. Every simulated send needs your approval."
+        },
+        {
+          "kind": "brief",
+          "title": "Prepare your briefing",
+          "detail": "Count saved changes and surface the items that need you."
+        }
+      ],
+      "provider": "local",
+      "researchMode": "local",
+      "maxSearchCalls": 0,
+      "estimatedCalls": 0,
+      "maxProviderCalls": 8,
+      "boundaries": [
+        "Synthetic helpdesk only",
+        "Internal labels and drafts only",
+        "No external messages or account changes",
+        "Approval required for every simulated send"
+      ]
+    },
+    "status": "completed",
+    "cursor": 5,
+    "events": [
+      {
+        "id": "ec98fece-21f8-497f-adab-2da4c61c2ca9",
+        "title": "Temporal retry demonstration",
+        "detail": "Interrupted before any pipeline activity. Temporal retries from recorded event history.",
+        "status": "retry",
+        "at": "2026-10-20T06:18:09.429Z"
+      },
+      {
+        "id": "faf304b8-1041-4b50-99dc-4bf2fd47a657",
+        "title": "Mastra workflow started",
+        "detail": "Named activities and the human approval gate are orchestrated by Mastra. Snapshots are stored in local libSQL.",
+        "status": "completed",
+        "at": "2026-10-20T06:18:10.516Z"
+      },
+      {
+        "id": "d19c7ffc-e339-4e39-afa6-f4b2b0e3a4ef",
+        "title": "Queue inspected",
+        "detail": "Read 24 synthetic tickets. No customer accounts were connected.",
+        "status": "completed",
+        "at": "2026-10-20T06:18:10.528Z"
+      },
+      {
+        "id": "afe43a7a-b4de-4c09-92df-7727da8b9a34",
+        "title": "Priorities saved",
+        "detail": "Ranked 24 tickets using SLA deadlines and reported impact. Scoring: deterministic rules v1.",
+        "status": "completed",
+        "at": "2026-10-20T06:18:10.537Z"
+      },
+      {
+        "id": "eccc2f45-b75e-4e81-8287-662467c9ad12",
+        "title": "Support playbooks retrieved",
+        "detail": "5 local playbooks selected. Their documentation links have not been fetched live.",
+        "status": "completed",
+        "at": "2026-10-20T06:18:10.545Z"
+      },
+      {
+        "id": "d7f329c2-1e12-479e-8b67-1aa08714599a",
+        "title": "Reply drafts prepared",
+        "detail": "2 drafts saved for your review. Simulated sending is blocked until you approve each one.",
+        "status": "completed",
+        "at": "2026-10-20T06:18:10.556Z"
+      },
+      {
+        "id": "896d16c3-d056-40ce-8cee-b6921bced7c9",
+        "title": "Your briefing is ready",
+        "detail": "I triaged 24 tickets, added 0 internal labels and prepared 2 replies. 6 tickets are urgent. 2 replies await your approval. 0 replies were sent inside the synthetic sandbox. No external messages were sent.",
+        "status": "completed",
+        "at": "2026-10-20T06:18:10.564Z"
+      },
+      {
+        "id": "1eb9c28a-960f-40b5-b92f-54eb62b47319",
+        "title": "Mastra workflow resumed",
+        "detail": "Named activities and the human approval gate are orchestrated by Mastra. Snapshots are stored in local libSQL.",
+        "status": "completed",
+        "at": "2026-10-20T06:18:12.046Z"
+      }
+    ],
+    "sources": [
+      {
+        "title": "Deployment troubleshooting",
+        "url": "https://render.com/docs/troubleshooting-deploys",
+        "content": "Review the deploy logs and the most recent configuration change. Exit code 137 commonly indicates a process was killed, often due to memory pressure. Check memory metrics before changing instance size. Rebuild after environment changes.",
+        "kind": "checked-in playbook",
+        "retrievedAt": "2026-10-20T06:18:10.545Z"
+      },
+      {
+        "title": "Authentication troubleshooting",
+        "url": "https://auth0.com/docs/troubleshoot",
+        "content": "Check the configured connection, callback URL, role permissions and the identity provider logs. Ask a workspace administrator to review access. Never bypass SSO or change entitlements on the user’s behalf.",
+        "kind": "checked-in playbook",
+        "retrievedAt": "2026-10-20T06:18:10.545Z"
+      },
+      {
+        "title": "Service troubleshooting",
+        "url": "https://render.com/docs/troubleshooting-deploys",
+        "content": "Check service health, logs, error timestamps and resource metrics. For rate limits, inspect Retry-After and use exponential backoff. For database connections, review connection pool limits. Confirm the root cause before recommending a production change.",
+        "kind": "checked-in playbook",
+        "retrievedAt": "2026-10-20T06:18:10.545Z"
+      },
+      {
+        "title": "Billing and invoices",
+        "url": "https://render.com/docs/billing",
+        "content": "Check the billing dashboard and compare the service dates, seat count and prorated adjustments. A billing administrator can download invoices. Billing discrepancies need manual confirmation before any refund or account change.",
+        "kind": "checked-in playbook",
+        "retrievedAt": "2026-10-20T06:18:10.545Z"
+      },
+      {
+        "title": "Developer documentation",
+        "url": "https://render.com/docs",
+        "content": "Locate the relevant section of the official documentation and verify the project settings. Ask for the CLI version or a minimal reproducible example if the specific error is unclear. Never share API keys in a support thread.",
+        "kind": "checked-in playbook",
+        "retrievedAt": "2026-10-20T06:18:10.545Z"
+      }
+    ],
+    "style": "concise",
+    "injectFailure": true,
+    "faultInjected": false,
+    "createdAt": "2026-10-20T06:18:09.095Z",
+    "temporal": {
+      "workflowId": "vox-fb81e51a-908d-4122-b416-452af18f0513",
+      "runId": "01a157f5-cd5f-71fb-934c-fe4e6c402990",
+      "namespace": "default",
+      "status": "running"
+    },
+    "temporalFaultInjected": true,
+    "workflow": {
+      "engine": "Mastra",
+      "workflowId": "vox-support-v1",
+      "runId": "4794e64e-aa2e-4540-a1df-4deace3fe050",
+      "attempt": 1,
+      "status": "success"
+    },
+    "prioritySnapshot": {
+      "VX-1042": "urgent",
+      "VX-1043": "urgent",
+      "VX-1044": "urgent",
+      "VX-1045": "normal",
+      "VX-1046": "normal",
+      "VX-1047": "normal",
+      "VX-1048": "normal",
+      "VX-1049": "normal",
+      "VX-1050": "urgent",
+      "VX-1051": "high",
+      "VX-1052": "normal",
+      "VX-1053": "normal",
+      "VX-1054": "normal",
+      "VX-1055": "urgent",
+      "VX-1056": "normal",
+      "VX-1057": "normal",
+      "VX-1058": "normal",
+      "VX-1059": "normal",
+      "VX-1060": "normal",
+      "VX-1061": "urgent",
+      "VX-1062": "normal",
+      "VX-1063": "normal",
+      "VX-1064": "normal",
+      "VX-1065": "normal"
+    },
+    "finishedAt": "2026-10-20T06:18:10.564Z",
+    "briefing": "I triaged 24 tickets, added 0 internal labels and prepared 2 replies. 6 tickets are urgent. 2 replies await your approval. 0 replies were sent inside the synthetic sandbox. No external messages were sent."
+  },
+  "history": {
+    "workflowId": "vox-fb81e51a-908d-4122-b416-452af18f0513",
+    "runId": "01a157f5-cd5f-71fb-934c-fe4e6c402990",
+    "namespace": "default",
+    "status": "COMPLETED",
+    "events": [
+      {
+        "eventId": "1",
+        "eventTime": {
+          "seconds": "1792477089",
+          "nanos": 119132000
+        },
+        "eventType": "EVENT_TYPE_WORKFLOW_EXECUTION_STARTED",
+        "taskId": "1048587",
+        "workflowExecutionStartedEventAttributes": {
+          "workflowType": {
+            "name": "voxWorkflow"
+          },
+          "taskQueue": {
+            "name": "vox-support",
+            "kind": "TASK_QUEUE_KIND_NORMAL"
+          },
+          "input": {
+            "payloads": [
+              {
+                "metadata": {
+                  "encoding": "anNvbi9wbGFpbg=="
+                },
+                "data": "eyJvd25lciI6InByb29mLTZlODAwODczLThjMzAtNDVjOS1hMDAwLTNkNGI2MmQ3YTE3NiIsImlkIjoiZmI4MWU1MWEtOTA4ZC00MTIyLWI0MTYtNDUyYWYxOGYwNTEzIn0="
+              }
+            ]
+          },
+          "workflowTaskTimeout": {
+            "seconds": "10"
+          },
+          "originalExecutionRunId": "01a157f5-cd5f-71fb-934c-fe4e6c402990",
+          "identity": "65030@Himanshus-MacBook-Air.local",
+          "firstExecutionRunId": "01a157f5-cd5f-71fb-934c-fe4e6c402990",
+          "attempt": 1,
+          "firstWorkflowTaskBackoff": {},
+          "header": {},
+          "workflowId": "vox-fb81e51a-908d-4122-b416-452af18f0513"
+        }
+      },
+      {
+        "eventId": "2",
+        "eventTime": {
+          "seconds": "1792477089",
+          "nanos": 119531000
+        },
+        "eventType": "EVENT_TYPE_WORKFLOW_TASK_SCHEDULED",
+        "taskId": "1048588",
+        "workflowTaskScheduledEventAttributes": {
+          "taskQueue": {
+            "name": "vox-support",
+            "kind": "TASK_QUEUE_KIND_NORMAL"
+          },
+          "startToCloseTimeout": {
+            "seconds": "10"
+          },
+          "attempt": 1
+        }
+      },
+      {
+        "eventId": "3",
+        "eventTime": {
+          "seconds": "1792477089",
+          "nanos": 173963000
+        },
+        "eventType": "EVENT_TYPE_WORKFLOW_TASK_STARTED",
+        "taskId": "1048593",
+        "workflowTaskStartedEventAttributes": {
+          "scheduledEventId": "2",
+          "identity": "65030@Himanshus-MacBook-Air.local",
+          "requestId": "b01c6b9c-a6b4-4865-8304-f7001320ccdc",
+          "historySizeBytes": "403",
+          "workerVersion": {
+            "buildId": "@temporalio/worker@1.24.0+53ed796dd760229c6a8575847eb656386830370b4399aedeae1d82553292ba3c"
+          }
+        }
+      },
+      {
+        "eventId": "4",
+        "eventTime": {
+          "seconds": "1792477089",
+          "nanos": 388274000
+        },
+        "eventType": "EVENT_TYPE_WORKFLOW_TASK_COMPLETED",
+        "taskId": "1048598",
+        "workflowTaskCompletedEventAttributes": {
+          "scheduledEventId": "2",
+          "startedEventId": "3",
+          "identity": "65030@Himanshus-MacBook-Air.local",
+          "workerVersion": {
+            "buildId": "@temporalio/worker@1.24.0+53ed796dd760229c6a8575847eb656386830370b4399aedeae1d82553292ba3c"
+          },
+          "sdkMetadata": {
+            "coreUsedFlags": [
+              2,
+              3,
+              1
+            ],
+            "sdkName": "temporal-typescript",
+            "sdkVersion": "1.24.0"
+          },
+          "meteringMetadata": {}
+        }
+      },
+      {
+        "eventId": "5",
+        "eventTime": {
+          "seconds": "1792477089",
+          "nanos": 393559000
+        },
+        "eventType": "EVENT_TYPE_ACTIVITY_TASK_SCHEDULED",
+        "taskId": "1048599",
+        "activityTaskScheduledEventAttributes": {
+          "activityId": "1",
+          "activityType": {
+            "name": "executePipeline"
+          },
+          "taskQueue": {
+            "name": "vox-support",
+            "kind": "TASK_QUEUE_KIND_NORMAL"
+          },
+          "header": {},
+          "input": {
+            "payloads": [
+              {
+                "metadata": {
+                  "encoding": "anNvbi9wbGFpbg=="
+                },
+                "data": "eyJvd25lciI6InByb29mLTZlODAwODczLThjMzAtNDVjOS1hMDAwLTNkNGI2MmQ3YTE3NiIsImlkIjoiZmI4MWU1MWEtOTA4ZC00MTIyLWI0MTYtNDUyYWYxOGYwNTEzIn0="
+              }
+            ]
+          },
+          "scheduleToCloseTimeout": {},
+          "scheduleToStartTimeout": {},
+          "startToCloseTimeout": {
+            "seconds": "600"
+          },
+          "heartbeatTimeout": {
+            "seconds": "20"
+          },
+          "workflowTaskCompletedEventId": "4",
+          "retryPolicy": {
+            "initialInterval": {
+              "seconds": "1"
+            },
+            "backoffCoefficient": 2,
+            "maximumInterval": {
+              "seconds": "100"
+            },
+            "maximumAttempts": 2,
+            "nonRetryableErrorTypes": [
+              "ProviderFailure"
+            ]
+          },
+          "useWorkflowBuildId": true
+        }
+      },
+      {
+        "eventId": "6",
+        "eventTime": {
+          "seconds": "1792477090",
+          "nanos": 476791000
+        },
+        "eventType": "EVENT_TYPE_ACTIVITY_TASK_STARTED",
+        "taskId": "1048608",
+        "activityTaskStartedEventAttributes": {
+          "scheduledEventId": "5",
+          "identity": "65030@Himanshus-MacBook-Air.local",
+          "requestId": "bb9c55a3-e456-4f1e-9862-53e13c422397",
+          "attempt": 2,
+          "lastFailure": {
+            "message": "Recoverable pre-write Temporal interruption",
+            "source": "TypeScriptSDK",
+            "stackTrace": "Error: Recoverable pre-write Temporal interruption\n    at executePipeline (file:///Users/himanshujha/Documents/Codex/2026-10-20/files-pasted-by-the-user-vox/outputs/vox/server/temporal-runtime.mjs:32:17)\n    at async Activity.execute (/Users/himanshujha/Documents/Codex/2026-10-20/files-pasted-by-the-user-vox/outputs/vox/node_modules/@temporalio/worker/lib/activity.js:104:20)\n    at async NativeConnection.withAbortSignal (/Users/himanshujha/Documents/Codex/2026-10-20/files-pasted-by-the-user-vox/outputs/vox/node_modules/@temporalio/worker/lib/connection.js:172:16)\n    at async Client.withAbortSignal (/Users/himanshujha/Documents/Codex/2026-10-20/files-pasted-by-the-user-vox/outputs/vox/node_modules/@temporalio/client/lib/base-client.js:65:16)\n    at async /Users/himanshujha/Documents/Codex/2026-10-20/files-pasted-by-the-user-vox/outputs/vox/node_modules/@temporalio/worker/lib/activity.js:164:32\n    at async /Users/himanshujha/Documents/Codex/2026-10-20/files-pasted-by-the-user-vox/outputs/vox/node_modules/@temporalio/worker/lib/worker.js:813:30",
+            "applicationFailureInfo": {
+              "type": "Error"
+            }
+          },
+          "workerVersion": {
+            "buildId": "@temporalio/worker@1.24.0+53ed796dd760229c6a8575847eb656386830370b4399aedeae1d82553292ba3c"
+          }
+        }
+      },
+      {
+        "eventId": "7",
+        "eventTime": {
+          "seconds": "1792477090",
+          "nanos": 572372000
+        },
+        "eventType": "EVENT_TYPE_ACTIVITY_TASK_COMPLETED",
+        "taskId": "1048609",
+        "activityTaskCompletedEventAttributes": {
+          "result": {
+            "payloads": [
+              {
+                "metadata": {
+                  "encoding": "anNvbi9wbGFpbg=="
+                },
+                "data": "eyJzdGF0dXMiOiJhd2FpdGluZ19hcHByb3ZhbCJ9"
+              }
+            ]
+          },
+          "scheduledEventId": "5",
+          "startedEventId": "6",
+          "identity": "65030@Himanshus-MacBook-Air.local"
+        }
+      },
+      {
+        "eventId": "8",
+        "eventTime": {
+          "seconds": "1792477090",
+          "nanos": 572474000
+        },
+        "eventType": "EVENT_TYPE_WORKFLOW_TASK_SCHEDULED",
+        "taskId": "1048610",
+        "workflowTaskScheduledEventAttributes": {
+          "taskQueue": {
+            "name": "65030@Himanshus-MacBook-Air.local-a0aa89b428e54d1ba01c029d27a88c36",
+            "kind": "TASK_QUEUE_KIND_STICKY",
+            "normalName": "vox-support"
+          },
+          "startToCloseTimeout": {
+            "seconds": "10"
+          },
+          "attempt": 1
+        }
+      },
+      {
+        "eventId": "9",
+        "eventTime": {
+          "seconds": "1792477090",
+          "nanos": 575844000
+        },
+        "eventType": "EVENT_TYPE_WORKFLOW_TASK_STARTED",
+        "taskId": "1048614",
+        "workflowTaskStartedEventAttributes": {
+          "scheduledEventId": "8",
+          "identity": "65030@Himanshus-MacBook-Air.local",
+          "requestId": "9539b6fc-4021-43b9-b174-3a90109d0489",
+          "historySizeBytes": "2630",
+          "workerVersion": {
+            "buildId": "@temporalio/worker@1.24.0+53ed796dd760229c6a8575847eb656386830370b4399aedeae1d82553292ba3c"
+          }
+        }
+      },
+      {
+        "eventId": "10",
+        "eventTime": {
+          "seconds": "1792477090",
+          "nanos": 586280000
+        },
+        "eventType": "EVENT_TYPE_WORKFLOW_TASK_COMPLETED",
+        "taskId": "1048618",
+        "workflowTaskCompletedEventAttributes": {
+          "scheduledEventId": "8",
+          "startedEventId": "9",
+          "identity": "65030@Himanshus-MacBook-Air.local",
+          "workerVersion": {
+            "buildId": "@temporalio/worker@1.24.0+53ed796dd760229c6a8575847eb656386830370b4399aedeae1d82553292ba3c"
+          },
+          "sdkMetadata": {},
+          "meteringMetadata": {}
+        }
+      },
+      {
+        "eventId": "11",
+        "eventTime": {
+          "seconds": "1792477091",
+          "nanos": 665438000
+        },
+        "eventType": "EVENT_TYPE_WORKFLOW_EXECUTION_SIGNALED",
+        "taskId": "1048625",
+        "workflowExecutionSignaledEventAttributes": {
+          "signalName": "ownerDecision",
+          "input": {},
+          "identity": "65030@Himanshus-MacBook-Air.local",
+          "header": {},
+          "requestId": "48293477-9390-4042-99db-6a54b300819f"
+        }
+      },
+      {
+        "eventId": "12",
+        "eventTime": {
+          "seconds": "1792477091",
+          "nanos": 665531000
+        },
+        "eventType": "EVENT_TYPE_WORKFLOW_TASK_SCHEDULED",
+        "taskId": "1048626",
+        "workflowTaskScheduledEventAttributes": {
+          "taskQueue": {
+            "name": "65030@Himanshus-MacBook-Air.local-a0aa89b428e54d1ba01c029d27a88c36",
+            "kind": "TASK_QUEUE_KIND_STICKY",
+            "normalName": "vox-support"
+          },
+          "startToCloseTimeout": {
+            "seconds": "10"
+          },
+          "attempt": 1
+        }
+      },
+      {
+        "eventId": "13",
+        "eventTime": {
+          "seconds": "1792477091",
+          "nanos": 672714000
+        },
+        "eventType": "EVENT_TYPE_WORKFLOW_TASK_STARTED",
+        "taskId": "1048630",
+        "workflowTaskStartedEventAttributes": {
+          "scheduledEventId": "12",
+          "identity": "65030@Himanshus-MacBook-Air.local",
+          "requestId": "426d3e4c-e528-48e2-8c5a-9be90bca242c",
+          "historySizeBytes": "3231",
+          "workerVersion": {
+            "buildId": "@temporalio/worker@1.24.0+53ed796dd760229c6a8575847eb656386830370b4399aedeae1d82553292ba3c"
+          }
+        }
+      },
+      {
+        "eventId": "14",
+        "eventTime": {
+          "seconds": "1792477092",
+          "nanos": 19414000
+        },
+        "eventType": "EVENT_TYPE_WORKFLOW_TASK_COMPLETED",
+        "taskId": "1048635",
+        "workflowTaskCompletedEventAttributes": {
+          "scheduledEventId": "12",
+          "startedEventId": "13",
+          "identity": "65030@Himanshus-MacBook-Air.local",
+          "workerVersion": {
+            "buildId": "@temporalio/worker@1.24.0+53ed796dd760229c6a8575847eb656386830370b4399aedeae1d82553292ba3c"
+          },
+          "sdkMetadata": {
+            "langUsedFlags": [
+              2
+            ]
+          },
+          "meteringMetadata": {}
+        }
+      },
+      {
+        "eventId": "15",
+        "eventTime": {
+          "seconds": "1792477092",
+          "nanos": 19494000
+        },
+        "eventType": "EVENT_TYPE_ACTIVITY_TASK_SCHEDULED",
+        "taskId": "1048636",
+        "activityTaskScheduledEventAttributes": {
+          "activityId": "2",
+          "activityType": {
+            "name": "executePipeline"
+          },
+          "taskQueue": {
+            "name": "vox-support",
+            "kind": "TASK_QUEUE_KIND_NORMAL"
+          },
+          "header": {},
+          "input": {
+            "payloads": [
+              {
+                "metadata": {
+                  "encoding": "anNvbi9wbGFpbg=="
+                },
+                "data": "eyJvd25lciI6InByb29mLTZlODAwODczLThjMzAtNDVjOS1hMDAwLTNkNGI2MmQ3YTE3NiIsImlkIjoiZmI4MWU1MWEtOTA4ZC00MTIyLWI0MTYtNDUyYWYxOGYwNTEzIn0="
+              }
+            ]
+          },
+          "scheduleToCloseTimeout": {},
+          "scheduleToStartTimeout": {},
+          "startToCloseTimeout": {
+            "seconds": "600"
+          },
+          "heartbeatTimeout": {
+            "seconds": "20"
+          },
+          "workflowTaskCompletedEventId": "14",
+          "retryPolicy": {
+            "initialInterval": {
+              "seconds": "1"
+            },
+            "backoffCoefficient": 2,
+            "maximumInterval": {
+              "seconds": "100"
+            },
+            "maximumAttempts": 2,
+            "nonRetryableErrorTypes": [
+              "ProviderFailure"
+            ]
+          },
+          "useWorkflowBuildId": true
+        }
+      },
+      {
+        "eventId": "16",
+        "eventTime": {
+          "seconds": "1792477092",
+          "nanos": 19562000
+        },
+        "eventType": "EVENT_TYPE_ACTIVITY_TASK_STARTED",
+        "taskId": "1048639",
+        "activityTaskStartedEventAttributes": {
+          "scheduledEventId": "15",
+          "identity": "65030@Himanshus-MacBook-Air.local",
+          "requestId": "4d208bc1-35f1-4154-8cb4-f1fb8b921bba",
+          "attempt": 1,
+          "workerVersion": {
+            "buildId": "@temporalio/worker@1.24.0+53ed796dd760229c6a8575847eb656386830370b4399aedeae1d82553292ba3c"
+          }
+        }
+      },
+      {
+        "eventId": "17",
+        "eventTime": {
+          "seconds": "1792477092",
+          "nanos": 57466000
+        },
+        "eventType": "EVENT_TYPE_ACTIVITY_TASK_COMPLETED",
+        "taskId": "1048640",
+        "activityTaskCompletedEventAttributes": {
+          "result": {
+            "payloads": [
+              {
+                "metadata": {
+                  "encoding": "anNvbi9wbGFpbg=="
+                },
+                "data": "eyJzdGF0dXMiOiJjb21wbGV0ZWQifQ=="
+              }
+            ]
+          },
+          "scheduledEventId": "15",
+          "startedEventId": "16",
+          "identity": "65030@Himanshus-MacBook-Air.local"
+        }
+      },
+      {
+        "eventId": "18",
+        "eventTime": {
+          "seconds": "1792477092",
+          "nanos": 57493000
+        },
+        "eventType": "EVENT_TYPE_WORKFLOW_TASK_SCHEDULED",
+        "taskId": "1048641",
+        "workflowTaskScheduledEventAttributes": {
+          "taskQueue": {
+            "name": "65030@Himanshus-MacBook-Air.local-d8c45ea6015d43288d046a1830fd5b19",
+            "kind": "TASK_QUEUE_KIND_STICKY",
+            "normalName": "vox-support"
+          },
+          "startToCloseTimeout": {
+            "seconds": "10"
+          },
+          "attempt": 1
+        }
+      },
+      {
+        "eventId": "19",
+        "eventTime": {
+          "seconds": "1792477092",
+          "nanos": 64167000
+        },
+        "eventType": "EVENT_TYPE_WORKFLOW_TASK_STARTED",
+        "taskId": "1048645",
+        "workflowTaskStartedEventAttributes": {
+          "scheduledEventId": "18",
+          "identity": "65030@Himanshus-MacBook-Air.local",
+          "requestId": "cefc9f64-559e-4205-8fde-40e43bc57896",
+          "historySizeBytes": "4281",
+          "workerVersion": {
+            "buildId": "@temporalio/worker@1.24.0+53ed796dd760229c6a8575847eb656386830370b4399aedeae1d82553292ba3c"
+          }
+        }
+      },
+      {
+        "eventId": "20",
+        "eventTime": {
+          "seconds": "1792477092",
+          "nanos": 74727000
+        },
+        "eventType": "EVENT_TYPE_WORKFLOW_TASK_COMPLETED",
+        "taskId": "1048649",
+        "workflowTaskCompletedEventAttributes": {
+          "scheduledEventId": "18",
+          "startedEventId": "19",
+          "identity": "65030@Himanshus-MacBook-Air.local",
+          "workerVersion": {
+            "buildId": "@temporalio/worker@1.24.0+53ed796dd760229c6a8575847eb656386830370b4399aedeae1d82553292ba3c"
+          },
+          "sdkMetadata": {},
+          "meteringMetadata": {}
+        }
+      },
+      {
+        "eventId": "21",
+        "eventTime": {
+          "seconds": "1792477092",
+          "nanos": 75139000
+        },
+        "eventType": "EVENT_TYPE_WORKFLOW_EXECUTION_COMPLETED",
+        "taskId": "1048650",
+        "workflowExecutionCompletedEventAttributes": {
+          "result": {
+            "payloads": [
+              {
+                "metadata": {
+                  "encoding": "anNvbi9wbGFpbg=="
+                },
+                "data": "eyJzdGF0dXMiOiJjb21wbGV0ZWQifQ=="
+              }
+            ]
+          },
+          "workflowTaskCompletedEventId": "20"
+        }
+      }
+    ]
+  }
+}

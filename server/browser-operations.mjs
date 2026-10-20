@@ -1,6 +1,7 @@
 import express from "express";
 import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
+import { browserModelName, createBrowserModel } from "./browser-model.mjs";
 
 const grantSchema = z
   .object({
@@ -187,6 +188,38 @@ export async function reviewTicketInBrowser(store, owner, id) {
   });
   let stagehand;
   try {
+    // Stagehand attaches the browser context; context methods require this first.
+    stagehand = await Stagehand.create({
+      browser,
+      model: createBrowserModel({
+        maxCalls: Math.max(
+          0,
+          run.plan.maxBrowserModelCalls - (run.browserModelCalls || 0),
+        ),
+        beforeCall: async () => {
+          store.mutate(owner, (state) => {
+            const current = state.runs.find((item) => item.id === id);
+            if (
+              (current.browserModelCalls || 0) >=
+              current.plan.maxBrowserModelCalls
+            )
+              throw new Error(
+                "The approved browser model budget is exhausted.",
+              );
+            current.browserModelCalls = (current.browserModelCalls || 0) + 1;
+          });
+          await store.flush?.();
+        },
+        onUsage: async (usage) => {
+          store.mutate(owner, (state) => {
+            const current = state.runs.find((item) => item.id === id);
+            (current.browserModelUsage ||= []).push(usage);
+          });
+          await store.flush?.();
+        },
+      }),
+      logging: { level: "off" },
+    });
     await browser.context.setDomainPolicy({
       allowedDomains: [origin.hostname],
     });
@@ -205,24 +238,18 @@ export async function reviewTicketInBrowser(store, owner, id) {
         path: "/browser/operations",
         httpOnly: true,
         secure: true,
-        sameSite: "Strict",
+        sameSite: "Lax",
         expires: Math.floor(Date.now() / 1000) + 180,
       },
     ]);
-    stagehand = await Stagehand.create({
-      browser,
-      model: {
-        modelName: process.env.STAGEHAND_MODEL || "google/gemini-2.5-flash",
-        apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
-      },
-      logging: { level: "off" },
-    });
-    const [page] = await browser.context.pages();
+    const page =
+      (await browser.context.pages())[0] || (await browser.context.newPage());
     await page.goto(new URL("/browser/operations", origin).href);
-    const fill = await stagehand.act(
+    await stagehand.act(
       `Fill the Internal review note textarea with exactly: ${noteFor(id)}`,
+      { timeout: 30000 },
     );
-    const save = await stagehand.act("Click Save internal note.");
+    await stagehand.act("Click Save internal note.", { timeout: 30000 });
     const result = store
       .get(owner)
       .runs.find((item) => item.id === id).browserOperation;
@@ -239,17 +266,25 @@ export async function reviewTicketInBrowser(store, owner, id) {
         (item) => item.id === result.receiptId,
       );
       receipt.latencyMs = Date.now() - start;
-      receipt.model = process.env.STAGEHAND_MODEL || "google/gemini-2.5-flash";
+      receipt.model = browserModelName();
+      const usage =
+        state.runs.find((item) => item.id === id).browserModelUsage || [];
+      receipt.modelCalls = usage.length;
       receipt.usage =
-        fill.metadata?.usage && save.metadata?.usage
-          ? {
-              inputTokens:
-                fill.metadata.usage.inputTokens +
-                save.metadata.usage.inputTokens,
-              outputTokens:
-                fill.metadata.usage.outputTokens +
-                save.metadata.usage.outputTokens,
-            }
+        usage.length &&
+        usage.every((item) =>
+          [item.inputTokens, item.outputTokens, item.totalTokens].every(
+            Number.isInteger,
+          ),
+        )
+          ? usage.reduce(
+              (sum, item) => ({
+                inputTokens: sum.inputTokens + item.inputTokens,
+                outputTokens: sum.outputTokens + item.outputTokens,
+                totalTokens: sum.totalTokens + item.totalTokens,
+              }),
+              { inputTokens: 0, outputTokens: 0, totalTokens: 0 },
+            )
           : null;
     });
     await store.flush?.();

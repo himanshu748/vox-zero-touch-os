@@ -15,18 +15,14 @@ export function initializeTelemetry() {
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
     environment: process.env.NODE_ENV || "development",
-    tracesSampleRate: 1,
+    tracesSampler: (context) =>
+      /^GET\b/.test(context.name) ? 0 : context.inheritOrSampleWith(1),
     sendDefaultPii: false,
     enableLogs: false,
     integrations: [
       Sentry.vercelAIIntegration({ recordInputs: false, recordOutputs: false }),
     ],
     beforeSend(event) {
-      delete event.request;
-      delete event.user;
-      return redact(event);
-    },
-    beforeSendTransaction(event) {
       delete event.request;
       delete event.user;
       return redact(event);

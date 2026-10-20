@@ -10,5 +10,5 @@
     "strict": true,
     "skipLibCheck": true
   },
-  "files": ["server/ai.mjs"]
+  "files": ["server/ai.mjs", "server/browser-model.mjs"]
 }

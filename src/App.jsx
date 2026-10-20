@@ -3,6 +3,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useObject } from "@ai-sdk/react";
 import { intentSchema } from "../shared/contracts.mjs";
 import PlanCards from "./PlanCards";
+import { recordingWave } from "./voice-audio";
 import { VOX_MOTION } from "./motion-system";
 import {
   readWorkspaceRoute,
@@ -284,9 +285,17 @@ export default function App() {
     [query, setQuery] = useState(""),
     [filter, setFilter] = useState("all"),
     [selectedRun, setSelectedRun] = useState(() => readWorkspaceRoute().runId),
+    [approvalFilter, setApprovalFilter] = useState(() =>
+      readWorkspaceRoute().view === "approvals"
+        ? readWorkspaceRoute().runId || "all"
+        : "all",
+    ),
     [recording, setRecording] = useState(false),
     [playing, setPlaying] = useState(false),
     [voiceConsent, setVoiceConsent] = useState(false),
+    [transcript, setTranscript] = useState(null),
+    [voicePhase, setVoicePhase] = useState(null),
+    [speechLoading, setSpeechLoading] = useState(false),
     [prefs, setPrefs] = useState(null),
     [confirmReset, setConfirmReset] = useState(false),
     [loadError, setLoadError] = useState(null),
@@ -297,6 +306,9 @@ export default function App() {
     mainRef = useRef(null),
     sidebarRef = useRef(null),
     speechObjectUrl = useRef(null),
+    voiceRequest = useRef(null),
+    speechRequest = useRef(null),
+    browserSpeech = useRef(null),
     textarea = useRef(),
     recordRef = useRef(null),
     audioRef = useRef(null),
@@ -334,6 +346,9 @@ export default function App() {
       const route = readWorkspaceRoute();
       setView(route.view);
       setSelectedRun(route.runId);
+      setApprovalFilter(
+        route.view === "approvals" ? route.runId || "all" : "all",
+      );
       setModal(null);
       setMenuOpen(false);
     };
@@ -396,6 +411,8 @@ export default function App() {
         recordRef.current.stop?.();
       }
       if (speechObjectUrl.current) URL.revokeObjectURL(speechObjectUrl.current);
+      voiceRequest.current?.abort();
+      speechRequest.current?.abort();
       audioRef.current?.pause?.();
       window.speechSynthesis?.cancel();
     },
@@ -469,6 +486,9 @@ export default function App() {
       .filter((d) => d.status === "pending")
       .map((d) => ({ ...d, ticket: t })),
   );
+  const approvalItems = pending.filter(
+    (draft) => approvalFilter === "all" || draft.runId === approvalFilter,
+  );
   const currentRun = selectedRun
     ? state.runs.find((r) => r.id === selectedRun)
     : state.runs[0];
@@ -499,6 +519,7 @@ export default function App() {
   );
   function goto(v, runId) {
     setView(v);
+    if (v === "approvals") setApprovalFilter(runId || "all");
     if (runId) setSelectedRun(runId);
     const hash = workspaceHash(
       v,
@@ -521,7 +542,12 @@ export default function App() {
     planStream.clear();
     setBusy(true);
     setModal({ type: "planning" });
-    planStream.submit({ command, scope, requestId: planRequest.current });
+    planStream.submit({
+      command,
+      scope,
+      requestId: planRequest.current,
+      ...(transcript ? { transcriptId: transcript.id } : {}),
+    });
   }
   async function startRun() {
     await act(async () => {
@@ -556,78 +582,154 @@ export default function App() {
     setModal({ type: "voice" });
     setVoiceConsent(false);
   }
+  async function transcribeBlob(blob, controller = new AbortController()) {
+    voiceRequest.current = controller;
+    setBusy(true);
+    setVoicePhase("transcribing");
+    try {
+      const response = await fetch("/api/transcribe", {
+        method: "POST",
+        headers: { "content-type": blob.type || "application/octet-stream" },
+        body: blob,
+        signal: controller.signal,
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error);
+      if (controller.signal.aborted) return;
+      setTranscript({ id: result.id, text: result.text });
+      setCommand(result.text);
+      setModal(null);
+      goto("overview");
+      notify(
+        "ElevenLabs transcript ready. Review it, then create your Gemma plan.",
+      );
+      setTimeout(() => textarea.current?.focus(), 100);
+      await sync();
+    } catch (error) {
+      if (!controller.signal.aborted) notify(readableError(error), "error");
+    } finally {
+      if (voiceRequest.current === controller) {
+        setBusy(false);
+        setVoicePhase(null);
+        voiceRequest.current = null;
+      }
+    }
+  }
+  async function uploadVoice(event) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file || !voiceConsent || busy || recording) return;
+    if (file.size > 8 * 1024 * 1024) {
+      notify("Choose an audio file smaller than 8 MB.", "error");
+      return;
+    }
+    await transcribeBlob(file);
+  }
   async function record() {
-    if (!voiceConsent) return;
+    if (!voiceConsent || busy || recording) return;
+    const controller = new AbortController();
+    voiceRequest.current = controller;
+    setVoicePhase("requesting");
+    let stream, context, frame, timer;
+    const cleanup = () => {
+      clearTimeout(timer);
+      cancelAnimationFrame(frame);
+      stream?.getTracks().forEach((track) => track.stop());
+      context?.close().catch(() => {});
+    };
     try {
       if (!state.capabilities.elevenlabs)
+        throw new Error("Connect ElevenLabs to transcribe audio.");
+      if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder)
         throw new Error(
-          "Connect ElevenLabs on the server to transcribe audio. You can complete the same workflow with text.",
+          "Microphone recording is unavailable here. Upload an audio file or use text.",
         );
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
-      const chunks = [];
-      const ctx = new AudioContext();
-      const analyser = ctx.createAnalyser();
-      ctx.createMediaStreamSource(stream).connect(analyser);
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      if (controller.signal.aborted) {
+        cleanup();
+        return;
+      }
+      const recorder = new MediaRecorder(stream),
+        chunks = [];
+      context = new AudioContext();
+      const analyser = context.createAnalyser();
+      context.createMediaStreamSource(stream).connect(analyser);
       analyser.fftSize = 256;
       const values = new Uint8Array(analyser.frequencyBinCount);
-      let raf;
       const paint = () => {
         analyser.getByteFrequencyData(values);
-        levelNodes.current.forEach((el, i) => {
-          if (el) el.style.height = `${4 + values[i] * 0.34}px`;
+        levelNodes.current.forEach((el, index) => {
+          if (el) el.style.height = `${4 + values[index] * 0.34}px`;
         });
-        raf = requestAnimationFrame(paint);
+        frame = requestAnimationFrame(paint);
       };
       paint();
-      recorder.ondataavailable = (e) => chunks.push(e.data);
+      recorder.ondataavailable = (event) => {
+        if (event.data.size) chunks.push(event.data);
+      };
       recorder.onstop = async () => {
-        clearTimeout(recordRef.current?.timer);
-        cancelAnimationFrame(raf);
-        await ctx.close();
-        stream.getTracks().forEach((t) => t.stop());
+        cleanup();
         setRecording(false);
-        if (recordRef.current?.discard) return;
+        if (controller.signal.aborted || recordRef.current?.discard) {
+          setVoicePhase(null);
+          return;
+        }
+        setVoicePhase("transcribing");
         setBusy(true);
         try {
-          const blob = new Blob(chunks, { type: recorder.mimeType });
-          const res = await fetch("/api/transcribe", {
-            method: "POST",
-            headers: { "content-type": blob.type },
-            body: blob,
-          });
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.error);
-          setCommand(data.text);
-          setModal(null);
-          notify("Transcript ready. Review it before creating a plan.");
-        } catch (e) {
-          notify(readableError(e), "error");
-        } finally {
+          const wave = await recordingWave(
+            new Blob(chunks, { type: recorder.mimeType }),
+          );
+          if (!controller.signal.aborted)
+            await transcribeBlob(wave, controller);
+        } catch (error) {
+          if (!controller.signal.aborted) notify(readableError(error), "error");
+          setVoicePhase(null);
           setBusy(false);
         }
       };
+      recorder.onerror = () => {
+        cleanup();
+        setRecording(false);
+        setVoicePhase(null);
+        notify(
+          "Recording was interrupted. Try uploading an audio file.",
+          "error",
+        );
+      };
       recorder.start();
+      timer = setTimeout(() => {
+        if (recorder.state !== "inactive") recorder.stop();
+      }, 60000);
       recordRef.current = {
         stop: () => {
           if (recorder.state !== "inactive") recorder.stop();
         },
-        timer: setTimeout(() => {
-          if (recorder.state !== "inactive") recorder.stop();
-        }, 60000),
+        discard: false,
       };
       setRecording(true);
-    } catch (e) {
-      notify(
-        e.name === "NotAllowedError"
-          ? "Microphone permission was denied. You can type your command instead."
-          : e.message,
-        "error",
-      );
+      setVoicePhase("recording");
+    } catch (error) {
+      cleanup();
+      setRecording(false);
+      setVoicePhase(null);
+      if (!controller.signal.aborted)
+        notify(
+          error.name === "NotAllowedError"
+            ? "Microphone access was denied. Upload audio or type your command instead."
+            : readableError(error),
+          "error",
+        );
     }
   }
   async function playBriefing(run) {
     if (playing) {
+      speechRequest.current?.abort();
+      setSpeechLoading(false);
+      if (browserSpeech.current) {
+        browserSpeech.current.onend = null;
+        browserSpeech.current.onerror = null;
+      }
       audioRef.current?.pause();
       if (speechObjectUrl.current) {
         URL.revokeObjectURL(speechObjectUrl.current);
@@ -640,33 +742,61 @@ export default function App() {
     if (!run?.briefing) return;
     setPlaying(true);
     if (state.capabilities.speech) {
+      const controller = new AbortController();
+      speechRequest.current = controller;
+      setSpeechLoading(true);
       try {
         const res = await fetch("/api/speech", {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({ runId: run.id }),
+          signal: controller.signal,
         });
         if (!res.ok) {
           const d = await res.json();
           throw new Error(d.error);
         }
-        const url = URL.createObjectURL(await res.blob());
+        const blob = await res.blob();
+        if (controller.signal.aborted) return;
+        const url = URL.createObjectURL(blob);
+        setSpeechLoading(false);
         speechObjectUrl.current = url;
         const audio = new Audio(url);
         audioRef.current = audio;
+        audio.onerror = () => {
+          setPlaying(false);
+          setSpeechLoading(false);
+          URL.revokeObjectURL(url);
+          speechObjectUrl.current = null;
+          notify(
+            "Audio could not play. Your briefing is available as text.",
+            "error",
+          );
+        };
         audio.onended = () => {
           setPlaying(false);
           URL.revokeObjectURL(url);
           speechObjectUrl.current = null;
         };
         await audio.play();
+        notify(
+          res.headers.get("X-VOX-Audio-Cache") === "hit"
+            ? "Playing saved ElevenLabs audio. No new generation request."
+            : "Playing your ElevenLabs briefing.",
+        );
         await sync();
       } catch (e) {
         setPlaying(false);
-        notify(readableError(e), "error");
+        setSpeechLoading(false);
+        if (speechObjectUrl.current) {
+          URL.revokeObjectURL(speechObjectUrl.current);
+          speechObjectUrl.current = null;
+        }
+        if (!controller.signal.aborted) notify(readableError(e), "error");
       }
     } else if ("speechSynthesis" in window) {
       const speech = new SpeechSynthesisUtterance(run.briefing);
+      browserSpeech.current = speech;
       speech.rate = 0.95;
       speech.onend = () => setPlaying(false);
       speech.onerror = () => {
@@ -1088,7 +1218,10 @@ export default function App() {
                           value={command}
                           maxLength={2000}
                           placeholder="“Triage my tickets, find fixes, and draft the replies…”"
-                          onChange={(e) => setCommand(e.target.value)}
+                          onChange={(e) => {
+                            setCommand(e.target.value);
+                            if (!e.target.value) setTranscript(null);
+                          }}
                           onKeyDown={(e) => {
                             if ((e.metaKey || e.ctrlKey) && e.key === "Enter")
                               preview();
@@ -1132,11 +1265,23 @@ export default function App() {
                           </button>
                         </div>
                       </div>
+                      {transcript && (
+                        <div className="voice-provenance">
+                          <CheckCheck size={12} />
+                          <span>
+                            ElevenLabs transcript ·{" "}
+                            {transcript.text === command
+                              ? "ready to review"
+                              : "edited by you"}
+                          </span>
+                        </div>
+                      )}
                       <div className="suggestions">
                         <span>TRY</span>
                         <button
                           onClick={() => {
                             setCommand(DEFAULT_COMMAND);
+                            setTranscript(null);
                             setScope("all");
                             textarea.current?.focus();
                           }}
@@ -1146,6 +1291,7 @@ export default function App() {
                         </button>
                         <button
                           onClick={() => {
+                            setTranscript(null);
                             setCommand(
                               "Prioritize urgent tickets and draft replies. Do not send without approval.",
                             );
@@ -1453,15 +1599,45 @@ export default function App() {
                         A human in the loop<span>.</span>
                       </h1>
                       <p>
-                        {pending.length
-                          ? `${pending.length} replies ready for a thoughtful once-over.`
-                          : "You’re all caught up. Nothing is waiting on you."}
+                        {approvalItems.length
+                          ? `${approvalItems.length} replies ready for a thoughtful once-over.`
+                          : approvalFilter !== "all"
+                            ? "This run has been reviewed. Your decisions are saved."
+                            : "You’re all caught up. Nothing is waiting on you."}
                       </p>
                     </div>
                     <Badge kind="local">
                       <LockKeyhole size={13} />
                       Session-bound approvals
                     </Badge>
+                  </div>
+                  <div className="list-toolbar approval-toolbar">
+                    <label htmlFor="approval-run">Review replies from</label>
+                    <select
+                      id="approval-run"
+                      aria-label="Filter approvals by run"
+                      value={approvalFilter}
+                      onChange={(event) =>
+                        goto(
+                          "approvals",
+                          event.target.value === "all"
+                            ? null
+                            : event.target.value,
+                        )
+                      }
+                    >
+                      <option value="all">All saved runs</option>
+                      {state.runs
+                        .filter((run) => run.metrics.drafts > 0)
+                        .map((run) => (
+                          <option key={run.id} value={run.id}>
+                            Run {run.id.slice(0, 8)} ·{" "}
+                            {run.plan.provider === "gemma" ? "Gemma" : "Local"}{" "}
+                            · {run.metrics.pending} pending
+                          </option>
+                        ))}
+                    </select>
+                    <Badge>{approvalItems.length} pending</Badge>
                   </div>
                   <div className="info-strip">
                     <ShieldCheck size={18} />
@@ -1470,15 +1646,17 @@ export default function App() {
                       VOX never delivers an external message.
                     </p>
                   </div>
-                  {pending.length ? (
+                  {approvalItems.length ? (
                     <div className="approval-grid">
-                      {pending.map((d) => (
+                      {approvalItems.map((d) => (
                         <article className="approval-card panel" key={d.id}>
                           <div className="approval-top">
                             <Badge kind={d.ticket.priority}>
                               {d.ticket.id}
                             </Badge>
-                            <span>{relative(d.createdAt)}</span>
+                            <span>
+                              {d.provider} · {relative(d.createdAt)}
+                            </span>
                           </div>
                           <h3>{d.ticket.title}</h3>
                           <div className="draft-to">
@@ -1528,11 +1706,25 @@ export default function App() {
                       <div className="empty-icon">
                         <CheckCheck size={30} />
                       </div>
-                      <h2>Nothing needs your approval.</h2>
+                      <h2>
+                        {approvalFilter !== "all"
+                          ? "This run has been reviewed."
+                          : "Nothing needs your approval."}
+                      </h2>
                       <p>
-                        Run a workflow with reply drafting to prepare your first
-                        set of replies.
+                        {pending.length
+                          ? `${pending.length} replies from other runs are still awaiting review.`
+                          : "Run a workflow with reply drafting to prepare your first set of replies."}
                       </p>
+                      {pending.length > 0 && (
+                        <button
+                          className="button secondary"
+                          onClick={() => goto("approvals")}
+                        >
+                          Review other runs
+                          <ArrowRight size={15} />
+                        </button>
+                      )}
                       <button className="button primary" onClick={newRun}>
                         Create a plan
                         <ArrowRight size={15} />
@@ -1646,13 +1838,22 @@ export default function App() {
                             {relative(currentRun.createdAt)} ·{" "}
                             {currentRun.plan.provider === "local"
                               ? "Local sandbox executor"
-                              : "Gemma endpoint + local executor"}
+                              : "Gemma + Mastra workflow"}
                           </p>
                         </div>
                         <Badge kind={currentRun.status} dot>
                           {statusLabel(currentRun.status)}
                         </Badge>
                       </div>
+                      {currentRun.plan.input?.kind === "voice" && (
+                        <div className="voice-run-origin">
+                          <Mic size={13} />
+                          <span>
+                            ElevenLabs transcript → Gemma plan → Mastra
+                            execution
+                          </span>
+                        </div>
+                      )}
                       <div className="run-command">
                         <span>
                           <Mic size={16} />
@@ -1732,7 +1933,11 @@ export default function App() {
                                 No external messages sent
                               </span>
                             )}
-                            <span>SQLite checkpoints · Local engine</span>
+                            <span>
+                              {currentRun.workflow
+                                ? `Mastra · ${currentRun.workflow.status}`
+                                : "Local checkpoint"}
+                            </span>
                           </div>
                         </section>
                         <section className="panel">
@@ -1749,7 +1954,10 @@ export default function App() {
                             <Headphones size={27} />
                           </div>
                           <div>
-                            <div className="eyebrow">YOUR BRIEFING</div>
+                            <div className="eyebrow">
+                              YOUR BRIEFING{" "}
+                              {state.capabilities.speech ? "· ELEVENLABS" : ""}
+                            </div>
                             <h2>Here’s where things stand.</h2>
                             <p>{currentRun.briefing}</p>
                             <span>
@@ -1762,12 +1970,18 @@ export default function App() {
                             disabled={busy}
                             onClick={() => playBriefing(currentRun)}
                           >
-                            {playing ? (
+                            {speechLoading ? (
+                              <Loader2 size={16} className="spin" />
+                            ) : playing ? (
                               <Pause size={16} />
                             ) : (
                               <Volume2 size={16} />
                             )}{" "}
-                            {playing ? "Stop briefing" : "Play briefing"}
+                            {speechLoading
+                              ? "Cancel audio"
+                              : playing
+                                ? "Stop briefing"
+                                : "Play briefing"}
                           </button>
                         </div>
                       )}
@@ -1783,7 +1997,7 @@ export default function App() {
                           </div>
                           <button
                             className="button secondary"
-                            onClick={() => goto("approvals")}
+                            onClick={() => goto("approvals", currentRun.id)}
                           >
                             Review replies
                             <ArrowRight size={15} />
@@ -1861,9 +2075,9 @@ export default function App() {
                       <div>
                         <h3>Honest about the missing pieces</h3>
                         <p>
-                          No cloud sponsor category is claimed. Configuring an
-                          API key is only the first step. Live usage and
-                          independent evidence are still required.
+                          Mastra runs locally; provider usage is shown below.
+                          Configuring an API key is only the first step. Live
+                          usage and independent evidence are still required.
                         </p>
                         <Badge>0 categories claimed</Badge>
                       </div>
@@ -1897,9 +2111,11 @@ export default function App() {
                                 p.status === "configured" ? "configured" : ""
                               }
                             >
-                              {p.status === "configured"
-                                ? "Configured"
-                                : "Not connected"}
+                              {p.status === "local"
+                                ? "Running locally"
+                                : p.status === "configured"
+                                  ? "Configured"
+                                  : "Not connected"}
                             </Badge>
                             {p.proofCount > 0 && (
                               <small>
@@ -1976,6 +2192,11 @@ export default function App() {
                 cancelPlanning();
                 return;
               }
+              if (modal.type === "voice") {
+                voiceRequest.current?.abort();
+                setVoicePhase(null);
+                setBusy(false);
+              }
               if (recording) {
                 recordRef.current.discard = true;
                 recordRef.current?.stop();
@@ -1993,6 +2214,7 @@ export default function App() {
                       ? "Gemma via Vercel AI SDK"
                       : "Local rules mode"}
                   </Badge>
+                  {transcript && <Badge>Voice transcript</Badge>}
                   <Badge>No changes made</Badge>
                 </div>
                 <PlanCards intent={planStream.object} loading />
@@ -2015,6 +2237,11 @@ export default function App() {
                       : "Configured Gemma endpoint"}
                   </Badge>
                   <Badge>{plan.estimatedCalls} estimated model calls</Badge>
+                  {plan.input?.kind === "voice" && (
+                    <Badge>
+                      ElevenLabs voice {plan.input.edited ? "· edited" : ""}
+                    </Badge>
+                  )}
                 </div>
                 <div className="plan-instruction">“{plan.command}”</div>
                 <PlanCards plan={plan} />
@@ -2222,9 +2449,13 @@ export default function App() {
                   <Mic size={32} />
                 </div>
                 <h3>
-                  {recording
-                    ? "Listening. Take your time."
-                    : "A goal in your own words."}
+                  {voicePhase === "transcribing"
+                    ? "Turning your voice into words."
+                    : voicePhase === "requesting"
+                      ? "Waiting for microphone access."
+                      : recording
+                        ? "Listening. Take your time."
+                        : "A goal in your own words."}
                 </h3>
                 <p>
                   {recording
@@ -2258,7 +2489,10 @@ export default function App() {
                     <button
                       className="button primary"
                       disabled={
-                        !voiceConsent || !state.capabilities.elevenlabs || busy
+                        !voiceConsent ||
+                        !state.capabilities.elevenlabs ||
+                        busy ||
+                        voicePhase === "requesting"
                       }
                       onClick={record}
                     >
@@ -2269,8 +2503,36 @@ export default function App() {
                       )}
                       Start recording
                     </button>
+                    {state.capabilities.elevenlabs && (
+                      <label
+                        className={`voice-upload ${!voiceConsent || busy ? "disabled" : ""}`}
+                      >
+                        <input
+                          type="file"
+                          accept="audio/*,.wav,.mp3,.m4a,.ogg,.webm"
+                          aria-label="Upload a voice command"
+                          disabled={
+                            !voiceConsent || busy || voicePhase === "requesting"
+                          }
+                          onChange={uploadVoice}
+                        />
+                        <span>
+                          <Download size={14} /> Or upload an audio command
+                        </span>
+                        <small>
+                          Up to 60 seconds · 8 MB · Audio is not saved
+                        </small>
+                      </label>
+                    )}
+                    {voicePhase === "transcribing" && (
+                      <p role="status">
+                        <Loader2 size={14} className="spin" /> Transcribing with
+                        ElevenLabs…
+                      </p>
+                    )}
                     <button
                       className="text-button"
+                      disabled={busy || voicePhase === "requesting"}
                       onClick={() => {
                         setModal(null);
                         goto("overview");
@@ -2377,6 +2639,7 @@ export default function App() {
                           act(async () => {
                             await api("reset", {});
                             setCommand("");
+                            setTranscript(null);
                             setScope("all");
                             setConfirmReset(false);
                             setSelectedRun(null);
@@ -2498,8 +2761,13 @@ export default function App() {
                 <div className="info-strip">
                   <ShieldCheck size={19} />
                   <p>
-                    The default planner is deterministic local code. Gemma and
-                    ElevenLabs adapters require server configuration. Temporal,
+                    {state.capabilities.gemma
+                      ? `Gemma ${state.capabilities.gemmaModel} generates plans and replies.`
+                      : "The planner is using deterministic local rules."}{" "}
+                    {state.capabilities.elevenlabs
+                      ? "ElevenLabs handles transcription and spoken briefings."
+                      : "ElevenLabs requires server configuration."}{" "}
+                    Mastra orchestrates the saved execution steps. Temporal,
                     Auth0, Browserbase and other cloud integrations are not
                     implemented or claimed in this build.
                   </p>
@@ -2520,6 +2788,7 @@ export default function App() {
                     onClick={() => {
                       setModal(null);
                       setCommand(DEFAULT_COMMAND);
+                      setTranscript(null);
                       goto("overview");
                       setTimeout(() => textarea.current?.focus(), 100);
                     }}

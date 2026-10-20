@@ -14,7 +14,7 @@ export function readWorkspaceRoute(hash = window.location.hash) {
   };
 }
 export function workspaceHash(view, runId) {
-  return `#${VIEWS.has(view) ? view : "overview"}${view === "operations" && runId ? `?run=${encodeURIComponent(runId)}` : ""}`;
+  return `#${VIEWS.has(view) ? view : "overview"}${["operations", "approvals"].includes(view) && runId ? `?run=${encodeURIComponent(runId)}` : ""}`;
 }
 export function readableError(error) {
   const message = error?.message || "The request could not be completed.";

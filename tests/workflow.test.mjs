@@ -31,7 +31,7 @@ async function fixture(t, { delay = 3 } = {}) {
   const server = app.listen(0, "127.0.0.1");
   await once(server, "listening");
   t.after(async () => {
-    engine.close();
+    await engine.close();
     await wait(20);
     await new Promise((r) => server.close(r));
     store.close();
@@ -230,7 +230,7 @@ test("worker restart resumes a persisted run without duplicating prior effects",
   });
   void engine.start(owner, id);
   await until(() => store.get(owner).runs[0].cursor >= 2);
-  engine.close();
+  await engine.close();
   await wait(30);
   const savedCount = store.get(owner).ledger.length;
   store.close();
@@ -247,7 +247,7 @@ test("worker restart resumes a persisted run without duplicating prior effects",
     state.ledger.length,
   );
   assert(run.events.some((e) => e.title === "Worker resumed"));
-  engine.close();
+  await engine.close();
   await wait(10);
   store.close();
   rmSync(dir, { recursive: true });
@@ -422,4 +422,106 @@ test("streamed preview reports an empty scope before execution", async (t) => {
   assert.equal(result.status, 422);
   assert.match(result.data.error, /no tickets in this scope/i);
   assert.equal((await a("state")).data.runs.length, 0);
+});
+
+test("Mastra snapshots suspend at the approval gate and complete after decisions", async (t) => {
+  const { client, engine } = await fixture(t);
+  const a = client();
+  const plan = (await a("plans", { command })).data;
+  await a("runs", { planId: plan.id });
+  let run, snapshot;
+  for (let i = 0; i < 100; i++) {
+    run = (await a("state")).data.runs[0];
+    if (run.workflow) {
+      snapshot = await engine.snapshot(run.workflow.runId);
+      if (
+        snapshot?.status === "suspended" &&
+        run.status === "awaiting_approval"
+      )
+        break;
+    }
+    await wait(10);
+  }
+  assert.equal(run.workflow.engine, "Mastra");
+  assert.equal(snapshot.status, "suspended");
+  assert.equal(snapshot.steps["approval-gate"].status, "suspended");
+  const drafts = (await a("state")).data.tickets.flatMap(
+    (ticket) => ticket.drafts,
+  );
+  for (const draft of drafts)
+    await a(`approvals/${draft.id}`, { decision: "reject" });
+  for (let i = 0; i < 100; i++) {
+    snapshot = await engine.snapshot(run.workflow.runId);
+    if (snapshot.status === "success") break;
+    await wait(10);
+  }
+  assert.equal(snapshot.status, "success");
+  assert.equal((await a("state")).data.runs[0].status, "completed");
+});
+
+test("requested draft counts stay within the fixed execution budget", () => {
+  const tickets = seedTickets(),
+    intent = { ...localIntent(command), draftLimit: 2 };
+  assert.equal(
+    buildPlan(command, "all", intent, tickets, "gemma").draftCount,
+    2,
+  );
+  assert.throws(() => intentSchema.parse({ ...intent, draftLimit: 7 }));
+});
+
+test("resuming a failed Gemma draft step reuses completed responses instead of paying twice", async () => {
+  const store = createStore(":memory:"),
+    owner = "provider-recovery";
+  let calls = 0;
+  const engine = createEngine(store, {
+    delay: 1,
+    generate: async () => {
+      calls++;
+      if (calls === 2) throw new Error("test-only provider interruption");
+      return {
+        output: {
+          body: "A cautious reply based on the supplied support playbook.",
+        },
+        model: "test-only-gemma",
+        requestId: `test-request-${calls}`,
+        sdk: "test-only",
+        usage: { totalTokens: 12 },
+      };
+    },
+  });
+  const id = "provider-run";
+  store.mutate(owner, (state) => {
+    const plan = buildPlan(
+      command,
+      "all",
+      { ...localIntent(command), draftLimit: 2 },
+      state.tickets,
+      "gemma",
+    );
+    state.runs.push({
+      id,
+      plan,
+      status: "running",
+      cursor: 0,
+      events: [],
+      sources: [],
+      style: "concise",
+      injectFailure: false,
+      faultInjected: false,
+      createdAt: new Date().toISOString(),
+    });
+  });
+  await engine.start(owner, id);
+  assert.equal(store.get(owner).runs[0].status, "failed");
+  assert.equal(Object.keys(store.get(owner).runs[0].modelDrafts).length, 1);
+  store.mutate(owner, (state) => (state.runs[0].status = "running"));
+  await engine.start(owner, id);
+  const state = store.get(owner);
+  assert.equal(state.runs[0].status, "awaiting_approval");
+  assert.equal(calls, 3);
+  assert.equal(summary(state, state.runs[0]).drafts, 2);
+  assert.equal(state.receipts.length, 2);
+  assert.equal(state.runs[0].workflow.attempt, 2);
+  await engine.close();
+  store.close();
 });

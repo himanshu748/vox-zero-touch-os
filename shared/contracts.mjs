@@ -6,5 +6,6 @@ export const intentSchema = z
       .min(1)
       .max(4),
     objective: z.string().max(200),
+    draftLimit: z.number().int().min(1).max(6).optional(),
   })
   .strict();

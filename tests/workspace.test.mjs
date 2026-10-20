@@ -16,6 +16,7 @@ test("workspace routes preserve selected runs and reject unknown views", () => {
   );
   assert.equal(readWorkspaceRoute("#ticket-typo").view, "overview");
   assert.equal(workspaceHash("tickets", "abc"), "#tickets");
+  assert.equal(workspaceHash("approvals", "abc"), "#approvals?run=abc");
 });
 test("stream errors retain server explanations and network errors stay readable", () => {
   assert.equal(

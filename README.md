@@ -2,7 +2,7 @@
 
 Say it once. Get your day back.
 
-VOX is a working local support-operations sandbox with a product landing page, a persistent helpdesk and a reviewable execution flow. It uses Vercel AI SDK 7 for structured model output and React plan rendering. **This build does not complete the cloud integrations or contest submission in the original PRD.**
+VOX is a local support-operations workspace with live Gemma planning/drafting, ElevenLabs transcription/speech and Mastra workflow orchestration. The helpdesk contains 24 fictional tickets. Its writes, plans, approvals and evidence are persisted; external customer delivery is disabled.
 
 ## Run
 
@@ -10,15 +10,51 @@ Requires Node.js 22.14 or newer. SQLite uses Node's built-in experimental `node:
 
 ```bash
 npm ci
+cp .env.example .env
+# Fill the server credentials. Never commit .env.
 npm run dev
 ```
 
-- Landing page: http://localhost:4310/
+- Landing: http://localhost:4310/
 - Workspace: http://localhost:4310/app
 - Evidence: http://localhost:4310/app#evidence
 - Health: http://localhost:4310/healthz
 
-The server defaults to localhost. Each browser session receives its own 24-ticket synthetic workspace. All fictional identities and tickets are generated from checked-in seed data. Data persists in `data/vox.sqlite`. Preferences includes an explicit workspace reset.
+Without provider credentials, the app explicitly uses local rules and templates. A configured provider failure does not silently fall back to local generation. Each guest session has an isolated workspace. Keep this build on localhost; public hosting/authentication and infrastructure hardening are separate work.
+
+## Voice to execution
+
+1. Choose the voice button and consent to ElevenLabs processing. Record up to 60 seconds, or upload an audio command smaller than 8 MB.
+2. Review and edit the transcript. Voice provenance follows the saved plan and run.
+3. Create a streamed Gemma plan. Inspect the ticket scope, action cards, requested draft count, provider mode and boundaries.
+4. Approve the plan. Mastra runs inspection, triage, research, labels, drafts and briefing as named workflow steps. Only requested steps execute.
+5. Review each proposed simulated send. Mastra suspends at its approval gate until the individual decisions are complete. Approvals can be filtered by run.
+6. Play the ElevenLabs briefing. Replays use persisted generated audio; changing the briefing creates a different cache key.
+7. Export the saved evidence. No external message is sent.
+
+A requested draft count is limited to six. The deliberate label interruption retries once before its write. Model requests have no automatic SDK retries. Completed model responses are cached before the draft step commits, so resuming a failed step reuses them.
+
+## Provider configuration
+
+For hosted Google Gemma, set `GEMMA_PROVIDER=google`, `GOOGLE_GENERATIVE_AI_API_KEY` and `GEMMA_MODEL`. The verified model on October 20, 2026 was `gemma-4-26b-a4b-it`. For a self-hosted OpenAI-compatible endpoint, set `GEMMA_PROVIDER=compatible`, `GEMMA_BASE_URL`, the exact model id and optional `GEMMA_API_KEY`.
+
+The AI SDK adapter uses the installed version's `instructions` API. Google Gemma emits prompt-constrained JSON, validated with Zod. Compatible endpoints can opt into native schema output with `GEMMA_STRUCTURED_OUTPUTS=true`. Partial streamed output cannot execute tools. The UI renders fixed, allowlisted React cards rather than model-supplied HTML.
+
+For voice, set `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID`, `ELEVENLABS_STT_MODEL` and `ELEVENLABS_TTS_MODEL`. The verified models were `scribe_v2` and `eleven_multilingual_v2`, with an available public preset voice. Use a dedicated key limited to transcription, synthesis, voice reading and model access. The locally configured VOX key has a 1,000-credit cap per refresh period and expires after 30 days.
+
+Recordings stay in memory and are not saved by VOX. Browser recordings are normalized to mono WAV so their duration can be validated before provider processing. Transcripts and successful request metadata are saved in the owner workspace. Closing an in-flight transcription aborts processing. Provider retention follows the account terms.
+
+Generated briefings are saved separately in a bounded SQLite audio cache, keyed by owner, run, text, voice and model. Concurrent identical requests share one generation. Reset clears the owner's cache. Browser speech is a labeled fallback only when ElevenLabs voice is not configured.
+
+## Mastra and durability
+
+`server/workflow-runtime.mjs` registers `vox-support-v1` with Mastra and file-backed libSQL storage. Named activities feed into a persisted approval suspension. No Mastra admin server is exposed.
+
+`data/vox.sqlite` stores workspace state, activity cursors, model-response caches, decisions, request receipts and the idempotency ledger. `data/mastra.sqlite` stores Mastra snapshots. A suspended run resumes its saved Mastra instance. Recovery after an unfinished attempt uses the saved application cursor and ledger; a new Mastra attempt skips completed activities. A crash before a provider response is committed can leave an uncertain provider charge, so provider work remains bounded by the plan's call ceiling.
+
+An opaque HttpOnly, SameSite cookie identifies the guest session. Foreign sessions cannot retrieve voice provenance, execute another session's plan, decide its drafts or read its generated audio. JSON mutation routes reject foreign browser origins. This is local session authorization, not Auth0.
+
+## Verification
 
 ```bash
 npm test
@@ -27,69 +63,14 @@ npm run build
 npm start
 ```
 
-`npm run seed` explains the automatic seed/reset path. `npm start` serves the production build. `DATA_DIR` sets the persistent database directory.
+29 automated checks pass. Type checking covers the AI SDK adapter. Browser verification exercised the real provider chain with a synthetic spoken file: live Scribe transcription → live Gemma plan → two live Gemma drafts → Mastra approval suspension/resume → live ElevenLabs briefing. Replay and process restart reused the saved audio. Provider receipts and a real Mastra snapshot were exported. Physical microphone testing was deferred by the user.
 
-## A real local workflow
+The workspace and landing share Geist typography, soft white surfaces, near-black headings, cobalt accents and motion tokens. Mobile/tablet/desktop checks cover menus, dialogs, plan cards, approvals and evidence.
 
-1. Select “Triage my queue” or type a support instruction.
-2. Review the generated action cards, ticket scope and side-effect boundaries.
-3. Approve the plan. The executor saves priorities, internal labels, notes and reply drafts.
-4. With the recovery setting on, one internal label activity fails before its transaction and retries from its saved checkpoint.
-5. Inspect the resulting tickets and activity history. Every proposed simulated send requires a separate decision.
-6. Reject a draft or approve one sandbox send. No external delivery takes place.
-7. Play the saved briefing with browser speech, or configured ElevenLabs. Export the actual records from Evidence.
+The dependency audit currently reports one unpatched transitive formatter denial-of-service advisory through Mastra's frontmatter dependency chain (five affected package entries). VOX does not expose frontmatter parsing or user-controlled format strings. No unsafe forced dependency downgrade was applied.
 
-All displayed execution counts are calculated from saved records. The landing page's workspace preview reads the current session's real local data. Its workflow examples and animated approval card are labeled illustrations.
+See [verification](docs/VERIFICATION.md), [live voice architecture](docs/VOICE-FLOW.md), [motion](docs/MOTION.md), [asset provenance](docs/ASSETS.md) and [remaining PRD requirements](docs/REMAINING.md).
 
-## Vercel AI SDK and generative UI
+## References
 
-- `server/ai.mjs` uses `generateText`, `streamText` and `Output.object` with Zod schemas.
-- `@ai-sdk/openai-compatible` connects a server-configured Gemma endpoint.
-- `@ai-sdk/react`'s `useObject` parses the streamed intent for the planning UI.
-- Only allowlisted action kinds render fixed React components. The model cannot emit executable HTML or choose tool URLs.
-- The server saves a complete validated plan before it can be executed. A partial preview cannot mutate tickets.
-- Without an endpoint, the app explicitly uses deterministic local rules and reply templates. The SDK React hook still consumes that structured local response. This is not represented as model inference.
-- SDK tests use `ai/test` mocks and do not count as live provider evidence.
-
-## Connect a model and voice
-
-Copy `.env.example` to `.env`, set the desired server credentials and restart the process. Do not place credentials in browser code.
-
-For a self-hosted Gemma endpoint, set `GEMMA_BASE_URL`, `GEMMA_MODEL` and, if needed, `GEMMA_API_KEY`. Supply the exact model id served by your endpoint. `GEMMA_STRUCTURED_OUTPUTS=true` opts into server-side JSON-schema support if the endpoint supports it. The SDK validates the result in either mode. SDK-level retries are disabled; no silent local fallback occurs after a configured provider fails.
-
-For ElevenLabs, set `ELEVENLABS_API_KEY` and `ELEVENLABS_VOICE_ID`. The microphone flow requires consent before recording and provider processing. Audio is bounded to 60 seconds and 8 MB, stays in memory, and is not saved by VOX. Closing a recording dialog discards the recording. Provider retention depends on the account terms. These adapters have not been verified with live credentials in this build.
-
-## Persistence and authorization
-
-One local Node process owns the executor. Plans, activity cursors, fault-injection state, drafts, decisions, receipts and the write ledger are persisted atomically in SQLite. Restarting the worker resumes running workflows. An idempotency key prevents an activity from repeating an already saved write.
-
-An opaque HttpOnly, SameSite cookie identifies an isolated guest workspace. Foreign sessions cannot retrieve or decide another workspace's plans or approvals. JSON mutation routes reject foreign browser origins. This is local session authorization, **not Auth0 authentication**. Keep this build on localhost until public-hosting controls, authentication and provider budgets are completed.
-
-## Verification and limits
-
-19 automated tests cover schema validation, SDK generation and streaming with test models, read-only planning, scoped plans, unknown tool rejection, cross-session approvals, single-use decisions, retries, idempotency, database reopen/resume, stop/resume, expired plans and approvals, saved scopes, historical counts, preferences and reset. Type checking covers the AI SDK adapter. The production build passes.
-
-Browser checks covered the local text-to-plan-to-run-to-approval flow, the new structured plan UI, landing navigation, example switching, motion preview pause/resume, desktop and mobile layouts. See [verification](docs/VERIFICATION.md).
-
-No live Gemma/ElevenLabs provider call, Temporal workflow, Stagehand/Browserbase operation, Auth0 login, MongoDB Atlas proof, cloud deployment, public repository, domain setup or submission is claimed. See [remaining requirements](docs/REMAINING.md).
-
-## Design and motion
-
-The current visual direction uses Geist, soft white, near-black and cobalt. The workspace uses the same light surfaces, typography and cobalt accent across overview, queues, approvals, execution, evidence and dialogs. The original copper direction was replaced after user feedback.
-
-The landing page uses an original ImageGen sculpture, not a photograph of a physical device. It has a coordinated hero entrance and once-only section reveals. “Play the workflow” is a finite 6.4-second, user-controlled illustration with pause, resume and replay. Reduced motion removes spatial choreography and shows the final preview directly. [Motion notes](docs/MOTION.md) and [asset provenance](docs/ASSETS.md) document the approach.
-
-## Source map
-
-- `src/Landing.jsx`, `src/landing.css`: marketing page and interactive illustrations.
-- `src/App.jsx`, `src/styles.css`: operations workspace and review dialogs.
-- `src/PlanCards.jsx`, `shared/contracts.mjs`: schema-driven generative UI.
-- `server/app.mjs`: session-bound HTTP API and streaming preview.
-- `server/planner.mjs`: policy, scope and transparent priority rules.
-- `server/engine.mjs`: durable local activities, retry, approvals and briefing counts.
-- `server/store.mjs`, `server/seed.mjs`: SQLite persistence and synthetic fixtures.
-- `server/ai.mjs`, `server/providers.mjs`: AI SDK model layer and provider evidence state.
-
-MIT licensed. The proposed product requirements are preserved in [the original PRD](docs/PRD.md).
-
-API references: [Vercel AI SDK](https://ai-sdk.dev/docs), [structured outputs](https://ai-sdk.dev/docs/ai-sdk-core/generating-structured-data), [useObject](https://ai-sdk.dev/docs/ai-sdk-ui/object-generation), [ElevenLabs transcription](https://elevenlabs.io/docs/api-reference/speech-to-text/convert), [ElevenLabs speech](https://elevenlabs.io/docs/api-reference/text-to-speech/convert).
+[Vercel AI SDK](https://ai-sdk.dev/docs), [Google-hosted Gemma](https://ai.google.dev/gemma/docs/core/gemma_on_gemini_api), [Mastra workflows](https://mastra.ai/docs/workflows/overview), [Mastra human approval](https://mastra.ai/docs/workflows/human-in-the-loop), [ElevenLabs transcription](https://elevenlabs.io/docs/api-reference/speech-to-text/convert), [ElevenLabs speech](https://elevenlabs.io/docs/api-reference/text-to-speech/convert).

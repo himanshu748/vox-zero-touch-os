@@ -11,12 +11,13 @@ const store = createStore(
   resolve(process.env.DATA_DIR || "data", "vox.sqlite"),
 );
 const { app, engine } = createApp(store);
+let vite;
 if (process.env.NODE_ENV === "production") {
   app.use(express.static("dist"));
   app.get("*", (_, res) => res.sendFile(resolve("dist/index.html")));
 } else {
   const { createServer } = await import("vite");
-  const vite = await createServer({
+  vite = await createServer({
     server: { middlewareMode: true },
     appType: "spa",
   });
@@ -27,10 +28,17 @@ const server = app.listen(port, process.env.HOST || "127.0.0.1", () => {
   console.log(`VOX is ready at http://localhost:${port}`);
   engine.resumeAll();
 });
-process.on("SIGTERM", () => {
-  engine.close();
-  server.close(() => {
-    store.close();
-    process.exit();
-  });
-});
+let shuttingDown = false;
+async function shutdown() {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  const stopped = new Promise((resolve) => server.close(resolve));
+  await engine.close();
+  await vite?.close();
+  server.closeAllConnections();
+  await stopped;
+  store.close();
+  process.exit(0);
+}
+process.on("SIGTERM", shutdown);
+process.on("SIGINT", shutdown);

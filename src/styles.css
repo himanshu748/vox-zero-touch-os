@@ -3518,3 +3518,93 @@ input[type="checkbox"] {
     font-size: 11px;
   }
 }
+
+.voice-provenance {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #64877c;
+  font-size: 9px;
+  margin-top: 10px;
+}
+.voice-upload {
+  width: 100%;
+  max-width: 350px;
+  text-align: center;
+  padding: 14px;
+  border: 1px dashed #cbd6eb;
+  border-radius: 8px;
+  position: relative;
+  cursor: pointer;
+  background: #f8faff;
+}
+.voice-upload input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+.voice-upload:focus-within {
+  outline: 2px solid #3657ff;
+  outline-offset: 3px;
+}
+.voice-upload.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.voice-upload span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: #6b84b5;
+  font-size: 11px;
+}
+.voice-upload small {
+  display: block;
+  color: #94a5c0;
+  font-size: 9px;
+  margin-top: 6px;
+}
+
+.voice-run-origin {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #758fbc;
+  font-size: 10px;
+  margin: -6px 0 16px;
+}
+
+.approval-toolbar label {
+  font-size: 11px;
+  color: #8c9db7;
+}
+.approval-toolbar select {
+  min-width: 230px;
+}
+@media (max-width: 480px) {
+  .approval-toolbar label {
+    width: 100%;
+  }
+  .approval-toolbar select {
+    min-width: 0;
+  }
+}
+@media (max-width: 480px) {
+  .receipt {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 7px 12px;
+    padding: 15px 17px;
+  }
+  .receipt span {
+    overflow-wrap: anywhere;
+  }
+  .receipt > span:last-child {
+    margin-left: 0;
+    text-align: right;
+  }
+}

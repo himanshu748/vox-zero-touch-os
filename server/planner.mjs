@@ -5,6 +5,7 @@ export const commandSchema = z
   .object({
     command: z.string().trim().min(8).max(2000),
     scope: z.enum(["all", "urgent", "untriaged"]).default("all"),
+    transcriptId: z.string().uuid().optional(),
   })
   .strict();
 export function risk(ticket, now = Date.now()) {
@@ -90,7 +91,9 @@ export function buildPlan(command, scope, intent, tickets, provider) {
     actions.unshift("research");
   if (!actions.includes("triage")) actions.unshift("triage");
   const count = chosen.length;
-  const draftCount = actions.includes("draft") ? Math.min(6, count) : 0;
+  const draftCount = actions.includes("draft")
+    ? Math.min(intent.draftLimit || 6, count)
+    : 0;
   const steps = [
     {
       kind: "inspect",

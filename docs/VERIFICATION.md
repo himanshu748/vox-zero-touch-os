@@ -4,7 +4,7 @@ Date: October 20, 2026 (India time).
 
 ## Automated
 
-- `npm test`: 19 tests passed.
+- `npm test`: 29 tests passed.
 - `npm run typecheck`: passed; covers the AI SDK adapter against installed package types.
 - `npm run build`: passed; landing and workspace load in separate JS chunks.
 - SQLite persistence, worker restart/resume, read-only previews, bounded scopes, retries, idempotency, ownership, single-use decisions, expired plans/approvals, saved preferences, reset, route parsing and useful error messages are covered.
@@ -35,8 +35,22 @@ Mobile checks covered stacked approvals, a compact queue, a scrollable plan dial
 
 Landing navigation, mobile menu, example switching and workflow pause/resume were rechecked after changing shared styles. The current workspace matches the landing's Geist, soft white and cobalt design. Earlier dark/copper screenshots in this folder show superseded versions.
 
+## Live provider verification
+
+The October 20 connected-provider pass used the in-app browser for a 7.791-second synthetic spoken file. It exercised real ElevenLabs Scribe v2 transcription, real Gemma 4 streamed planning, two real Gemma reply generations, Mastra execution with one safe retry, the persisted approval gate, one rejection and one simulated send. The Mastra snapshot reached `success`.
+
+The run saved 24 triages, zero new labels (the existing labels were preserved), two drafts and two individual decisions. The five provider receipts include one STT, three Gemma and one TTS operation. The Gemma calls reported 3,080 total tokens. The ElevenLabs briefing returned 258,341 bytes of audio. Provider cost was unavailable. Replaying before and after a process restart used the saved audio and created no additional speech receipt.
+
+Additional automated checks cover duration/size validation, voice provenance ownership, aborting transcription, stale briefing invalidation, audio-cache deduplication, real Mastra suspension/resume and reuse of completed Gemma responses after failure. The browser console was clean during the successful live walkthrough.
+
+Current evidence is in [the live QA report](../../qa/LIVE-VOICE-QA.md), [provider receipts and Mastra snapshot](../../qa/live-voice-proof.json) and [generated briefing](../../qa/live-briefing.mp3).
+
 ## Limits
 
-Gemma inference and ElevenLabs transcription/playback remain unverified with live credentials. The disconnected voice state correctly offers a text command. Browser speech controls were exercised, but microphone hardware and audible output were not assessed. Reduced-motion behavior is implemented in code; OS-level reduced-motion preferences were not changed during this pass. No Safari/Firefox, public deployment, Temporal, Auth0, Browserbase or other cloud integration proof is claimed.
+The user deferred physical microphone testing. Browser speech hardware, Safari/Firefox and public hosting were not assessed. All helpdesk identities and sends remain synthetic. Temporal, Auth0, Browserbase, MongoDB Atlas and the other cloud PRD integrations remain separate requirements.
 
-Current screenshots and the detailed QA matrix are in the separate [QA output folder](../../qa/WORKSPACE-QA.md).
+The npm audit reports an unpatched transitive `sprintf-js` formatter DoS advisory through Mastra's frontmatter chain; five package entries are affected. VOX does not expose frontmatter parsing or user-controlled format strings.
+
+An initial Google key-detail tool response was not fully redacted because Google used a newer credential format. The key was not committed or packaged, and subsequent handling was redacted. Rotating that existing Google key in AI Studio is recommended; it was not disabled automatically because it may be shared by other projects.
+
+Earlier dark/copper screenshots show superseded designs. Current workspace and voice-flow screenshots use the Geist/white/cobalt system.

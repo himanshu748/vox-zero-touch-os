@@ -3577,6 +3577,20 @@ input[type="checkbox"] {
   font-size: 10px;
   margin: -6px 0 16px;
 }
+.run-provenance {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0 0 18px;
+}
+.run-provenance a,
+.development-proof {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 550;
+}
 
 .approval-toolbar label {
   font-size: 11px;

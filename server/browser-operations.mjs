@@ -159,7 +159,7 @@ export function configureBrowserOperations(app, store) {
         res
           .type("html")
           .send(
-            '<!doctype html><html lang="en"><title>VOX note saved</title><h1>Internal note saved</h1><p>The synthetic ticket was updated. No external message was sent.</p></html>',
+            '<!doctype html><html lang="en"><title>VOX note saved</title><h1 id="note-saved">Internal note saved</h1><p>The synthetic ticket was updated. No external message was sent.</p></html>',
           );
       } catch (error) {
         next(error);
@@ -245,11 +245,34 @@ export async function reviewTicketInBrowser(store, owner, id) {
     const page =
       (await browser.context.pages())[0] || (await browser.context.newPage());
     await page.goto(new URL("/browser/operations", origin).href);
-    await stagehand.act(
+    const fill = await stagehand.act(
       `Fill the Internal review note textarea with exactly: ${noteFor(id)}`,
-      { timeout: 45000 },
+      { page, timeout: 45000 },
     );
-    await stagehand.act("Click Save internal note.", { timeout: 45000 });
+    if (!fill.data.success)
+      throw new Error("The browser did not fill the approved note.");
+    const save = await stagehand.act("Click Save internal note.", {
+      page,
+      timeout: 45000,
+    });
+    store.mutate(owner, (state) => {
+      const current = state.runs.find((item) => item.id === id);
+      current.browserActions = {
+        fill: fill.data,
+        save: save.data,
+        sessionId: browser.sessionId,
+      };
+    });
+    await store.flush?.();
+    if (!save.data.success)
+      throw new Error("The browser did not submit the approved note.");
+    // A dispatched click is not a completed POST. Keep the grant and session
+    // alive until the server's acknowledged save response is visible.
+    const confirmed = await page.waitForSelector("#note-saved", {
+      timeout: 15000,
+    });
+    if (!confirmed)
+      throw new Error("The browser save was not acknowledged by the helpdesk.");
     const result = store
       .get(owner)
       .runs.find((item) => item.id === id).browserOperation;

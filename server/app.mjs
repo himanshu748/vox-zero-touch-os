@@ -117,13 +117,11 @@ export function createApp(
       ) &&
       !authenticatedOwner(req)
     )
-      return res
-        .status(401)
-        .json({
-          error:
-            "Sign in with an authorized Auth0 account to use live providers.",
-          login: "/auth/login",
-        });
+      return res.status(401).json({
+        error:
+          "Sign in with an authorized Auth0 account to use live providers.",
+        login: "/auth/login",
+      });
     next();
   });
   app.get("/healthz", (_, res) =>
@@ -159,6 +157,9 @@ export function createApp(
         authenticated: Boolean(authenticatedOwner(req)),
         storage: store.storageMode || "SQLite",
         gemmaModel: gemmaEnabled() ? modelConnection().model : null,
+        sentryTraceBase: /^[a-z0-9-]+$/.test(process.env.SENTRY_ORG || "")
+          ? `https://${process.env.SENTRY_ORG}.sentry.io/explore/traces/trace/`
+          : null,
         voiceId: voiceEnabled()
           ? process.env.ELEVENLABS_VOICE_ID || null
           : null,

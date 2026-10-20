@@ -1888,6 +1888,24 @@ export default function App() {
                           </span>
                         </div>
                       )}
+                      {state.capabilities.sentryTraceBase &&
+                        currentRun.traces?.length > 0 && (
+                          <div className="run-provenance">
+                            {currentRun.traces
+                              .filter((id) => /^[a-f0-9]{32}$/.test(id))
+                              .map((id, index) => (
+                                <a
+                                  key={id}
+                                  href={`${state.capabilities.sentryTraceBase}${id}/`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                >
+                                  <Activity size={13} /> Sentry trace{" "}
+                                  {index + 1} <ArrowUpRight size={12} />
+                                </a>
+                              ))}
+                          </div>
+                        )}
                       <div className="run-command">
                         <span>
                           <Mic size={16} />
@@ -2139,6 +2157,19 @@ export default function App() {
                           <div>
                             <strong>{p.name}</strong>
                             <p>{p.role}</p>
+                            {p.evidence?.startsWith(
+                              "https://github.com/himanshu748/vox-zero-touch-os/",
+                            ) && (
+                              <a
+                                href={p.evidence}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="development-proof"
+                              >
+                                View development evidence{" "}
+                                <ArrowUpRight size={11} />
+                              </a>
+                            )}
                           </div>
                           <div>
                             <Badge

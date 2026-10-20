@@ -13,6 +13,11 @@ if (
     "SERPAPI_API_KEY",
     "BACKBOARD_API_KEY",
     "BROWSERBASE_API_KEY",
+    "TINKER_API_KEY",
+    "TABPFN_API_KEY",
+    "PAPERINSTRUMENTS_API_KEY",
+    "TIGER_DATABASE_URL",
+    "TEMPORAL_POSTGRES_URI",
   ].some((key) => process.env[key])
 ) {
   if (
@@ -32,4 +37,9 @@ if (
   process.env.VOX_REQUIRE_PROVIDER_LOGIN = "true";
 }
 initializeTelemetry();
+const { startSelfHostedTemporal } = await import("./temporal-self-host.mjs");
+await startSelfHostedTemporal();
+const { verifySelfHostedTemporal } =
+  await import("./temporal-startup-check.mjs");
+await verifySelfHostedTemporal();
 await import("./index.mjs");

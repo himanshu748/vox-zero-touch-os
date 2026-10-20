@@ -1,0 +1,59 @@
+{
+  "verifiedAt": "2026-10-20T13:35:31.279Z",
+  "fixture": "authored-playbook-retrieval-v1",
+  "fixtureSha256": "a85264617478613f97e118ead11f06a8ea8c0b2dbee173be776e8ab181648beb",
+  "provenance": "Six authored synthetic questions, expected playbook categories fixed before evaluation. Not customer search logs.",
+  "total": 6,
+  "lexicalCorrect": 5,
+  "hybridCorrect": 6,
+  "rows": [
+    {
+      "query": "137",
+      "expected": "deployment",
+      "lexicalTop1": "deployment",
+      "hybridTop1": "deployment",
+      "lexicalCorrect": true,
+      "hybridCorrect": true
+    },
+    {
+      "query": "My container was killed when memory filled up",
+      "expected": "deployment",
+      "lexicalTop1": "deployment",
+      "hybridTop1": "deployment",
+      "lexicalCorrect": true,
+      "hybridCorrect": true
+    },
+    {
+      "query": "I am blocked at the company single sign on screen",
+      "expected": "access",
+      "lexicalTop1": null,
+      "hybridTop1": "access",
+      "lexicalCorrect": false,
+      "hybridCorrect": true
+    },
+    {
+      "query": "Why did adding a teammate halfway through the month change my invoice?",
+      "expected": "billing",
+      "lexicalTop1": "billing",
+      "hybridTop1": "billing",
+      "lexicalCorrect": true,
+      "hybridCorrect": true
+    },
+    {
+      "query": "The CLI command is undocumented; where is a reproducible example?",
+      "expected": "docs",
+      "lexicalTop1": "docs",
+      "hybridTop1": "docs",
+      "lexicalCorrect": true,
+      "hybridCorrect": true
+    },
+    {
+      "query": "Our database connections time out under load",
+      "expected": "incident",
+      "lexicalTop1": "incident",
+      "hybridTop1": "incident",
+      "lexicalCorrect": true,
+      "hybridCorrect": true
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "verifiedAt": "2026-10-20T12:46:36Z",
+  "datasetVersion": "vox-intent-v1",
+  "datasetSha256": "7de6f24ea86395296c69a1c4be55cd7ca8f2cf2356964ccf6a425fd1a1bcd0b8",
+  "provenance": "Authored synthetic command-intent pairs. No private speech or customer records.",
+  "trainRows": 53,
+  "testRows": 16,
+  "baseModel": "Qwen/Qwen3-8B",
+  "epochs": 12,
+  "rank": 8,
+  "maxOutputTokens": 96,
+  "baseline": {
+    "correct": 12,
+    "total": 16,
+    "accuracy": 0.75,
+    "outputTokens": 320,
+    "medianLatencyMs": 2385
+  },
+  "fineTuned": {
+    "correct": 16,
+    "total": 16,
+    "accuracy": 1,
+    "outputTokens": 240,
+    "medianLatencyMs": 7870
+  },
+  "maximumPromotionalUsd": 0.25,
+  "maximumTokenUsd": 0.04401843,
+  "checkpointTtlSeconds": 604800,
+  "limitations": "Small fixed synthetic evaluation. The tuned model was slower in this test. Checkpoint identifiers and credentials are excluded."
+}

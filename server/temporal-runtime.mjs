@@ -19,7 +19,7 @@ export async function createTemporalRuntime({ store, execute, event }) {
   const taskQueue = process.env.TEMPORAL_TASK_QUEUE || "vox-support";
   const options = {
     address,
-    ...(process.env.TEMPORAL_API_KEY
+    ...(process.env.TEMPORAL_SELF_HOSTED !== "true" && process.env.TEMPORAL_API_KEY
       ? { tls: true, apiKey: process.env.TEMPORAL_API_KEY }
       : {}),
   };
@@ -41,6 +41,11 @@ export async function createTemporalRuntime({ store, execute, event }) {
     namespace,
     taskQueue,
     workflowBundle,
+    maxCachedWorkflows: 0,
+    maxConcurrentWorkflowTaskExecutions: 1,
+    maxConcurrentActivityTaskExecutions: 1,
+    maxConcurrentWorkflowTaskPolls: 1,
+    maxConcurrentActivityTaskPolls: 1,
     activities: {
       async executePipeline({ owner, id }) {
         const context = Context.current();

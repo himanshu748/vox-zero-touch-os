@@ -58,6 +58,31 @@ import {
 } from "lucide-react";
 const DEFAULT_COMMAND =
   "Triage the pending tickets, research likely fixes, draft replies, and tag the urgent ones. Ask me before sending anything.";
+function DraftReview({ review }) {
+  if (!review) return null;
+  return (
+    <div className="detail-section" aria-label="Ultramarine advisory review">
+      <h4>Ultramarine review</h4>
+      <Badge kind={review.verdict === "needs_revision" ? "pending" : "local"}>
+        {review.verdict === "needs_revision"
+          ? "Changes suggested"
+          : "Ready for your review"}
+      </Badge>
+      <p>{review.summary}</p>
+      {review.issues.map((issue, index) => (
+        <p key={index}>
+          <strong>{issue.concern}</strong>
+          <br />
+          {issue.suggestion}
+        </p>
+      ))}
+      <small>
+        AI advice against the supplied references. You decide whether this
+        synthetic reply should be sent.
+      </small>
+    </div>
+  );
+}
 const NAV = [
   ["overview", "Overview", LayoutDashboard],
   ["tickets", "Ticket queue", Inbox],
@@ -1709,6 +1734,9 @@ export default function App() {
                             </span>
                           </div>
                           <p className="draft-excerpt">{d.body}</p>
+                          {d.review && (
+                            <Badge kind="local">Ultramarine reviewed</Badge>
+                          )}
                           <div className="draft-source">
                             <BookOpen size={13} />
                             <a
@@ -2209,7 +2237,11 @@ export default function App() {
                               ? "Latency unavailable"
                               : `${r.latencyMs} ms`}
                           </span>
-                          <span>Cost unavailable</span>
+                          <span>
+                            {typeof r.cost === "number"
+                              ? `Est. $${r.cost.toFixed(5)}`
+                              : "Cost unavailable"}
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -2218,8 +2250,9 @@ export default function App() {
                     <BookOpen size={18} />
                     <p>
                       Playbook URLs are checked-in references. They are not live
-                      research receipts. Priority scores use transparent rules,
-                      not predictive AI.
+                      research receipts. Priority scores show their rules and,
+                      when enabled, TabPFN estimates from authored synthetic
+                      scenarios.
                     </p>
                   </div>
                 </>
@@ -2309,6 +2342,28 @@ export default function App() {
                       : "Configured Gemma endpoint"}
                   </Badge>
                   <Badge>{plan.estimatedCalls} estimated model calls</Badge>
+                  {plan.normalization && (
+                    <Badge>
+                      Tinker intent · {plan.normalization.drafts}{" "}
+                      {plan.normalization.drafts === 1 ? "draft" : "drafts"}
+                    </Badge>
+                  )}
+                  {plan.maxKnowledgeCalls > 0 && (
+                    <Badge>
+                      Up to {plan.maxKnowledgeCalls} Tiger hybrid searches
+                    </Badge>
+                  )}
+                  {plan.maxPredictionCalls > 0 && (
+                    <Badge>
+                      1 TabPFN batch · ceiling{" "}
+                      {plan.maxPredictionTokens.toLocaleString()} tokens
+                    </Badge>
+                  )}
+                  {plan.maxReviewCalls > 0 && (
+                    <Badge>
+                      Up to {plan.maxReviewCalls} Ultramarine reviews
+                    </Badge>
+                  )}
                   {plan.maxSearchCalls > 0 && (
                     <Badge>Up to {plan.maxSearchCalls} web searches</Badge>
                   )}
@@ -2340,8 +2395,9 @@ export default function App() {
                       {plan.injectFailure
                         ? "Recovery demo enabled: one safe transient failure will be injected."
                         : "Recovery demo disabled."}{" "}
-                      Model call ceiling: {plan.maxProviderCalls}. Provider cost
-                      is unavailable.
+                      Gemma call ceiling: {plan.maxProviderCalls}. Additional
+                      provider limits are shown above. Costs are estimates where
+                      available.
                     </small>
                   </div>
                 </div>
@@ -2410,8 +2466,11 @@ export default function App() {
                         <h4>Why this priority</h4>
                         <p>{t.reasons.join(" · ")}</p>
                         <small>
-                          Score {t.score}/100 · Deterministic rules v1 ·{" "}
-                          {new Date(t.triagedAt).toLocaleString()}
+                          Score {t.score}/100 ·{" "}
+                          {t.escalation
+                            ? "SLA rules + synthetic TabPFN estimate"
+                            : "Deterministic rules v1"}{" "}
+                          · {new Date(t.triagedAt).toLocaleString()}
                         </small>
                       </div>
                     )}
@@ -2434,6 +2493,7 @@ export default function App() {
                               {statusLabel(d.status)}
                             </Badge>
                             <p>{d.body}</p>
+                            <DraftReview review={d.review} />
                             <a
                               href={d.source.url}
                               target="_blank"
@@ -2487,6 +2547,7 @@ export default function App() {
                       </div>
                     </div>
                     <div className="message-body">{d.body}</div>
+                    <DraftReview review={d.review} />
                     <div className="draft-source">
                       <BookOpen size={14} />
                       <a href={d.source.url} target="_blank" rel="noreferrer">

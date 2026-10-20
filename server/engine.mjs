@@ -8,6 +8,10 @@ import { createTemporalRuntime } from "./temporal-runtime.mjs";
 import { searchGuidance } from "./research.mjs";
 import { traceActivity } from "./telemetry.mjs";
 import { reviewTicketInBrowser } from "./browser-operations.mjs";
+import { predictEscalation } from "./escalation.mjs";
+import { reviewDraft } from "./draft-review.mjs";
+import { providerTask } from "./provider-task.mjs";
+import { retrieveKnowledge } from "./knowledge-retrieval.mjs";
 const stamp = () => new Date().toISOString();
 export function event(run, title, detail, status = "completed") {
   run.events.push({ id: randomUUID(), title, detail, status, at: stamp() });
@@ -41,7 +45,13 @@ export function briefing(state, run) {
 }
 export function createEngine(
   store,
-  { delay = 700, generate = generateStructured } = {},
+  {
+    delay = 700,
+    generate = generateStructured,
+    predict = predictEscalation,
+    review = reviewDraft,
+    retrieve = retrieveKnowledge,
+  } = {},
 ) {
   let closed = false;
   const controllers = new Map();
@@ -89,8 +99,58 @@ export function createEngine(
       throw new Error("Recoverable pre-write label interruption");
     }
     controllers.set(id, new AbortController());
+    if (kind === "triage" && run.plan.predictionMode === "tabpfn") {
+      const tickets = state.tickets.filter((ticket) =>
+        run.plan.ticketIds.includes(ticket.id),
+      );
+      const result = await providerTask(
+        store,
+        owner,
+        id,
+        "tabpfn:triage",
+        run.plan.maxPredictionCalls,
+        () =>
+          predict(tickets, {
+            signal: controllers.get(id)?.signal,
+            maxTokens: run.plan.maxPredictionTokens,
+          }),
+      );
+      store.mutate(owner, (s) => {
+        const current = s.runs.find((item) => item.id === id);
+        current.escalation = {
+          dataset: result.dataset,
+          probabilities: Object.fromEntries(
+            tickets.map((ticket, index) => [
+              ticket.id,
+              result.probabilities[index],
+            ]),
+          ),
+        };
+      });
+    }
     if (kind === "tag" && run.plan.browserMode === "browserbase")
       await reviewTicketInBrowser(store, owner, id);
+    if (kind === "research" && run.plan.knowledgeMode === "tiger") {
+      const selected = store
+        .get(owner)
+        .tickets.filter((t) => run.plan.ticketIds.includes(t.id))
+        .sort((a, b) => b.score - a.score)
+        .slice(0, run.plan.maxKnowledgeCalls);
+      for (const ticket of selected) {
+        const result = await providerTask(
+          store,
+          owner,
+          id,
+          `tiger:${ticket.id}`,
+          run.plan.maxKnowledgeCalls,
+          () => retrieve(ticket, { signal: controllers.get(id)?.signal }),
+        );
+        store.mutate(owner, (s) => {
+          const current = s.runs.find((item) => item.id === id);
+          (current.knowledgeSources ||= {})[ticket.id] = result.sources;
+        });
+      }
+    }
     if (kind === "research" && run.plan.researchMode === "serpapi") {
       const selected = state.tickets
         .filter((t) => run.plan.ticketIds.includes(t.id))
@@ -165,6 +225,9 @@ export function createEngine(
               content: JSON.stringify({
                 ticket: { title: ticket.title, body: ticket.body },
                 playbook: knowledge[ticket.category],
+                retrievedPassages:
+                  store.get(owner).runs.find((item) => item.id === id)
+                    ?.knowledgeSources?.[ticket.id] || [],
                 liveSources:
                   store
                     .get(owner)
@@ -199,6 +262,36 @@ export function createEngine(
         });
       }
     }
+    if (kind === "draft" && run.plan.reviewMode === "ultramarine") {
+      for (const draft of modelDrafts || []) {
+        const ticket = state.tickets.find((item) => item.id === draft.id);
+        const current = store.get(owner).runs.find((item) => item.id === id);
+        const sources = [
+          knowledge[ticket.category],
+          ...(current.knowledgeSources?.[ticket.id] || []),
+          ...(current.liveSources || []).filter(
+            (source) => source.ticketId === ticket.id,
+          ),
+        ];
+        const result = await providerTask(
+          store,
+          owner,
+          id,
+          `ultramarine:${ticket.id}`,
+          run.plan.maxReviewCalls,
+          () =>
+            review(
+              { ticket, body: draft.body, sources },
+              { signal: controllers.get(id)?.signal },
+            ),
+        );
+        store.mutate(owner, (s) => {
+          (s.runs.find((item) => item.id === id).draftReviews ||= {})[
+            ticket.id
+          ] = result.review;
+        });
+      }
+    }
     store.mutate(owner, (s) => {
       const r = s.runs.find((r) => r.id === id);
       if (closed || r.status !== "running") return;
@@ -212,7 +305,27 @@ export function createEngine(
       if (step.kind === "triage") {
         tickets.forEach((t) =>
           record(s, r, t, "triage", () => {
-            Object.assign(t, risk(t));
+            const rules = risk(t),
+              probability = r.escalation?.probabilities[t.id];
+            Object.assign(t, rules);
+            if (Number.isFinite(probability)) {
+              t.ruleScore = rules.score;
+              t.escalation = {
+                probability,
+                dataset: r.escalation.dataset.version,
+                provenance: r.escalation.dataset.provenance,
+              };
+              // Prediction can raise attention, never lower the rule-based safety floor.
+              t.score = Math.max(
+                rules.score,
+                Math.round(rules.score * 0.7 + probability * 100 * 0.3),
+              );
+              t.priority =
+                t.score >= 75 ? "urgent" : t.score >= 50 ? "high" : "normal";
+              t.reasons.push(
+                `TabPFN synthetic escalation estimate: ${Math.round(probability * 100)}%; illustrative, not calibrated on customer outcomes.`,
+              );
+            }
             t.triagedAt = stamp();
           }),
         );
@@ -222,11 +335,14 @@ export function createEngine(
         event(
           r,
           "Priorities saved",
-          `Ranked ${tickets.length} tickets using SLA deadlines and reported impact. Scoring: deterministic rules v1.`,
+          r.escalation
+            ? `Ranked ${tickets.length} tickets using SLA rules and TabPFN estimates from authored synthetic scenarios. Predictions never lower the rule-based attention score.`
+            : `Ranked ${tickets.length} tickets using SLA deadlines and reported impact. Scoring: deterministic rules v1.`,
         );
       }
       if (step.kind === "research") {
         r.sources = [
+          ...Object.values(r.knowledgeSources || {}).flat(),
           ...(r.liveSources || []),
           ...[...new Set(tickets.map((t) => t.category))].map((c) => ({
             ...knowledge[c],
@@ -276,6 +392,7 @@ export function createEngine(
               const liveSources = (r.liveSources || []).filter(
                 (item) => item.ticketId === t.id,
               );
+              const knowledgeSources = r.knowledgeSources?.[t.id] || [];
               const greeting =
                 r.style === "friendly"
                   ? `Hi ${t.name.split(" ")[0]}, thanks for getting in touch. `
@@ -297,6 +414,8 @@ export function createEngine(
                 },
                 confidence: "Needs human review",
                 liveSources,
+                knowledgeSources,
+                review: r.draftReviews?.[t.id] || null,
                 createdAt: stamp(),
                 expiresAt: new Date(Date.now() + 86400000).toISOString(),
                 provider:

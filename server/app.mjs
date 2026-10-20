@@ -20,6 +20,7 @@ import {
 } from "./identity.mjs";
 import { createMemory } from "./memory.mjs";
 import { configureBrowserOperations } from "./browser-operations.mjs";
+import { normalizePlan, normalizedIntent } from "./intent-normalizer.mjs";
 export function createApp(
   store,
   { delay = 700, voice = createVoiceServices() } = {},
@@ -137,6 +138,7 @@ export function createApp(
       ...s,
       ledger: undefined,
       plans: undefined,
+      normalizations: undefined,
       runs: s.runs.map((r) => ({
         ...r,
         metrics: summary(s, r),
@@ -148,6 +150,11 @@ export function createApp(
       }),
       capabilities: {
         gemma: gemmaEnabled(),
+        intentNormalizer: Boolean(
+          process.env.TINKER_API_KEY &&
+          process.env.TINKER_MODEL &&
+          Date.parse(process.env.TINKER_MODEL_EXPIRES_AT) > Date.now(),
+        ),
         elevenlabs: voiceEnabled(),
         speech: voiceEnabled() && Boolean(process.env.ELEVENLABS_VOICE_ID),
         aiSdk: "7.0.146",
@@ -221,9 +228,9 @@ export function createApp(
           .json({ error: "This plan request already exists." });
       const local = localIntent(input.command),
         controller = new AbortController();
-      const remembered = await memory.recall(store, req.owner);
       // Check the scope before any model request or streaming response starts.
       buildPlan(input.command, input.scope, local, state.tickets, "local");
+      const remembered = await memory.recall(store, req.owner);
       res.on("close", () => {
         if (!res.writableEnded) controller.abort();
       });
@@ -234,6 +241,15 @@ export function createApp(
         "X-Accel-Buffering": "no",
       });
       try {
+        const normalization = gemmaEnabled()
+          ? await normalizePlan(
+              store,
+              req.owner,
+              input.requestId,
+              input.command,
+              { signal: controller.signal },
+            )
+          : null;
         if (gemmaEnabled()) {
           const start = Date.now();
           const result = streamStructured({
@@ -273,6 +289,7 @@ export function createApp(
           };
         }
         if (controller.signal.aborted) return;
+        intent = normalizedIntent(intent, normalization?.value);
         const plan = {
           ...buildPlan(
             input.command,
@@ -288,6 +305,13 @@ export function createApp(
           style: remembered?.style || state.preferences.style,
           memory: remembered || null,
           ui: "schema-driven plan cards",
+          normalization: normalization
+            ? {
+                provider: "Tinker",
+                ...normalization.value,
+                expiresAt: process.env.TINKER_MODEL_EXPIRES_AT,
+              }
+            : null,
           input: transcript
             ? {
                 kind: "voice",
@@ -339,11 +363,17 @@ export function createApp(
             "Plan limit reached. Reset this synthetic workspace to continue.",
         });
       localIntent(command);
+      buildPlan(command, scope, localIntent(command), s.tickets, "local");
       const remembered = await memory.recall(store, req.owner);
+      const planId = randomUUID();
+      const normalization = gemmaEnabled()
+        ? await normalizePlan(store, req.owner, planId, command)
+        : null;
       let intent, receipt;
       if (gemmaEnabled()) {
         ({ intent, receipt } = await planWithGemma(command));
       } else intent = localIntent(command);
+      intent = normalizedIntent(intent, normalization?.value);
       const plan = {
         ...buildPlan(
           command,
@@ -352,7 +382,14 @@ export function createApp(
           s.tickets,
           gemmaEnabled() ? "gemma" : "local",
         ),
-        id: randomUUID(),
+        id: planId,
+        normalization: normalization
+          ? {
+              provider: "Tinker",
+              ...normalization.value,
+              expiresAt: process.env.TINKER_MODEL_EXPIRES_AT,
+            }
+          : null,
         createdAt: new Date().toISOString(),
         status: "preview",
         injectFailure: s.preferences.injectFailure,

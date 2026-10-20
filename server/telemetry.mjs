@@ -4,10 +4,23 @@ function redact(event) {
   let serialized = JSON.stringify(event);
   for (const [key, value] of Object.entries(process.env))
     if (
-      /API_KEY|SECRET|TOKEN|PASSWORD|MONGODB_URI/.test(key) &&
+      /API_KEY|SECRET|TOKEN|PASSWORD|MONGODB_URI|DATABASE_URL|POSTGRES_URI|TINKER_MODEL/.test(
+        key,
+      ) &&
       value?.length > 6
-    )
+    ) {
       serialized = serialized.split(value).join("[redacted]");
+      serialized = serialized
+        .split(JSON.stringify(value).slice(1, -1))
+        .join("[redacted]");
+      if (/URI|URL/.test(key)) {
+        try {
+          const password = decodeURIComponent(new URL(value).password);
+          if (password.length > 6)
+            serialized = serialized.split(password).join("[redacted]");
+        } catch {}
+      }
+    }
   return JSON.parse(serialized);
 }
 export function initializeTelemetry() {

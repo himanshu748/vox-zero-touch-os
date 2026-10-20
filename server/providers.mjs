@@ -2,6 +2,10 @@ import { generateStructured, modelConnection } from "./ai.mjs";
 import { intentSchema } from "./planner.mjs";
 import { browserEnabled } from "./browser-operations.mjs";
 import development from "../docs/evidence/development.json" with { type: "json" };
+import { escalationEnabled } from "./escalation.mjs";
+import { reviewEnabled } from "./draft-review.mjs";
+import { normalizationEnabled } from "./intent-normalizer.mjs";
+import { knowledgeEnabled } from "./knowledge-retrieval.mjs";
 export const gemmaEnabled = () => modelConnection().ready;
 export const voiceEnabled = () => Boolean(process.env.ELEVENLABS_API_KEY);
 export async function planWithGemma(command) {
@@ -77,11 +81,21 @@ export function integrationStatus(receipts, { storage, identity } = {}) {
       "Development evidence",
       Boolean(development.copilot.sessionId),
     ],
-    ["tabpfn", "TabPFN", "Escalation prediction", false],
-    ["tinker", "Tinker", "Model fine-tuning", false],
-    ["ultramarine", "Ultramarine", "Document review", false],
-    ["tiger", "Tiger Data", "Hybrid retrieval", false],
-    ["tech", ".tech", "Claimed domain", false],
+    ["tabpfn", "TabPFN", "Escalation prediction", escalationEnabled()],
+    [
+      "tinker",
+      "Tinker",
+      "Fine-tuned intent normalization",
+      normalizationEnabled(),
+    ],
+    ["ultramarine", "Ultramarine", "Draft review", reviewEnabled()],
+    ["tiger", "Tiger Data", "Hybrid retrieval", knowledgeEnabled()],
+    [
+      "tech",
+      ".tech",
+      "Claimed domain",
+      process.env.PUBLIC_ORIGIN === "https://getvox.tech",
+    ],
     ["arduino", "Arduino UNO Q", "Physical interface", false],
   ];
   return defs.map(([id, name, role, configured]) => ({

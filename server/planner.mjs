@@ -1,6 +1,10 @@
 import { z } from "zod";
 import { intentSchema } from "../shared/contracts.mjs";
 import { browserEnabled } from "./browser-operations.mjs";
+import { escalationEnabled } from "./escalation.mjs";
+import { reviewEnabled } from "./draft-review.mjs";
+import { knowledgeEnabled } from "./knowledge-retrieval.mjs";
+import { normalizationEnabled } from "./intent-normalizer.mjs";
 export { intentSchema };
 export const commandSchema = z
   .object({
@@ -76,6 +80,9 @@ export function buildPlan(command, scope, intent, tickets, provider) {
   const liveResearch =
     Boolean(process.env.SERPAPI_API_KEY) && provider !== "local";
   const liveBrowser = browserEnabled() && provider !== "local";
+  const livePrediction = escalationEnabled() && provider !== "local";
+  const liveReview = reviewEnabled() && provider !== "local";
+  const liveKnowledge = knowledgeEnabled() && provider !== "local";
   const chosen = tickets.filter((t) =>
     scope === "urgent"
       ? risk(t).score >= 75
@@ -109,15 +116,21 @@ export function buildPlan(command, scope, intent, tickets, provider) {
     steps.push({
       kind: "triage",
       title: "Prioritize with evidence",
-      detail: "Rank response deadlines and reported impact. Save the reasons.",
+      detail: livePrediction
+        ? "Combine SLA rules with one TabPFN batch trained on authored synthetic scenarios. Save both estimates and reasons."
+        : "Rank response deadlines and reported impact. Save the reasons.",
     });
   if (actions.includes("research"))
     steps.push({
       kind: "research",
       title: "Find relevant guidance",
-      detail: liveResearch
-        ? "Search current guidance for up to two priority tickets with SerpApi; save source URLs and timestamps."
-        : "Retrieve checked-in support playbooks and official documentation links.",
+      detail:
+        (liveKnowledge
+          ? "Retrieve up to two tickets' guidance with Tiger vector and keyword search. "
+          : "") +
+        (liveResearch
+          ? "Search current guidance for up to two priority tickets with SerpApi; save source URLs and timestamps."
+          : "Retrieve checked-in support playbooks and official documentation links."),
     });
   if (actions.includes("tag"))
     steps.push({
@@ -131,7 +144,7 @@ export function buildPlan(command, scope, intent, tickets, provider) {
     steps.push({
       kind: "draft",
       title: "Prepare reply drafts",
-      detail: `Create up to ${draftCount} sourced drafts. Every simulated send needs your approval.`,
+      detail: `Create up to ${draftCount} sourced drafts.${liveReview ? " Ask Ultramarine for an advisory review of each reply." : ""} Every simulated send needs your approval.`,
     });
   steps.push({
     kind: "brief",
@@ -147,12 +160,26 @@ export function buildPlan(command, scope, intent, tickets, provider) {
     draftCount,
     steps,
     provider,
+    predictionMode: livePrediction ? "tabpfn" : "rules",
+    maxPredictionCalls: livePrediction ? 1 : 0,
+    maxPredictionTokens: livePrediction ? 50000 : 0,
+    reviewMode: liveReview ? "ultramarine" : "none",
+    knowledgeMode: liveKnowledge ? "tiger" : "local",
+    maxKnowledgeCalls: liveKnowledge && actions.includes("research") ? 2 : 0,
+    maxReviewCalls: liveReview ? draftCount : 0,
     researchMode: liveResearch ? "serpapi" : "local",
     maxSearchCalls: liveResearch && actions.includes("research") ? 2 : 0,
     browserMode: liveBrowser ? "browserbase" : "local",
     maxBrowserActions: liveBrowser && actions.includes("tag") ? 2 : 0,
     maxBrowserModelCalls: 0,
-    estimatedCalls: provider === "local" ? 0 : 1 + draftCount,
+    estimatedCalls:
+      provider === "local"
+        ? 0
+        : 1 +
+          draftCount +
+          (liveReview ? draftCount : 0) +
+          (normalizationEnabled() ? 1 : 0) +
+          (liveKnowledge && actions.includes("research") ? 2 : 0),
     maxProviderCalls: 8,
     boundaries: [
       "Synthetic helpdesk only",

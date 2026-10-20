@@ -325,6 +325,20 @@ export default function App() {
       setLoadError(null);
       if (!initialized.current) {
         setScope(s.preferences.scope || "all");
+        const used = new Set(
+          s.runs.map((run) => run.plan.input?.transcriptId).filter(Boolean),
+        );
+        const pending = [...(s.transcripts || [])]
+          .reverse()
+          .find(
+            (item) =>
+              !used.has(item.id) &&
+              Date.now() - Date.parse(item.createdAt) < 3600000,
+          );
+        if (pending) {
+          setTranscript({ id: pending.id, text: pending.text });
+          setCommand(pending.text);
+        }
         initialized.current = true;
       }
       return s;
@@ -2265,7 +2279,7 @@ export default function App() {
                   )}
                   {plan.maxBrowserModelCalls > 0 && (
                     <Badge>
-                      Up to {plan.maxBrowserModelCalls} browser AI calls
+                      Up to {plan.maxBrowserModelCalls} browser actions
                     </Badge>
                   )}
                   {plan.memory && (

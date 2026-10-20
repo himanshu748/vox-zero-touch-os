@@ -263,7 +263,7 @@ export function createEngine(
         event(
           r,
           "Internal labels updated",
-          `Saved ${n} attention-needed labels directly to the local helpdesk. Browserbase was not used.`,
+          `Saved ${n} attention-needed labels to the synthetic helpdesk.${r.browserOperation ? " Browserbase also saved the internal review note through its UI." : ""}`,
         );
       }
       if (step.kind === "draft") {

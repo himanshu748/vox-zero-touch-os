@@ -47,6 +47,7 @@ export function createMemory({ fetchImpl = fetch } = {}) {
   return {
     async saveStyle(store, owner, style) {
       if (!process.env.BACKBOARD_API_KEY) return null;
+      if (store.get(owner).memory?.savedStyle === style) return null;
       const id = await assistant(store, owner);
       const result = await request(`/assistants/${id}/memories`, {
         content: `Support reply style preference: ${style}.`,

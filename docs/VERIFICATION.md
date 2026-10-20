@@ -4,7 +4,7 @@ Date: October 20, 2026 (India time).
 
 ## Automated
 
-- `npm test`: 29 tests passed.
+- `npm test`: 32 tests passed.
 - `npm run typecheck`: passed; covers the AI SDK adapter against installed package types.
 - `npm run build`: passed; landing and workspace load in separate JS chunks.
 - SQLite persistence, worker restart/resume, read-only previews, bounded scopes, retries, idempotency, ownership, single-use decisions, expired plans/approvals, saved preferences, reset, route parsing and useful error messages are covered.
@@ -43,14 +43,26 @@ The run saved 24 triages, zero new labels (the existing labels were preserved), 
 
 Additional automated checks cover duration/size validation, voice provenance ownership, aborting transcription, stale briefing invalidation, audio-cache deduplication, real Mastra suspension/resume and reuse of completed Gemma responses after failure. The browser console was clean during the successful live walkthrough.
 
-Current evidence is in [the live QA report](../../qa/LIVE-VOICE-QA.md), [provider receipts and Mastra snapshot](../../qa/live-voice-proof.json) and [generated briefing](../../qa/live-briefing.mp3).
+Provider receipts, screenshots and generated audio are retained in the owner's local QA bundle. The public source contains reproduction instructions and the approved development evidence.
+
+## Hosted integration walkthrough
+
+The Render app at https://vox-zero-touch-os.onrender.com/app was exercised with the configured Auth0 owner and real providers. The recorded voice transcript remained linked to the Gemma plan. Backboard recalled the reply preference. SerpApi references were supplied to Gemma and included in the saved replies.
+
+The hosted walkthrough completed with 24 tickets triaged, eight labels, one Browserbase UI note, two Gemma drafts, one rejection and one approved simulated send. Rejection preserved the draft and left the send count at zero before the separate approval. Mastra's approval suspension resumed to success. The exported ledger contained no duplicate keys.
+
+Stagehand executes explicit approved selectors against the hosted form, waits for its acknowledged save response, then verifies the persisted note. A same-origin referrer policy preserves the browser's Origin header; foreign and null origins remain rejected. Google credentials are not passed to Browserbase.
+
+ElevenLabs generated a real briefing and its replay created no additional speech receipt. Sentry Agent Activity showed actual model/tool spans with input/output recording disabled. Provider billed cost remains unavailable. Sentry estimates are not billed receipts.
+
+Hosted owner/transcript/preference persistence across a real deployment was verified. Detailed completed-run and audio persistence comparisons are retained in the private QA bundle. The local Temporal dev server was stopped after its retry/restart proof.
 
 ## Limits
 
-The user deferred physical microphone testing. Browser speech hardware, Safari/Firefox and public hosting were not assessed. All helpdesk identities and sends remain synthetic. Temporal, Auth0, Browserbase, MongoDB Atlas and the other cloud PRD integrations remain separate requirements.
+The user deferred physical microphone testing. Browser speech hardware and Safari/Firefox were not assessed. All helpdesk identities and sends remain synthetic. Hosted integration evidence and the remaining Temporal Cloud and DigitalOcean boundaries are tracked in [SPONSORS.md](SPONSORS.md).
 
 The npm audit reports an unpatched transitive `sprintf-js` formatter DoS advisory through Mastra's frontmatter chain; five package entries are affected. VOX does not expose frontmatter parsing or user-controlled format strings.
 
-An initial Google key-detail tool response was not fully redacted because Google used a newer credential format. The key was not committed or packaged, and subsequent handling was redacted. Rotating that existing Google key in AI Studio is recommended; it was not disabled automatically because it may be shared by other projects.
+An initial Google key-detail tool response was not fully redacted because Google used a newer credential format. A later SerpApi portal response also exposed its key. The key was not committed or packaged, and subsequent handling was redacted. Rotating the existing Google and SerpApi keys is recommended; it was not disabled automatically because it may be shared by other projects.
 
 Earlier dark/copper screenshots show superseded designs. Current workspace and voice-flow screenshots use the Geist/white/cobalt system.

@@ -1619,7 +1619,7 @@ export default function App() {
                     {ticketTable()}
                     <div className="table-footer">
                       <span>{filtered.length} tickets in this view</span>
-                      <span>Fictional identities · Local sandbox</span>
+                      <span>Fictional identities · Synthetic sandbox</span>
                     </div>
                   </section>
                 </>
@@ -1642,7 +1642,11 @@ export default function App() {
                     </div>
                     <Badge kind="local">
                       <LockKeyhole size={13} />
-                      Session-bound approvals
+                      {state.capabilities.authenticated
+                        ? "Auth0 account approvals"
+                        : state.capabilities.identity
+                          ? "Sign in for approvals"
+                          : "Session-bound approvals"}
                     </Badge>
                   </div>
                   <div className="list-toolbar approval-toolbar">
@@ -2497,9 +2501,11 @@ export default function App() {
                     <div className="info-strip">
                       <LockKeyhole size={18} />
                       <p>
-                        Only your isolated guest session can decide this action.
-                        This is local session authorization. Auth0 is not
-                        connected.
+                        {state.capabilities.authenticated
+                          ? "Only this authenticated Auth0 account can decide this action. Every decision is single-use."
+                          : state.capabilities.identity
+                            ? "Sign in with the authorized Auth0 account to decide this action."
+                            : "Only your isolated guest session can decide this action. This is local session authorization."}
                       </p>
                     </div>
                     <div className="modal-actions">

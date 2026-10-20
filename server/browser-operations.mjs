@@ -92,7 +92,9 @@ export function configureBrowserOperations(app, store) {
     res
       .set({
         "Cache-Control": "no-store",
-        "Referrer-Policy": "no-referrer",
+        // HTML form POSTs under no-referrer send Origin: null. Preserve the
+        // same-origin header so the strict POST origin check remains usable.
+        "Referrer-Policy": "same-origin",
         "X-Frame-Options": "DENY",
         "Content-Security-Policy":
           "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'",

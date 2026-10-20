@@ -61,6 +61,11 @@ test("browser operation grants expire, restrict the field and origin, and cannot
       },
       body: new URLSearchParams({ note }),
     });
+  const form = await fetch(origin + "/browser/operations", {
+    headers: { cookie },
+  });
+  assert.equal(form.status, 200);
+  assert.equal(form.headers.get("referrer-policy"), "same-origin");
   assert.equal((await fetch(origin + "/browser/operations")).status, 403);
   assert.equal(
     (
@@ -91,6 +96,7 @@ test("browser operation grants expire, restrict the field and origin, and cannot
     (await send(note, { origin: "https://untrusted.example" })).status,
     403,
   );
+  assert.equal((await send(note, { origin: "null" })).status, 403);
   assert.equal((await send(note)).status, 200);
   assert.equal((await send(note)).status, 200);
   assert.equal(store.get(owner).ledger.length, 1);

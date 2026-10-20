@@ -18,7 +18,7 @@ export function createStore(path) {
     runs: [],
     ledger: [],
     receipts: [],
-    preferences: { style: "concise", injectFailure: true },
+    preferences: { style: "concise", injectFailure: true, scope: "all" },
     createdAt: new Date().toISOString(),
   });
   return {

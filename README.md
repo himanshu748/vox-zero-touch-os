@@ -67,7 +67,7 @@ An opaque HttpOnly, SameSite cookie identifies an isolated guest workspace. Fore
 
 ## Verification and limits
 
-13 automated tests cover schema validation, SDK generation and streaming with test models, read-only planning, scoped plans, unknown tool rejection, cross-session approvals, single-use decisions, retries, idempotency, database reopen/resume, preferences and reset. Type checking covers the AI SDK adapter. The production build passes.
+19 automated tests cover schema validation, SDK generation and streaming with test models, read-only planning, scoped plans, unknown tool rejection, cross-session approvals, single-use decisions, retries, idempotency, database reopen/resume, stop/resume, expired plans and approvals, saved scopes, historical counts, preferences and reset. Type checking covers the AI SDK adapter. The production build passes.
 
 Browser checks covered the local text-to-plan-to-run-to-approval flow, the new structured plan UI, landing navigation, example switching, motion preview pause/resume, desktop and mobile layouts. See [verification](docs/VERIFICATION.md).
 
@@ -75,7 +75,7 @@ No live Gemma/ElevenLabs provider call, Temporal workflow, Stagehand/Browserbase
 
 ## Design and motion
 
-The current visual direction uses Geist, soft white, near-black and cobalt. The dark workspace uses the same typography and interaction accent. The original copper direction was replaced after user feedback.
+The current visual direction uses Geist, soft white, near-black and cobalt. The workspace uses the same light surfaces, typography and cobalt accent across overview, queues, approvals, execution, evidence and dialogs. The original copper direction was replaced after user feedback.
 
 The landing page uses an original ImageGen sculpture, not a photograph of a physical device. It has a coordinated hero entrance and once-only section reveals. “Play the workflow” is a finite 6.4-second, user-controlled illustration with pause, resume and replay. Reduced motion removes spatial choreography and shows the final preview directly. [Motion notes](docs/MOTION.md) and [asset provenance](docs/ASSETS.md) document the approach.
 

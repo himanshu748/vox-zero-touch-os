@@ -82,6 +82,7 @@ export function createApp(store, { delay = 700 } = {}) {
       capabilities: {
         gemma: gemmaEnabled(),
         elevenlabs: voiceEnabled(),
+        speech: voiceEnabled() && Boolean(process.env.ELEVENLABS_VOICE_ID),
         aiSdk: "7.0.146",
       },
       session: { id: req.owner.slice(0, 8), kind: "isolated guest session" },
@@ -101,23 +102,21 @@ export function createApp(store, { delay = 700 } = {}) {
         .parse(req.body);
       const state = store.get(req.owner);
       if (state.runs.some((r) => r.status === "running"))
-        return res
-          .status(409)
-          .json({
-            error: "Finish or stop the active run before planning another.",
-          });
+        return res.status(409).json({
+          error: "Finish or stop the active run before planning another.",
+        });
       if (state.plans.length >= 100)
-        return res
-          .status(429)
-          .json({
-            error: "Plan limit reached. Reset your workspace to continue.",
-          });
+        return res.status(429).json({
+          error: "Plan limit reached. Reset your workspace to continue.",
+        });
       if (state.plans.some((p) => p.id === input.requestId))
         return res
           .status(409)
           .json({ error: "This plan request already exists." });
       const local = localIntent(input.command),
         controller = new AbortController();
+      // Check the scope before any model request or streaming response starts.
+      buildPlan(input.command, input.scope, local, state.tickets, "local");
       res.on("close", () => {
         if (!res.writableEnded) controller.abort();
       });
@@ -190,12 +189,10 @@ export function createApp(store, { delay = 700 } = {}) {
         res.end();
       } catch (error) {
         if (!res.headersSent) {
-          res
-            .status(502)
-            .json({
-              error:
-                "The plan could not be validated. No workflow changes were made.",
-            });
+          res.status(502).json({
+            error:
+              "The plan could not be validated. No workflow changes were made.",
+          });
         } else {
           res.write("\n[Plan validation failed]");
           res.end();
@@ -209,19 +206,15 @@ export function createApp(store, { delay = 700 } = {}) {
       const { command, scope } = commandSchema.parse(req.body);
       const s = store.get(req.owner);
       if (s.runs.some((r) => r.status === "running"))
-        return res
-          .status(409)
-          .json({
-            error:
-              "Wait for the current run to finish or stop it before planning another.",
-          });
+        return res.status(409).json({
+          error:
+            "Wait for the current run to finish or stop it before planning another.",
+        });
       if (s.plans.length >= 100)
-        return res
-          .status(429)
-          .json({
-            error:
-              "Plan limit reached. Reset this synthetic workspace to continue.",
-          });
+        return res.status(429).json({
+          error:
+            "Plan limit reached. Reset this synthetic workspace to continue.",
+        });
       localIntent(command);
       let intent, receipt;
       if (gemmaEnabled()) {
@@ -391,6 +384,7 @@ export function createApp(store, { delay = 700 } = {}) {
       .object({
         style: z.enum(["concise", "friendly", "detailed"]),
         injectFailure: z.boolean(),
+        scope: z.enum(["all", "urgent", "untriaged"]).default("all"),
       })
       .strict()
       .parse(req.body);
@@ -413,12 +407,10 @@ export function createApp(store, { delay = 700 } = {}) {
     }),
     wrap(async (req, res) => {
       if (!voiceEnabled())
-        return res
-          .status(503)
-          .json({
-            error:
-              "ElevenLabs is not connected. Use the editable text command instead.",
-          });
+        return res.status(503).json({
+          error:
+            "ElevenLabs is not connected. Use the editable text command instead.",
+        });
       if (!Buffer.isBuffer(req.body) || !req.body.length)
         return res
           .status(400)
@@ -470,12 +462,10 @@ export function createApp(store, { delay = 700 } = {}) {
       if (!run?.finishedAt)
         return res.status(404).json({ error: "Completed briefing not found." });
       if (!voiceEnabled() || !process.env.ELEVENLABS_VOICE_ID)
-        return res
-          .status(503)
-          .json({
-            error:
-              "ElevenLabs voice is not configured. Browser speech is available as a labeled fallback.",
-          });
+        return res.status(503).json({
+          error:
+            "ElevenLabs voice is not configured. Browser speech is available as a labeled fallback.",
+        });
       const start = Date.now(),
         result = await fetch(
           `https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(process.env.ELEVENLABS_VOICE_ID)}`,
@@ -529,14 +519,12 @@ export function createApp(store, { delay = 700 } = {}) {
   );
   app.use((err, req, res, next) => {
     if (!req.path.startsWith("/api")) return next(err);
-    res
-      .status(err instanceof z.ZodError ? 422 : err.status || 500)
-      .json({
-        error:
-          err instanceof z.ZodError
-            ? "Invalid request. Check the required fields and supported actions."
-            : err.message,
-      });
+    res.status(err instanceof z.ZodError ? 422 : err.status || 500).json({
+      error:
+        err instanceof z.ZodError
+          ? "Invalid request. Check the required fields and supported actions."
+          : err.message,
+    });
   });
   return { app, engine };
 }

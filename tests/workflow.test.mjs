@@ -25,9 +25,9 @@ async function until(fn) {
   }
   throw new Error("Workflow did not reach expected state.");
 }
-async function fixture(t) {
+async function fixture(t, { delay = 3 } = {}) {
   const store = createStore(":memory:");
-  const { app, engine } = createApp(store, { delay: 3 });
+  const { app, engine } = createApp(store, { delay });
   const server = app.listen(0, "127.0.0.1");
   await once(server, "listening");
   t.after(async () => {
@@ -296,4 +296,130 @@ test("streamed plan UI has a persisted validated plan and cannot execute partial
   assert.equal((await a("runs", { actions: ["triage"] })).status, 422);
   const b = client();
   assert.equal((await b(`plans/${requestId}`)).status, 404);
+});
+
+test("stop and resume retain the cursor; concurrent runs and resets are rejected", async (t) => {
+  const { client, store } = await fixture(t, { delay: 25 });
+  const a = client();
+  const plan = (await a("plans", { command })).data;
+  const other = (await a("plans", { command })).data;
+  const run = (await a("runs", { planId: plan.id })).data;
+  assert.equal((await a("reset", {})).status, 409);
+  assert.equal((await a("plans", { command })).status, 409);
+  assert.equal((await a("runs", { planId: other.id })).status, 409);
+  let saved;
+  for (let i = 0; i < 100; i++) {
+    saved = (await a("state")).data;
+    if (saved.runs[0].cursor >= 2) break;
+    await wait(10);
+  }
+  assert.equal((await a(`runs/${run.id}/cancel`, {})).status, 200);
+  const paused = (await a("state")).data.runs[0];
+  await wait(70);
+  assert.equal((await a("state")).data.runs[0].cursor, paused.cursor);
+  assert.equal((await a(`runs/${run.id}/resume`, {})).status, 200);
+  let done;
+  for (let i = 0; i < 100; i++) {
+    done = (await a("state")).data;
+    if (done.runs[0].status === "awaiting_approval") break;
+    await wait(10);
+  }
+  assert.equal(done.runs[0].metrics.triaged, 24);
+  assert.equal(done.runs[0].metrics.retries, 1);
+  const ledger = store.get(store.owners()[0]).ledger;
+  assert.equal(new Set(ledger.map((l) => l.key)).size, ledger.length);
+  assert.equal((await a(`runs/${run.id}/resume`, {})).status, 409);
+});
+
+test("expired plans and approvals fail closed without new effects", async (t) => {
+  const { client, store } = await fixture(t);
+  const a = client();
+  const plan = (await a("plans", { command })).data;
+  const owner = store.owners()[0];
+  store.mutate(
+    owner,
+    (s) => (s.plans[0].createdAt = new Date(Date.now() - 901000).toISOString()),
+  );
+  assert.equal((await a("runs", { planId: plan.id })).status, 409);
+  const fresh = (await a("plans", { command })).data;
+  await a("runs", { planId: fresh.id });
+  let state;
+  for (let i = 0; i < 100; i++) {
+    state = (await a("state")).data;
+    if (state.runs[0].status === "awaiting_approval") break;
+    await wait(10);
+  }
+  const draft = state.tickets.flatMap((t) => t.drafts)[0];
+  store.mutate(
+    owner,
+    (s) =>
+      (s.tickets
+        .flatMap((t) => t.drafts)
+        .find((d) => d.id === draft.id).expiresAt = new Date(0).toISOString()),
+  );
+  assert.equal(
+    (await a(`approvals/${draft.id}`, { decision: "approve" })).status,
+    410,
+  );
+  assert.equal((await a("state")).data.runs[0].metrics.sent, 0);
+});
+
+test("saved scope persists and historical urgent counts survive later ticket changes", async (t) => {
+  const { client, store } = await fixture(t);
+  const a = client();
+  assert.equal(
+    (
+      await a("preferences", {
+        style: "detailed",
+        injectFailure: false,
+        scope: "urgent",
+      })
+    ).status,
+    200,
+  );
+  assert.equal((await a("state")).data.preferences.scope, "urgent");
+  assert.equal(
+    (
+      await a("preferences", {
+        style: "detailed",
+        injectFailure: false,
+        scope: "everyone",
+      })
+    ).status,
+    422,
+  );
+  const plan = (await a("plans", { command, scope: "urgent" })).data;
+  await a("runs", { planId: plan.id });
+  let state;
+  for (let i = 0; i < 100; i++) {
+    state = (await a("state")).data;
+    if (state.runs[0].status === "awaiting_approval") break;
+    await wait(10);
+  }
+  const urgent = state.runs[0].metrics.urgent;
+  assert(urgent > 0);
+  const owner = store.owners()[0];
+  store.mutate(owner, (s) => s.tickets.forEach((t) => (t.priority = "normal")));
+  state = (await a("state")).data;
+  assert.equal(state.runs[0].metrics.urgent, urgent);
+  for (const d of state.tickets.flatMap((t) => t.drafts))
+    await a(`approvals/${d.id}`, { decision: "reject" });
+  assert.equal((await a("state")).data.runs[0].status, "completed");
+});
+
+test("streamed preview reports an empty scope before execution", async (t) => {
+  const { client, store } = await fixture(t);
+  const a = client();
+  await a("state");
+  store.mutate(store.owners()[0], (s) =>
+    s.tickets.forEach((t) => (t.triagedAt = new Date().toISOString())),
+  );
+  const result = await a("plans/stream", {
+    command,
+    scope: "untriaged",
+    requestId: "00000000-0000-4000-8000-000000000023",
+  });
+  assert.equal(result.status, 422);
+  assert.match(result.data.error, /no tickets in this scope/i);
+  assert.equal((await a("state")).data.runs.length, 0);
 });

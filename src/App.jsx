@@ -3,6 +3,12 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useObject } from "@ai-sdk/react";
 import { intentSchema } from "../shared/contracts.mjs";
 import PlanCards from "./PlanCards";
+import { VOX_MOTION } from "./motion-system";
+import {
+  readWorkspaceRoute,
+  workspaceHash,
+  readableError,
+} from "./workspace-routing";
 import {
   Activity,
   ArrowDown,
@@ -134,23 +140,32 @@ function Logo({ small = false }) {
   );
 }
 function Modal({ title, subtitle, children, onClose, wide = false }) {
-  const ref = useRef();
+  const ref = useRef(),
+    closeRef = useRef(onClose);
+  closeRef.current = onClose;
   useEffect(() => {
     const previous = document.activeElement;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     ref.current?.focus();
     const handler = (e) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") closeRef.current();
       if (e.key === "Tab") {
         const items = [
           ...ref.current.querySelectorAll(
             'button:not(:disabled), a, input, textarea, select, [tabindex="0"]',
           ),
         ];
-        const first = items[0],
-          last = items.at(-1);
-        if (e.shiftKey && document.activeElement === first) {
+        const visibleItems = items.filter(
+          (el) => !el.disabled && el.getClientRects().length,
+        );
+        const first = visibleItems[0],
+          last = visibleItems.at(-1);
+        if (
+          e.shiftKey &&
+          (document.activeElement === first ||
+            document.activeElement === ref.current)
+        ) {
           e.preventDefault();
           last?.focus();
         } else if (!e.shiftKey && document.activeElement === last) {
@@ -184,7 +199,10 @@ function Modal({ title, subtitle, children, onClose, wide = false }) {
         initial={{ opacity: 0, y: 16, scale: 0.99 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 8 }}
-        transition={{ duration: 0.22 }}
+        transition={{
+          duration: VOX_MOTION.duration.standard,
+          ease: VOX_MOTION.ease,
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         <header className="modal-header">
@@ -253,13 +271,7 @@ function Timeline({ events, compact = false }) {
 }
 export default function App() {
   const [state, setState] = useState(null),
-    [view, setView] = useState(() =>
-      ["tickets", "approvals", "history", "evidence"].includes(
-        location.hash.slice(1),
-      )
-        ? location.hash.slice(1)
-        : "overview",
-    ),
+    [view, setView] = useState(() => readWorkspaceRoute().view),
     [modal, setModal] = useState(
       location.hash === "#help" ? { type: "docs" } : null,
     ),
@@ -271,13 +283,20 @@ export default function App() {
     [toast, setToast] = useState(null),
     [query, setQuery] = useState(""),
     [filter, setFilter] = useState("all"),
-    [selectedRun, setSelectedRun] = useState(null),
+    [selectedRun, setSelectedRun] = useState(() => readWorkspaceRoute().runId),
     [recording, setRecording] = useState(false),
     [playing, setPlaying] = useState(false),
     [voiceConsent, setVoiceConsent] = useState(false),
     [prefs, setPrefs] = useState(null),
-    [confirmReset, setConfirmReset] = useState(false);
+    [confirmReset, setConfirmReset] = useState(false),
+    [loadError, setLoadError] = useState(null),
+    [searchQuery, setSearchQuery] = useState("");
   const planRequest = useRef(null),
+    syncRequest = useRef(0),
+    initialized = useRef(false),
+    mainRef = useRef(null),
+    sidebarRef = useRef(null),
+    speechObjectUrl = useRef(null),
     textarea = useRef(),
     recordRef = useRef(null),
     audioRef = useRef(null),
@@ -286,23 +305,64 @@ export default function App() {
   const notify = (message, kind = "success") =>
     setToast({ message, kind, id: Date.now() });
   const sync = async () => {
+    const request = ++syncRequest.current;
     try {
       const s = await api("state");
+      if (request !== syncRequest.current) return s;
       setState(s);
+      setLoadError(null);
+      if (!initialized.current) {
+        setScope(s.preferences.scope || "all");
+        initialized.current = true;
+      }
       return s;
     } catch (e) {
-      notify(e.message, "error");
+      if (request === syncRequest.current) setLoadError(readableError(e));
     }
   };
   useEffect(() => {
     document.title = "VOX · Your operations, handled.";
     document
       .querySelector("meta[name=theme-color]")
-      ?.setAttribute("content", "#101216");
+      ?.setAttribute("content", "#f7f8fb");
     sync();
     const timer = setInterval(sync, 1500);
     return () => clearInterval(timer);
   }, []);
+  useEffect(() => {
+    const restore = () => {
+      const route = readWorkspaceRoute();
+      setView(route.view);
+      setSelectedRun(route.runId);
+      setModal(null);
+      setMenuOpen(false);
+    };
+    window.addEventListener("popstate", restore);
+    window.addEventListener("hashchange", restore);
+    return () => {
+      window.removeEventListener("popstate", restore);
+      window.removeEventListener("hashchange", restore);
+    };
+  }, []);
+  useEffect(() => {
+    const desktop = window.matchMedia("(min-width: 761px)");
+    const closeOnDesktop = () => {
+      if (desktop.matches) setMenuOpen(false);
+    };
+    desktop.addEventListener("change", closeOnDesktop);
+    return () => desktop.removeEventListener("change", closeOnDesktop);
+  }, []);
+  useEffect(() => {
+    if (!menuOpen) return;
+    const previous = document.activeElement;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    sidebarRef.current?.querySelector("button")?.focus();
+    return () => {
+      document.body.style.overflow = overflow;
+      previous?.focus();
+    };
+  }, [menuOpen]);
   useEffect(() => {
     if (!toast) return;
     const timer = setTimeout(() => setToast(null), 5500);
@@ -310,9 +370,19 @@ export default function App() {
   }, [toast]);
   useEffect(() => {
     const handler = (e) => {
+      if (document.querySelector('[role="dialog"]')) return;
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
+        setSearchQuery("");
         setModal({ type: "search" });
+      }
+      if (
+        (e.metaKey || e.ctrlKey) &&
+        e.key === "Enter" &&
+        !e.target.closest("input,textarea,select")
+      ) {
+        e.preventDefault();
+        newRun();
       }
       if (e.key === "Escape") setMenuOpen(false);
     };
@@ -321,7 +391,11 @@ export default function App() {
   }, []);
   useEffect(
     () => () => {
-      recordRef.current?.stop?.();
+      if (recordRef.current) {
+        recordRef.current.discard = true;
+        recordRef.current.stop?.();
+      }
+      if (speechObjectUrl.current) URL.revokeObjectURL(speechObjectUrl.current);
       audioRef.current?.pause?.();
       window.speechSynthesis?.cancel();
     },
@@ -331,6 +405,8 @@ export default function App() {
     api: "/api/plans/stream",
     schema: intentSchema,
     onFinish: async ({ object, error }) => {
+      const requestId = planRequest.current;
+      if (!requestId) return;
       if (error || !object) {
         setModal(null);
         setBusy(false);
@@ -341,29 +417,27 @@ export default function App() {
         return;
       }
       try {
-        const validated = await api(`plans/${planRequest.current}`);
+        const validated = await api(`plans/${requestId}`);
+        if (planRequest.current !== requestId) return;
         setPlan(validated);
         setModal({ type: "plan" });
         await sync();
       } catch (e) {
         setModal(null);
-        notify(e.message, "error");
+        notify(readableError(e), "error");
       } finally {
         setBusy(false);
       }
     },
     onError: (error) => {
+      if (!planRequest.current) return;
       setBusy(false);
       setModal(null);
-      notify(
-        error.message.includes("fetch")
-          ? "The connection was interrupted. Your tickets are unchanged."
-          : "Plan generation failed. Check your instruction and provider configuration.",
-        "error",
-      );
+      notify(readableError(error), "error");
     },
   });
   function cancelPlanning() {
+    planRequest.current = null;
     planStream.stop();
     setBusy(false);
     setModal(null);
@@ -374,7 +448,7 @@ export default function App() {
       await fn();
       await sync();
     } catch (e) {
-      notify(e.message, "error");
+      notify(readableError(e), "error");
     } finally {
       setBusy(false);
     }
@@ -384,7 +458,7 @@ export default function App() {
       <div className="loading-screen">
         <Logo />
         <Loader2 className="spin" size={24} />
-        <p>Preparing your workspace…</p>
+        <p>{loadError || "Preparing your workspace…"}</p>
         <button className="text-button" onClick={sync}>
           Try again
         </button>
@@ -395,8 +469,9 @@ export default function App() {
       .filter((d) => d.status === "pending")
       .map((d) => ({ ...d, ticket: t })),
   );
-  const currentRun =
-    state.runs.find((r) => r.id === selectedRun) || state.runs[0];
+  const currentRun = selectedRun
+    ? state.runs.find((r) => r.id === selectedRun)
+    : state.runs[0];
   const active = state.runs.find((r) => r.status === "running");
   const urgent = state.tickets.filter((t) =>
     ["urgent", "high"].includes(t.priority),
@@ -417,13 +492,26 @@ export default function App() {
           .includes(query.toLowerCase()),
     )
     .sort((a, b) => (b.score || 0) - (a.score || 0));
-  const goto = (v) => {
+  const searchResults = state.tickets.filter((t) =>
+    `${t.id} ${t.title} ${t.name} ${t.company} ${t.category}`
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase()),
+  );
+  function goto(v, runId) {
     setView(v);
+    if (runId) setSelectedRun(runId);
+    const hash = workspaceHash(
+      v,
+      runId || (v === "operations" ? selectedRun : null),
+    );
+    if (location.hash !== hash) history.pushState(null, "", hash);
     setMenuOpen(false);
     setQuery("");
     setFilter("all");
-  };
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }
   async function preview() {
+    if (busy || active) return;
     if (!command.trim()) {
       textarea.current?.focus();
       notify("Type a command or use a suggested workflow.", "error");
@@ -440,7 +528,7 @@ export default function App() {
       const r = await api("runs", { planId: plan.id });
       setSelectedRun(r.id);
       setModal(null);
-      setView("operations");
+      goto("operations", r.id);
       notify("Your run has started. You can follow every saved action here.");
     });
   }
@@ -514,7 +602,7 @@ export default function App() {
           setModal(null);
           notify("Transcript ready. Review it before creating a plan.");
         } catch (e) {
-          notify(e.message, "error");
+          notify(readableError(e), "error");
         } finally {
           setBusy(false);
         }
@@ -541,13 +629,17 @@ export default function App() {
   async function playBriefing(run) {
     if (playing) {
       audioRef.current?.pause();
+      if (speechObjectUrl.current) {
+        URL.revokeObjectURL(speechObjectUrl.current);
+        speechObjectUrl.current = null;
+      }
       window.speechSynthesis?.cancel();
       setPlaying(false);
       return;
     }
     if (!run?.briefing) return;
     setPlaying(true);
-    if (state.capabilities.elevenlabs) {
+    if (state.capabilities.speech) {
       try {
         const res = await fetch("/api/speech", {
           method: "POST",
@@ -559,17 +651,19 @@ export default function App() {
           throw new Error(d.error);
         }
         const url = URL.createObjectURL(await res.blob());
+        speechObjectUrl.current = url;
         const audio = new Audio(url);
         audioRef.current = audio;
         audio.onended = () => {
           setPlaying(false);
           URL.revokeObjectURL(url);
+          speechObjectUrl.current = null;
         };
         await audio.play();
         await sync();
       } catch (e) {
         setPlaying(false);
-        notify(e.message, "error");
+        notify(readableError(e), "error");
       }
     } else if ("speechSynthesis" in window) {
       const speech = new SpeechSynthesisUtterance(run.briefing);
@@ -686,6 +780,16 @@ export default function App() {
   );
   return (
     <div className="app-shell">
+      <a
+        className="workspace-skip"
+        href="#workspace-main"
+        onClick={(e) => {
+          e.preventDefault();
+          mainRef.current?.focus();
+        }}
+      >
+        Skip to workspace
+      </a>
       {menuOpen && (
         <button
           className="sidebar-scrim"
@@ -693,7 +797,14 @@ export default function App() {
           onClick={() => setMenuOpen(false)}
         />
       )}
-      <aside className={`sidebar ${menuOpen ? "open" : ""}`}>
+      <aside ref={sidebarRef} className={`sidebar ${menuOpen ? "open" : ""}`}>
+        <button
+          className="icon-button mobile-menu sidebar-close"
+          aria-label="Close navigation menu"
+          onClick={() => setMenuOpen(false)}
+        >
+          <X size={19} />
+        </button>
         <div className="sidebar-brand">
           <a className="brand-home" href="/" aria-label="VOX homepage">
             <Logo />
@@ -703,7 +814,11 @@ export default function App() {
         <button
           className="workspace-selector"
           onClick={() => {
-            setPrefs(state.preferences);
+            setPrefs({
+              ...state.preferences,
+              scope: state.preferences.scope || "all",
+            });
+            setConfirmReset(false);
             setModal({ type: "settings" });
           }}
         >
@@ -720,6 +835,11 @@ export default function App() {
               key={id}
               className={`nav-item ${view === id || (id === "history" && view === "operations") ? "selected" : ""}`}
               onClick={() => goto(id)}
+              aria-current={
+                view === id || (id === "history" && view === "operations")
+                  ? "page"
+                  : undefined
+              }
             >
               <Icon size={18} />
               <span>{label}</span>
@@ -747,7 +867,12 @@ export default function App() {
               <br />
               You’re always in control.
             </p>
-            <button onClick={() => setModal({ type: "docs" })}>
+            <button
+              onClick={() => {
+                setMenuOpen(false);
+                setModal({ type: "docs" });
+              }}
+            >
               How the sandbox works
               <ArrowUpRight size={13} />
             </button>
@@ -755,8 +880,12 @@ export default function App() {
           <button
             className="nav-item"
             onClick={() => {
-              setPrefs(state.preferences);
+              setPrefs({
+                ...state.preferences,
+                scope: state.preferences.scope || "all",
+              });
               setConfirmReset(false);
+              setMenuOpen(false);
               setModal({ type: "settings" });
             }}
           >
@@ -765,7 +894,10 @@ export default function App() {
           </button>
           <button
             className="nav-item"
-            onClick={() => setModal({ type: "docs" })}
+            onClick={() => {
+              setMenuOpen(false);
+              setModal({ type: "docs" });
+            }}
           >
             <BookOpen size={18} />
             Help & documentation
@@ -780,7 +912,12 @@ export default function App() {
               className="icon-button"
               aria-label="Open workspace settings"
               onClick={() => {
-                setPrefs(state.preferences);
+                setPrefs({
+                  ...state.preferences,
+                  scope: state.preferences.scope || "all",
+                });
+                setConfirmReset(false);
+                setMenuOpen(false);
                 setModal({ type: "settings" });
               }}
             >
@@ -789,7 +926,7 @@ export default function App() {
           </div>
         </div>
       </aside>
-      <div className="main-shell">
+      <div className="main-shell" inert={menuOpen ? "" : undefined}>
         <header className="topbar">
           <div className="breadcrumb">
             <button
@@ -816,7 +953,10 @@ export default function App() {
             <button
               className="icon-button search-shortcut"
               aria-label="Search workspace"
-              onClick={() => setModal({ type: "search" })}
+              onClick={() => {
+                setSearchQuery("");
+                setModal({ type: "search" });
+              }}
             >
               <Search size={18} />
               <kbd>⌘ K</kbd>
@@ -833,7 +973,12 @@ export default function App() {
               className="header-avatar"
               aria-label="Workspace preferences"
               onClick={() => {
-                setPrefs(state.preferences);
+                setPrefs({
+                  ...state.preferences,
+                  scope: state.preferences.scope || "all",
+                });
+                setConfirmReset(false);
+                setMenuOpen(false);
                 setModal({ type: "settings" });
               }}
             >
@@ -841,888 +986,958 @@ export default function App() {
             </button>
           </div>
         </header>
-        <main>
-          {view === "overview" && (
+        <main id="workspace-main" ref={mainRef} tabIndex={-1}>
+          {loadError && (
+            <div className="connection-banner" role="status">
+              <RefreshCw size={15} />
+              <span>{loadError}</span>
+              <button onClick={sync}>Retry</button>
+            </div>
+          )}
+          <AnimatePresence mode="wait" initial={false}>
             <motion.div
-              initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+              key={view}
+              className="workspace-view"
+              initial={reduceMotion ? false : { opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.35 }}
+              exit={reduceMotion ? { opacity: 1 } : { opacity: 0, y: -5 }}
+              transition={{
+                duration: VOX_MOTION.duration.standard,
+                ease: VOX_MOTION.ease,
+              }}
             >
-              <div className="page-heading">
-                <div>
-                  <div className="eyebrow">
-                    <span className="tiny-line" /> LESS INPUT. MORE OUTPUT.
-                  </div>
-                  <h1>
-                    Your operations, handled<span>.</span>
-                  </h1>
-                  <p>Say what needs doing. Get back to what matters.</p>
-                </div>
-                <button
-                  className="button secondary how-it-works"
-                  onClick={() => setModal({ type: "docs" })}
+              {view === "overview" && (
+                <motion.div
+                  initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    duration: VOX_MOTION.duration.expressive,
+                    ease: VOX_MOTION.ease,
+                  }}
                 >
-                  <Play size={14} />
-                  How it works
-                </button>
-              </div>
-              <section className="hero-grid">
-                <div className="voice-card">
-                  <div className="voice-card-top">
-                    <span className="console-label">
-                      <span /> VOICE CONSOLE
-                    </span>
-                    <Badge>
-                      <LockKeyhole size={11} />
-                      Sandbox only
-                    </Badge>
-                  </div>
-                  <div className="voice-intro">
-                    <h2>
-                      Big to-do list.
-                      <br />
-                      <span>One instruction.</span>
-                    </h2>
-                    <div className="voice-orb-wrap">
-                      <button
-                        className={`voice-orb ${recording ? "is-recording" : ""}`}
-                        aria-label={
-                          recording
-                            ? "Stop recording"
-                            : "Record a voice command"
-                        }
-                        onClick={voiceStart}
-                      >
-                        {recording ? (
-                          <Square size={24} fill="currentColor" />
-                        ) : (
-                          <AudioLines size={36} strokeWidth={1.5} />
-                        )}
-                      </button>
-                      <span className="orb-label">
-                        {recording ? "Listening…" : "Ready when you are"}
-                      </span>
-                    </div>
-                  </div>
-                  <Waveform />
-                  <div className="command-composer">
-                    <label htmlFor="command" className="sr-only">
-                      Your instruction
-                    </label>
-                    <textarea
-                      id="command"
-                      ref={textarea}
-                      value={command}
-                      maxLength={2000}
-                      placeholder="“Triage my tickets, find fixes, and draft the replies…”"
-                      onChange={(e) => setCommand(e.target.value)}
-                      onKeyDown={(e) => {
-                        if ((e.metaKey || e.ctrlKey) && e.key === "Enter")
-                          preview();
-                      }}
-                    />
-                    <div className="composer-bottom">
-                      <button
-                        className="composer-mic"
-                        onClick={voiceStart}
-                        aria-label="Record a command"
-                      >
-                        <Mic size={16} />
-                      </button>
-                      <span>
-                        {state.capabilities.gemma
-                          ? "Gemma connected"
-                          : "Speak, or type your instruction"}
-                      </span>
-                      <button
-                        className="button primary"
-                        disabled={busy || !!active}
-                        onClick={preview}
-                      >
-                        {busy ? (
-                          <Loader2 size={15} className="spin" />
-                        ) : (
-                          <Sparkles size={15} />
-                        )}
-                        Create a plan
-                        <ArrowRight size={15} />
-                      </button>
-                    </div>
-                  </div>
-                  <div className="suggestions">
-                    <span>TRY</span>
-                    <button
-                      onClick={() => {
-                        setCommand(DEFAULT_COMMAND);
-                        textarea.current?.focus();
-                      }}
-                    >
-                      Triage my queue
-                      <ArrowUpRight size={12} />
-                    </button>
-                    <button
-                      onClick={() => {
-                        setCommand(
-                          "Prioritize urgent tickets and draft replies. Do not send without approval.",
-                        );
-                        setScope("urgent");
-                        textarea.current?.focus();
-                      }}
-                    >
-                      Get ahead of SLAs
-                      <ArrowUpRight size={12} />
-                    </button>
-                  </div>
-                </div>
-                <aside className="workflow-card">
-                  <div className="section-eyebrow">
-                    <Workflow size={16} /> THE WAY VOX WORKS
-                  </div>
-                  <h3>
-                    A small ask.
-                    <br />A clear way forward.
-                  </h3>
-                  <div className="workflow-steps">
-                    {[
-                      [Mic, "You say the word", "A goal in your own words."],
-                      [
-                        FileText,
-                        "Review the plan",
-                        "Clear actions. Clear boundaries.",
-                      ],
-                      [
-                        Zap,
-                        "Let VOX get to work",
-                        "Safe tasks, tracked step by step.",
-                      ],
-                      [
-                        Headphones,
-                        "Come back to a briefing",
-                        "The results and what needs you.",
-                      ],
-                    ].map(([Icon, title, desc], i) => (
-                      <div key={title} className="workflow-step">
-                        <span>
-                          <Icon size={17} />
-                        </span>
-                        <div>
-                          <strong>{title}</strong>
-                          <p>{desc}</p>
-                        </div>
-                        {i === 1 && (
-                          <span className="you-label">YOU’RE IN CONTROL</span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                  <div className="workflow-foot">
-                    <ShieldCheck size={15} />
-                    <span>Nothing gets sent without your say.</span>
-                  </div>
-                </aside>
-              </section>
-              <div className="metrics-row">
-                {[
-                  [
-                    Inbox,
-                    "Tickets in queue",
-                    state.tickets.length,
-                    "Ready for a fresh set of eyes",
-                    "",
-                  ],
-                  [
-                    Activity,
-                    "Need attention",
-                    urgent.length,
-                    state.tickets.some((t) => t.triagedAt)
-                      ? "Based on saved priority scores"
-                      : "Run triage to reveal priorities",
-                    "attention",
-                  ],
-                  [
-                    FileText,
-                    "Reply drafts",
-                    draftTotal,
-                    draftTotal
-                      ? `${pending.length} waiting for your review`
-                      : "A little help with the right words",
-                    "",
-                  ],
-                  [
-                    CheckCheck,
-                    "Actions completed",
-                    actionsSaved,
-                    state.runs.length
-                      ? `Across ${state.runs.length} saved runs`
-                      : "Your first run starts here",
-                    "",
-                  ],
-                ].map(([Icon, label, value, desc, kind]) => (
-                  <div key={label} className={`metric ${kind}`}>
-                    <div className="metric-label">
-                      <span>{label}</span>
-                      <Icon size={17} />
-                    </div>
-                    <strong>{String(value).padStart(2, "0")}</strong>
-                    <p>{desc}</p>
-                  </div>
-                ))}
-              </div>
-              {active && (
-                <button
-                  className="active-run-banner"
-                  onClick={() => goto("operations")}
-                >
-                  <Loader2 size={18} className="spin" />
-                  <div>
-                    <strong>Your workflow is in motion</strong>
-                    <span>
-                      {active.plan.steps[active.cursor]?.title}. Follow every
-                      action as it happens.
-                    </span>
-                  </div>
-                  <ArrowRight size={18} />
-                </button>
-              )}
-              <div className="bottom-grid">
-                <section className="panel queue-panel">
-                  <div className="panel-heading">
-                    <div>
-                      <h2>
-                        Your support queue <span>{state.tickets.length}</span>
-                      </h2>
-                      <p>A little order for everything coming in.</p>
-                    </div>
-                    <button
-                      className="text-button"
-                      onClick={() => goto("tickets")}
-                    >
-                      View queue
-                      <ArrowUpRight size={14} />
-                    </button>
-                  </div>
-                  <div className="queue-tabs">
-                    <div>
-                      {[
-                        ["all", "All tickets"],
-                        ["urgent", "Needs attention"],
-                        ["drafted", "Drafted"],
-                      ].map(([id, label]) => (
-                        <button
-                          className={filter === id ? "active" : ""}
-                          key={id}
-                          onClick={() => setFilter(id)}
-                        >
-                          {label}
-                          {id === "urgent" && urgent.length > 0 && (
-                            <span>{urgent.length}</span>
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                    <button
-                      className="icon-button"
-                      aria-label="Search tickets"
-                      onClick={() => setModal({ type: "search" })}
-                    >
-                      <SlidersHorizontal size={16} />
-                    </button>
-                  </div>
-                  {ticketTable(5)}
-                  <div className="table-footer">
-                    <span>
-                      Showing {Math.min(5, filtered.length)} of{" "}
-                      {filtered.length} tickets
-                    </span>
-                    <span>
-                      <i className="mini-dot" />
-                      Synthetic data
-                    </span>
-                  </div>
-                </section>
-                <section className="panel activity-panel">
-                  <div className="panel-heading">
-                    <h2>Activity</h2>
-                    <span className="live-label">
-                      <span />
-                      LIVE
-                    </span>
-                  </div>
-                  {state.runs.length ? (
-                    <>
-                      <Timeline
-                        compact
-                        events={state.runs[0].events.slice(-4).reverse()}
-                      />
-                      <button
-                        className="text-button activity-link"
-                        onClick={() => goto("history")}
-                      >
-                        View run history
-                        <ArrowRight size={14} />
-                      </button>
-                    </>
-                  ) : (
-                    <div className="activity-empty">
-                      <div className="activity-empty-icon">
-                        <Activity size={26} />
-                        <span />
-                      </div>
-                      <h3>
-                        A quiet workspace.
-                        <br />
-                        For now.
-                      </h3>
-                      <p>
-                        Your runs, saved work, and
-                        <br />
-                        decisions will show up here.
-                      </p>
-                      <span>
-                        Start with your first instruction
-                        <ArrowUpRight size={13} />
-                      </span>
-                    </div>
-                  )}
-                </section>
-              </div>
-              <div className="workspace-foot">
-                <span>
-                  <ShieldCheck size={14} />
-                  Your workspace is isolated. All tickets are fictional.
-                </span>
-                <button onClick={() => goto("evidence")}>
-                  Built for transparency
-                  <ArrowUpRight size={13} />
-                </button>
-              </div>
-            </motion.div>
-          )}
-          {view === "tickets" && (
-            <>
-              <div className="page-heading">
-                <div>
-                  <div className="eyebrow">THE HELPDESK</div>
-                  <h1>
-                    A clearer queue<span>.</span>
-                  </h1>
-                  <p>Every ticket, priority, and draft in one place.</p>
-                </div>
-                <button className="button primary" onClick={newRun}>
-                  <Plus size={16} />
-                  Start a run
-                </button>
-              </div>
-              <div className="list-toolbar">
-                <div className="search-field">
-                  <Search size={17} />
-                  <input
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Search tickets, people, or companies"
-                    aria-label="Search tickets"
-                  />
-                </div>
-                <select
-                  aria-label="Filter tickets"
-                  value={filter}
-                  onChange={(e) => setFilter(e.target.value)}
-                >
-                  <option value="all">All tickets</option>
-                  <option value="urgent">Needs attention</option>
-                  <option value="drafted">Has a draft</option>
-                </select>
-                <Badge>{filtered.length} tickets</Badge>
-              </div>
-              <section className="panel">
-                {ticketTable()}
-                <div className="table-footer">
-                  <span>{filtered.length} tickets in this view</span>
-                  <span>Fictional identities · Local sandbox</span>
-                </div>
-              </section>
-            </>
-          )}
-          {view === "approvals" && (
-            <>
-              <div className="page-heading">
-                <div>
-                  <div className="eyebrow">THE FINAL SAY IS YOURS</div>
-                  <h1>
-                    A human in the loop<span>.</span>
-                  </h1>
-                  <p>
-                    {pending.length
-                      ? `${pending.length} replies ready for a thoughtful once-over.`
-                      : "You’re all caught up. Nothing is waiting on you."}
-                  </p>
-                </div>
-                <Badge kind="local">
-                  <LockKeyhole size={13} />
-                  Session-bound approvals
-                </Badge>
-              </div>
-              <div className="info-strip">
-                <ShieldCheck size={18} />
-                <p>
-                  Approving records a send inside this fictional helpdesk. VOX
-                  never delivers an external message.
-                </p>
-              </div>
-              {pending.length ? (
-                <div className="approval-grid">
-                  {pending.map((d) => (
-                    <article className="approval-card panel" key={d.id}>
-                      <div className="approval-top">
-                        <Badge kind={d.ticket.priority}>{d.ticket.id}</Badge>
-                        <span>{relative(d.createdAt)}</span>
-                      </div>
-                      <h3>{d.ticket.title}</h3>
-                      <div className="draft-to">
-                        <span className="avatar av-2">
-                          {initials(d.ticket.name)}
-                        </span>
-                        <span>
-                          To {d.ticket.name}
-                          <small>{d.ticket.company} · fictional customer</small>
-                        </span>
-                      </div>
-                      <p className="draft-excerpt">{d.body}</p>
-                      <div className="draft-source">
-                        <BookOpen size={13} />
-                        <a href={d.source.url} target="_blank" rel="noreferrer">
-                          {d.source.title}
-                          <ExternalLink size={11} />
-                        </a>
-                      </div>
-                      <div className="approval-footer">
-                        <span>
-                          <Clock size={12} />
-                          Expires {new Date(d.expiresAt).toLocaleDateString()}
-                        </span>
-                        <button
-                          className="button secondary"
-                          onClick={() =>
-                            setModal({ type: "approval", id: d.id })
-                          }
-                        >
-                          Review reply
-                          <ArrowRight size={14} />
-                        </button>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              ) : (
-                <div className="empty large">
-                  <div className="empty-icon">
-                    <CheckCheck size={30} />
-                  </div>
-                  <h2>Nothing needs your approval.</h2>
-                  <p>
-                    Run a workflow with reply drafting to prepare your first set
-                    of replies.
-                  </p>
-                  <button className="button primary" onClick={newRun}>
-                    Create a plan
-                    <ArrowRight size={15} />
-                  </button>
-                </div>
-              )}
-            </>
-          )}
-          {view === "history" && (
-            <>
-              <div className="page-heading">
-                <div>
-                  <div className="eyebrow">EVERY ACTION HAS A RECEIPT</div>
-                  <h1>
-                    Work you can look back on<span>.</span>
-                  </h1>
-                  <p>
-                    Saved plans, real changes, and the decisions along the way.
-                  </p>
-                </div>
-                <button
-                  className="button secondary"
-                  onClick={() => window.location.assign("/api/evidence")}
-                >
-                  <Download size={15} />
-                  Export evidence
-                </button>
-              </div>
-              {state.runs.length ? (
-                <div className="run-list">
-                  {state.runs.map((r) => (
-                    <button
-                      className="panel run-row"
-                      key={r.id}
-                      onClick={() => {
-                        setSelectedRun(r.id);
-                        goto("operations");
-                      }}
-                    >
-                      <div className="run-icon">
-                        <Workflow size={23} />
-                      </div>
-                      <div>
-                        <div className="run-row-top">
-                          <strong>Support queue workflow</strong>
-                          <Badge kind={r.status} dot>
-                            {statusLabel(r.status)}
-                          </Badge>
-                        </div>
-                        <p>{r.plan.command}</p>
-                        <span>
-                          {relative(r.createdAt)}
-                          <i />
-                          {r.metrics.triaged} triaged
-                          <i />
-                          {r.metrics.drafts} drafts
-                          <i />
-                          {r.plan.provider === "local"
-                            ? "Local planner"
-                            : "Gemma endpoint"}
-                        </span>
-                      </div>
-                      <ArrowUpRight size={20} />
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <div className="empty large">
-                  <div className="empty-icon">
-                    <History size={30} />
-                  </div>
-                  <h2>Your story starts with a run.</h2>
-                  <p>
-                    Create a plan to turn your first instruction into saved
-                    work.
-                  </p>
-                  <button className="button primary" onClick={newRun}>
-                    Start your first run
-                    <ArrowRight size={15} />
-                  </button>
-                </div>
-              )}
-            </>
-          )}
-          {view === "operations" && (
-            <>
-              {currentRun ? (
-                <>
                   <div className="page-heading">
                     <div>
-                      <button
-                        className="back-link"
-                        onClick={() => goto("history")}
-                      >
-                        Run history
-                        <ChevronRight size={13} />
-                      </button>
+                      <div className="eyebrow">
+                        <span className="tiny-line" /> LESS INPUT. MORE OUTPUT.
+                      </div>
                       <h1>
-                        {currentRun.status === "running"
-                          ? "Consider it in progress"
-                          : currentRun.status === "failed"
-                            ? "Let’s pick up where we left off"
-                            : "A little more off your plate"}
-                        <span>.</span>
+                        A little less busywork<span>.</span>
                       </h1>
                       <p>
-                        Run {currentRun.id.slice(0, 8)} ·{" "}
-                        {relative(currentRun.createdAt)} ·{" "}
-                        {currentRun.plan.provider === "local"
-                          ? "Local sandbox executor"
-                          : "Gemma endpoint + local executor"}
+                        One instruction. A clear plan. A little more room to
+                        focus.
                       </p>
                     </div>
-                    <Badge kind={currentRun.status} dot>
-                      {statusLabel(currentRun.status)}
-                    </Badge>
+                    <button
+                      className="button secondary how-it-works"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        setModal({ type: "docs" });
+                      }}
+                    >
+                      <Play size={14} />
+                      How it works
+                    </button>
                   </div>
-                  <div className="run-command">
-                    <span>
-                      <Mic size={16} />
-                      YOUR INSTRUCTION
-                    </span>
-                    <p>“{currentRun.plan.command}”</p>
-                  </div>
-                  <div className="metrics-row run-metrics">
-                    {[
-                      ["Triaged", currentRun.metrics.triaged],
-                      ["Labels saved", currentRun.metrics.labels],
-                      ["Drafts prepared", currentRun.metrics.drafts],
-                      ["Awaiting approval", currentRun.metrics.pending],
-                    ].map(([label, value]) => (
-                      <div className="metric" key={label}>
-                        <div className="metric-label">{label}</div>
-                        <strong>{String(value).padStart(2, "0")}</strong>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="operations-grid">
-                    <section className="panel">
-                      <div className="panel-heading">
-                        <h2>The plan in motion</h2>
-                        <span className="small-muted">
-                          {currentRun.cursor}/{currentRun.plan.steps.length}{" "}
-                          steps
+                  <section className="hero-grid">
+                    <div className="voice-card">
+                      <div className="voice-card-top">
+                        <span className="console-label">
+                          <span /> YOUR VOICE, PUT TO WORK
                         </span>
+                        <Badge>
+                          <LockKeyhole size={11} />
+                          Sandbox only
+                        </Badge>
                       </div>
-                      <div className="execution-steps">
-                        {currentRun.plan.steps.map((s, i) => (
-                          <div
-                            className={`execution-step ${i < currentRun.cursor ? "done" : i === currentRun.cursor && currentRun.status === "running" ? "current" : ""}`}
-                            key={s.kind}
+                      <div className="voice-intro">
+                        <h2>
+                          Your next break
+                          <br />
+                          <span>starts with a sentence.</span>
+                        </h2>
+                        <div className="voice-orb-wrap">
+                          <button
+                            className={`voice-orb ${recording ? "is-recording" : ""}`}
+                            aria-label={
+                              recording
+                                ? "Stop recording"
+                                : "Record a voice command"
+                            }
+                            onClick={voiceStart}
                           >
+                            {recording ? (
+                              <Square size={24} fill="currentColor" />
+                            ) : (
+                              <AudioLines size={36} strokeWidth={1.5} />
+                            )}
+                          </button>
+                          <span className="orb-label">
+                            {recording ? "Listening…" : "Ready when you are"}
+                          </span>
+                        </div>
+                      </div>
+                      <Waveform />
+                      <div className="command-composer">
+                        <label htmlFor="command" className="sr-only">
+                          Your instruction
+                        </label>
+                        <textarea
+                          id="command"
+                          ref={textarea}
+                          value={command}
+                          maxLength={2000}
+                          placeholder="“Triage my tickets, find fixes, and draft the replies…”"
+                          onChange={(e) => setCommand(e.target.value)}
+                          onKeyDown={(e) => {
+                            if ((e.metaKey || e.ctrlKey) && e.key === "Enter")
+                              preview();
+                          }}
+                        />
+                        <div className="composer-bottom">
+                          <button
+                            className="composer-mic"
+                            onClick={voiceStart}
+                            aria-label="Record a command"
+                          >
+                            <Mic size={16} />
+                          </button>
+                          <span className="composer-mode">
+                            {state.capabilities.gemma
+                              ? "Gemma connected"
+                              : "Local planner"}
+                          </span>
+                          <select
+                            className="composer-scope"
+                            aria-label="Ticket scope"
+                            value={scope}
+                            onChange={(e) => setScope(e.target.value)}
+                          >
+                            <option value="all">All tickets</option>
+                            <option value="urgent">Urgent only</option>
+                            <option value="untriaged">Untriaged</option>
+                          </select>
+                          <button
+                            className="button primary"
+                            disabled={busy || !!active}
+                            onClick={preview}
+                          >
+                            {busy ? (
+                              <Loader2 size={15} className="spin" />
+                            ) : (
+                              <Sparkles size={15} />
+                            )}
+                            Create a plan
+                            <ArrowRight size={15} />
+                          </button>
+                        </div>
+                      </div>
+                      <div className="suggestions">
+                        <span>TRY</span>
+                        <button
+                          onClick={() => {
+                            setCommand(DEFAULT_COMMAND);
+                            setScope("all");
+                            textarea.current?.focus();
+                          }}
+                        >
+                          Triage my queue
+                          <ArrowUpRight size={12} />
+                        </button>
+                        <button
+                          onClick={() => {
+                            setCommand(
+                              "Prioritize urgent tickets and draft replies. Do not send without approval.",
+                            );
+                            setScope("urgent");
+                            textarea.current?.focus();
+                          }}
+                        >
+                          Get ahead of SLAs
+                          <ArrowUpRight size={12} />
+                        </button>
+                      </div>
+                      <div className="console-disclosure">
+                        <ShieldCheck size={13} />
+                        <span>
+                          {state.capabilities.gemma
+                            ? "Connected model, bounded by your approved plan."
+                            : "Local rules are active. Connect Gemma to enable model generation."}
+                        </span>
+                        <button onClick={() => goto("evidence")}>
+                          View setup
+                          <ArrowUpRight size={12} />
+                        </button>
+                      </div>
+                    </div>
+                    <aside className="workflow-card">
+                      <div className="section-eyebrow">
+                        <Workflow size={16} /> THE WAY VOX WORKS
+                      </div>
+                      <h3>
+                        A small ask.
+                        <br />A clear way forward.
+                      </h3>
+                      <div className="workflow-steps">
+                        {[
+                          [
+                            Mic,
+                            "You say the word",
+                            "A goal in your own words.",
+                          ],
+                          [
+                            FileText,
+                            "Review the plan",
+                            "Clear actions. Clear boundaries.",
+                          ],
+                          [
+                            Zap,
+                            "Let VOX get to work",
+                            "Safe tasks, tracked step by step.",
+                          ],
+                          [
+                            Headphones,
+                            "Come back to a briefing",
+                            "The results and what needs you.",
+                          ],
+                        ].map(([Icon, title, desc], i) => (
+                          <div key={title} className="workflow-step">
                             <span>
-                              {i < currentRun.cursor ? (
-                                <Check size={17} />
-                              ) : i === currentRun.cursor &&
-                                currentRun.status === "running" ? (
-                                <Loader2 className="spin" size={17} />
-                              ) : (
-                                i + 1
-                              )}
+                              <Icon size={17} />
                             </span>
                             <div>
-                              <strong>{s.title}</strong>
-                              <p>{s.detail}</p>
+                              <strong>{title}</strong>
+                              <p>{desc}</p>
                             </div>
-                            {i < currentRun.cursor && <Badge>Saved</Badge>}
                           </div>
                         ))}
                       </div>
-                      <div className="execution-controls">
-                        {currentRun.status === "running" ? (
-                          <button
-                            className="button danger"
-                            disabled={busy}
-                            onClick={() =>
-                              act(async () => {
-                                await api(`runs/${currentRun.id}/cancel`, {});
-                                notify(
-                                  "Run stopped. Previously saved changes are preserved.",
-                                );
-                              })
-                            }
-                          >
-                            <Square size={14} />
-                            Stop run
-                          </button>
-                        ) : ["failed", "cancelled"].includes(
-                            currentRun.status,
-                          ) ? (
-                          <button
-                            className="button primary"
-                            disabled={busy}
-                            onClick={() =>
-                              act(() => api(`runs/${currentRun.id}/resume`, {}))
-                            }
-                          >
-                            <RefreshCw size={15} />
-                            Resume from checkpoint
-                          </button>
-                        ) : (
-                          <span>
-                            <ShieldCheck size={15} />
-                            No external messages sent
-                          </span>
-                        )}
-                        <span>SQLite checkpoints · Local engine</span>
+                      <div className="workflow-foot">
+                        <ShieldCheck size={15} />
+                        <span>Nothing gets sent without your say.</span>
                       </div>
-                    </section>
-                    <section className="panel">
-                      <div className="panel-heading">
-                        <h2>Action timeline</h2>
-                        <Badge>{currentRun.metrics.retries} retries</Badge>
+                    </aside>
+                  </section>
+                  <div className="metrics-row">
+                    {[
+                      [
+                        Inbox,
+                        "Tickets in queue",
+                        state.tickets.length,
+                        "Ready for a fresh set of eyes",
+                        "",
+                      ],
+                      [
+                        Activity,
+                        "Need attention",
+                        urgent.length,
+                        state.tickets.some((t) => t.triagedAt)
+                          ? "Based on saved priority scores"
+                          : "Run triage to reveal priorities",
+                        "attention",
+                      ],
+                      [
+                        FileText,
+                        "Reply drafts",
+                        draftTotal,
+                        draftTotal
+                          ? `${pending.length} waiting for your review`
+                          : "A little help with the right words",
+                        "",
+                      ],
+                      [
+                        CheckCheck,
+                        "Updates saved",
+                        actionsSaved,
+                        state.runs.length
+                          ? `Across ${state.runs.length} saved ${state.runs.length === 1 ? "run" : "runs"}`
+                          : "Your first run starts here",
+                        "",
+                      ],
+                    ].map(([Icon, label, value, desc, kind]) => (
+                      <div key={label} className={`metric ${kind}`}>
+                        <div className="metric-label">
+                          <span>{label}</span>
+                          <Icon size={17} />
+                        </div>
+                        <strong>{String(value).padStart(2, "0")}</strong>
+                        <p>{desc}</p>
                       </div>
-                      <Timeline events={currentRun.events} />
-                    </section>
+                    ))}
                   </div>
-                  {currentRun.briefing && (
-                    <div className="briefing-card">
-                      <div className="briefing-mark">
-                        <Headphones size={27} />
-                      </div>
+                  {active && (
+                    <button
+                      className="active-run-banner"
+                      onClick={() => goto("operations", active.id)}
+                    >
+                      <Loader2 size={18} className="spin" />
                       <div>
-                        <div className="eyebrow">YOUR BRIEFING</div>
-                        <h2>Here’s where things stand.</h2>
-                        <p>{currentRun.briefing}</p>
+                        <strong>Your workflow is in motion</strong>
                         <span>
-                          Time saved: not measured. No manual baseline has been
-                          recorded.
+                          {active.plan.steps[active.cursor]?.title}. Follow
+                          every action as it happens.
                         </span>
                       </div>
-                      <button
-                        className="button primary"
-                        disabled={busy}
-                        onClick={() => playBriefing(currentRun)}
-                      >
-                        {playing ? <Pause size={16} /> : <Volume2 size={16} />}{" "}
-                        {playing ? "Stop briefing" : "Play briefing"}
-                      </button>
-                    </div>
+                      <ArrowRight size={18} />
+                    </button>
                   )}
-                  {currentRun.metrics.pending > 0 && (
-                    <div className="approval-nudge">
-                      <ShieldCheck size={23} />
-                      <div>
-                        <h3>The last step belongs to you.</h3>
-                        <p>
-                          {currentRun.metrics.pending} drafted replies need your
-                          approval before a simulated send.
-                        </p>
+                  <div className="bottom-grid">
+                    <section className="panel queue-panel">
+                      <div className="panel-heading">
+                        <div>
+                          <h2>
+                            Your support queue{" "}
+                            <span>{state.tickets.length}</span>
+                          </h2>
+                          <p>A little order for everything coming in.</p>
+                        </div>
+                        <button
+                          className="text-button"
+                          onClick={() => goto("tickets")}
+                        >
+                          View queue
+                          <ArrowUpRight size={14} />
+                        </button>
                       </div>
-                      <button
-                        className="button secondary"
-                        onClick={() => goto("approvals")}
-                      >
-                        Review replies
+                      <div className="queue-tabs">
+                        <div>
+                          {[
+                            ["all", "All tickets"],
+                            ["urgent", "Needs attention"],
+                            ["drafted", "Drafted"],
+                          ].map(([id, label]) => (
+                            <button
+                              className={filter === id ? "active" : ""}
+                              key={id}
+                              onClick={() => setFilter(id)}
+                            >
+                              {label}
+                              {id === "urgent" && urgent.length > 0 && (
+                                <span>{urgent.length}</span>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                        <button
+                          className="icon-button"
+                          aria-label="Search tickets"
+                          onClick={() => {
+                            setSearchQuery("");
+                            setModal({ type: "search" });
+                          }}
+                        >
+                          <SlidersHorizontal size={16} />
+                        </button>
+                      </div>
+                      {ticketTable(5)}
+                      <div className="table-footer">
+                        <span>
+                          Showing {Math.min(5, filtered.length)} of{" "}
+                          {filtered.length} tickets
+                        </span>
+                        <span>
+                          <i className="mini-dot" />
+                          Synthetic data
+                        </span>
+                      </div>
+                    </section>
+                    <section className="panel activity-panel">
+                      <div className="panel-heading">
+                        <h2>Activity</h2>
+                        <span className="live-label">
+                          <span />
+                          LIVE
+                        </span>
+                      </div>
+                      {state.runs.length ? (
+                        <>
+                          <Timeline
+                            compact
+                            events={state.runs[0].events.slice(-4).reverse()}
+                          />
+                          <button
+                            className="text-button activity-link"
+                            onClick={() => goto("history")}
+                          >
+                            View run history
+                            <ArrowRight size={14} />
+                          </button>
+                        </>
+                      ) : (
+                        <div className="activity-empty">
+                          <div className="activity-empty-icon">
+                            <Activity size={26} />
+                            <span />
+                          </div>
+                          <h3>
+                            A quiet workspace.
+                            <br />
+                            For now.
+                          </h3>
+                          <p>
+                            Your runs, saved work, and
+                            <br />
+                            decisions will show up here.
+                          </p>
+                          <span>
+                            Start with your first instruction
+                            <ArrowUpRight size={13} />
+                          </span>
+                        </div>
+                      )}
+                    </section>
+                  </div>
+                  <div className="workspace-foot">
+                    <span>
+                      <ShieldCheck size={14} />
+                      Your workspace is isolated. All tickets are fictional.
+                    </span>
+                    <button onClick={() => goto("evidence")}>
+                      Built for transparency
+                      <ArrowUpRight size={13} />
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+              {view === "tickets" && (
+                <>
+                  <div className="page-heading">
+                    <div>
+                      <div className="eyebrow">THE HELPDESK</div>
+                      <h1>
+                        A clearer queue<span>.</span>
+                      </h1>
+                      <p>Every ticket, priority, and draft in one place.</p>
+                    </div>
+                    <button className="button primary" onClick={newRun}>
+                      <Plus size={16} />
+                      Start a run
+                    </button>
+                  </div>
+                  <div className="list-toolbar">
+                    <div className="search-field">
+                      <Search size={17} />
+                      <input
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        placeholder="Search tickets, people, or companies"
+                        aria-label="Search tickets"
+                      />
+                    </div>
+                    <select
+                      aria-label="Filter tickets"
+                      value={filter}
+                      onChange={(e) => setFilter(e.target.value)}
+                    >
+                      <option value="all">All tickets</option>
+                      <option value="urgent">Needs attention</option>
+                      <option value="drafted">Has a draft</option>
+                    </select>
+                    <Badge>{filtered.length} tickets</Badge>
+                  </div>
+                  <section className="panel">
+                    {ticketTable()}
+                    <div className="table-footer">
+                      <span>{filtered.length} tickets in this view</span>
+                      <span>Fictional identities · Local sandbox</span>
+                    </div>
+                  </section>
+                </>
+              )}
+              {view === "approvals" && (
+                <>
+                  <div className="page-heading">
+                    <div>
+                      <div className="eyebrow">THE FINAL SAY IS YOURS</div>
+                      <h1>
+                        A human in the loop<span>.</span>
+                      </h1>
+                      <p>
+                        {pending.length
+                          ? `${pending.length} replies ready for a thoughtful once-over.`
+                          : "You’re all caught up. Nothing is waiting on you."}
+                      </p>
+                    </div>
+                    <Badge kind="local">
+                      <LockKeyhole size={13} />
+                      Session-bound approvals
+                    </Badge>
+                  </div>
+                  <div className="info-strip">
+                    <ShieldCheck size={18} />
+                    <p>
+                      Approving records a send inside this fictional helpdesk.
+                      VOX never delivers an external message.
+                    </p>
+                  </div>
+                  {pending.length ? (
+                    <div className="approval-grid">
+                      {pending.map((d) => (
+                        <article className="approval-card panel" key={d.id}>
+                          <div className="approval-top">
+                            <Badge kind={d.ticket.priority}>
+                              {d.ticket.id}
+                            </Badge>
+                            <span>{relative(d.createdAt)}</span>
+                          </div>
+                          <h3>{d.ticket.title}</h3>
+                          <div className="draft-to">
+                            <span className="avatar av-2">
+                              {initials(d.ticket.name)}
+                            </span>
+                            <span>
+                              To {d.ticket.name}
+                              <small>
+                                {d.ticket.company} · fictional customer
+                              </small>
+                            </span>
+                          </div>
+                          <p className="draft-excerpt">{d.body}</p>
+                          <div className="draft-source">
+                            <BookOpen size={13} />
+                            <a
+                              href={d.source.url}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              {d.source.title}
+                              <ExternalLink size={11} />
+                            </a>
+                          </div>
+                          <div className="approval-footer">
+                            <span>
+                              <Clock size={12} />
+                              Expires{" "}
+                              {new Date(d.expiresAt).toLocaleDateString()}
+                            </span>
+                            <button
+                              className="button secondary"
+                              onClick={() =>
+                                setModal({ type: "approval", id: d.id })
+                              }
+                            >
+                              Review reply
+                              <ArrowRight size={14} />
+                            </button>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="empty large">
+                      <div className="empty-icon">
+                        <CheckCheck size={30} />
+                      </div>
+                      <h2>Nothing needs your approval.</h2>
+                      <p>
+                        Run a workflow with reply drafting to prepare your first
+                        set of replies.
+                      </p>
+                      <button className="button primary" onClick={newRun}>
+                        Create a plan
                         <ArrowRight size={15} />
                       </button>
                     </div>
                   )}
                 </>
-              ) : (
-                <div className="empty large">
-                  <Workflow size={30} />
-                  <h2>No run selected.</h2>
-                  <button className="button primary" onClick={newRun}>
-                    Start a run
-                  </button>
-                </div>
               )}
-            </>
-          )}
-          {view === "evidence" && (
-            <>
-              <div className="page-heading">
-                <div>
-                  <div className="eyebrow">PROOF BEFORE PROMISES</div>
-                  <h1>
-                    Nothing behind the curtain<span>.</span>
-                  </h1>
-                  <p>
-                    A clear account of what is running, what is connected, and
-                    what still needs proof.
-                  </p>
-                </div>
-                <button
-                  className="button secondary"
-                  onClick={() => window.location.assign("/api/evidence")}
-                >
-                  <Download size={15} />
-                  Export JSON
-                </button>
-              </div>
-              <div className="sdk-proof-strip">
-                <span className="sdk-vercel-mark">▲</span>
-                <div>
-                  <strong>
-                    Built with Vercel AI SDK {state.capabilities.aiSdk}
-                  </strong>
-                  <p>
-                    Structured outputs, streaming plan cards, and validation
-                    before execution.{" "}
-                    {state.capabilities.gemma
-                      ? "Gemma endpoint configured."
-                      : "No model endpoint is connected. The local planner is active."}
-                  </p>
-                </div>
-                <Badge>Schema-driven UI</Badge>
-              </div>
-              <div className="evidence-summary">
-                <div className="panel evidence-local">
-                  <span className="evidence-icon">
-                    <CheckCheck size={24} />
-                  </span>
-                  <div>
-                    <h3>Working in this workspace</h3>
-                    <p>
-                      SQLite persistence, bounded planning, ticket scoring,
-                      saved labels, drafts, approvals, checkpoints and
-                      idempotent retries.
-                    </p>
-                    <Badge kind="local">Local implementation</Badge>
+              {view === "history" && (
+                <>
+                  <div className="page-heading">
+                    <div>
+                      <div className="eyebrow">EVERY ACTION HAS A RECEIPT</div>
+                      <h1>
+                        Work you can look back on<span>.</span>
+                      </h1>
+                      <p>
+                        Saved plans, real changes, and the decisions along the
+                        way.
+                      </p>
+                    </div>
+                    <button
+                      className="button secondary"
+                      onClick={() => window.location.assign("/api/evidence")}
+                    >
+                      <Download size={15} />
+                      Export evidence
+                    </button>
                   </div>
-                </div>
-                <div className="panel evidence-local">
-                  <span className="evidence-icon neutral">
-                    <Layers size={24} />
-                  </span>
-                  <div>
-                    <h3>Honest about the missing pieces</h3>
-                    <p>
-                      No cloud sponsor category is claimed. Configuring an API
-                      key is only the first step. Live usage and independent
-                      evidence are still required.
-                    </p>
-                    <Badge>0 categories claimed</Badge>
+                  {state.runs.length ? (
+                    <div className="run-list">
+                      {state.runs.map((r) => (
+                        <button
+                          className="panel run-row"
+                          key={r.id}
+                          onClick={() => {
+                            setSelectedRun(r.id);
+                            goto("operations", r.id);
+                          }}
+                        >
+                          <div className="run-icon">
+                            <Workflow size={23} />
+                          </div>
+                          <div>
+                            <div className="run-row-top">
+                              <strong>Support queue workflow</strong>
+                              <Badge kind={r.status} dot>
+                                {statusLabel(r.status)}
+                              </Badge>
+                            </div>
+                            <p>{r.plan.command}</p>
+                            <span>
+                              {relative(r.createdAt)}
+                              <i />
+                              {r.metrics.triaged} triaged
+                              <i />
+                              {r.metrics.drafts} drafts
+                              <i />
+                              {r.plan.provider === "local"
+                                ? "Local planner"
+                                : "Gemma endpoint"}
+                            </span>
+                          </div>
+                          <ArrowUpRight size={20} />
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="empty large">
+                      <div className="empty-icon">
+                        <History size={30} />
+                      </div>
+                      <h2>Your story starts with a run.</h2>
+                      <p>
+                        Create a plan to turn your first instruction into saved
+                        work.
+                      </p>
+                      <button className="button primary" onClick={newRun}>
+                        Start your first run
+                        <ArrowRight size={15} />
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
+              {view === "operations" && (
+                <>
+                  {currentRun ? (
+                    <>
+                      <div className="page-heading">
+                        <div>
+                          <button
+                            className="back-link"
+                            onClick={() => goto("history")}
+                          >
+                            Run history
+                            <ChevronRight size={13} />
+                          </button>
+                          <h1>
+                            {currentRun.status === "running"
+                              ? "Consider it in progress"
+                              : currentRun.status === "failed"
+                                ? "Let’s pick up where we left off"
+                                : currentRun.status === "cancelled"
+                                  ? "Ready when you are again"
+                                  : "A little more off your plate"}
+                            <span>.</span>
+                          </h1>
+                          <p>
+                            Run {currentRun.id.slice(0, 8)} ·{" "}
+                            {relative(currentRun.createdAt)} ·{" "}
+                            {currentRun.plan.provider === "local"
+                              ? "Local sandbox executor"
+                              : "Gemma endpoint + local executor"}
+                          </p>
+                        </div>
+                        <Badge kind={currentRun.status} dot>
+                          {statusLabel(currentRun.status)}
+                        </Badge>
+                      </div>
+                      <div className="run-command">
+                        <span>
+                          <Mic size={16} />
+                          YOUR INSTRUCTION
+                        </span>
+                        <p>“{currentRun.plan.command}”</p>
+                      </div>
+                      <div className="metrics-row run-metrics">
+                        {[
+                          ["Triaged", currentRun.metrics.triaged],
+                          ["Labels saved", currentRun.metrics.labels],
+                          ["Drafts prepared", currentRun.metrics.drafts],
+                          ["Awaiting approval", currentRun.metrics.pending],
+                        ].map(([label, value]) => (
+                          <div className="metric" key={label}>
+                            <div className="metric-label">{label}</div>
+                            <strong>{String(value).padStart(2, "0")}</strong>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="operations-grid">
+                        <section className="panel">
+                          <div className="panel-heading">
+                            <h2>The plan in motion</h2>
+                            <span className="small-muted">
+                              {currentRun.cursor}/{currentRun.plan.steps.length}{" "}
+                              steps
+                            </span>
+                          </div>
+                          <div className="execution-plan">
+                            <PlanCards
+                              plan={currentRun.plan}
+                              execution={{
+                                cursor: currentRun.cursor,
+                                status: currentRun.status,
+                              }}
+                            />
+                          </div>
+                          <div className="execution-controls">
+                            {currentRun.status === "running" ? (
+                              <button
+                                className="button danger"
+                                disabled={busy}
+                                onClick={() =>
+                                  act(async () => {
+                                    await api(
+                                      `runs/${currentRun.id}/cancel`,
+                                      {},
+                                    );
+                                    notify(
+                                      "Run stopped. Previously saved changes are preserved.",
+                                    );
+                                  })
+                                }
+                              >
+                                <Square size={14} />
+                                Stop run
+                              </button>
+                            ) : ["failed", "cancelled"].includes(
+                                currentRun.status,
+                              ) ? (
+                              <button
+                                className="button primary"
+                                disabled={busy}
+                                onClick={() =>
+                                  act(() =>
+                                    api(`runs/${currentRun.id}/resume`, {}),
+                                  )
+                                }
+                              >
+                                <RefreshCw size={15} />
+                                Resume from checkpoint
+                              </button>
+                            ) : (
+                              <span>
+                                <ShieldCheck size={15} />
+                                No external messages sent
+                              </span>
+                            )}
+                            <span>SQLite checkpoints · Local engine</span>
+                          </div>
+                        </section>
+                        <section className="panel">
+                          <div className="panel-heading">
+                            <h2>Action timeline</h2>
+                            <Badge>{currentRun.metrics.retries} retries</Badge>
+                          </div>
+                          <Timeline events={currentRun.events} />
+                        </section>
+                      </div>
+                      {currentRun.briefing && (
+                        <div className="briefing-card">
+                          <div className="briefing-mark">
+                            <Headphones size={27} />
+                          </div>
+                          <div>
+                            <div className="eyebrow">YOUR BRIEFING</div>
+                            <h2>Here’s where things stand.</h2>
+                            <p>{currentRun.briefing}</p>
+                            <span>
+                              Time saved: not measured. No manual baseline has
+                              been recorded.
+                            </span>
+                          </div>
+                          <button
+                            className="button primary"
+                            disabled={busy}
+                            onClick={() => playBriefing(currentRun)}
+                          >
+                            {playing ? (
+                              <Pause size={16} />
+                            ) : (
+                              <Volume2 size={16} />
+                            )}{" "}
+                            {playing ? "Stop briefing" : "Play briefing"}
+                          </button>
+                        </div>
+                      )}
+                      {currentRun.metrics.pending > 0 && (
+                        <div className="approval-nudge">
+                          <ShieldCheck size={23} />
+                          <div>
+                            <h3>The last step belongs to you.</h3>
+                            <p>
+                              {currentRun.metrics.pending} drafted replies need
+                              your approval before a simulated send.
+                            </p>
+                          </div>
+                          <button
+                            className="button secondary"
+                            onClick={() => goto("approvals")}
+                          >
+                            Review replies
+                            <ArrowRight size={15} />
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="empty large">
+                      <Workflow size={30} />
+                      <h2>No run selected.</h2>
+                      <button className="button primary" onClick={newRun}>
+                        Start a run
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
+              {view === "evidence" && (
+                <>
+                  <div className="page-heading">
+                    <div>
+                      <div className="eyebrow">PROOF BEFORE PROMISES</div>
+                      <h1>
+                        Nothing behind the curtain<span>.</span>
+                      </h1>
+                      <p>
+                        A clear account of what is running, what is connected,
+                        and what still needs proof.
+                      </p>
+                    </div>
+                    <button
+                      className="button secondary"
+                      onClick={() => window.location.assign("/api/evidence")}
+                    >
+                      <Download size={15} />
+                      Export JSON
+                    </button>
                   </div>
-                </div>
-              </div>
-              <div className="panel">
-                <div className="panel-heading">
-                  <div>
-                    <h2>Integration readiness</h2>
-                    <p>Local features do not stand in for provider proof.</p>
+                  <div className="sdk-proof-strip">
+                    <span className="sdk-vercel-mark">▲</span>
+                    <div>
+                      <strong>
+                        Built with Vercel AI SDK {state.capabilities.aiSdk}
+                      </strong>
+                      <p>
+                        Structured outputs, streaming plan cards, and validation
+                        before execution.{" "}
+                        {state.capabilities.gemma
+                          ? "Gemma endpoint configured."
+                          : "No model endpoint is connected. The local planner is active."}
+                      </p>
+                    </div>
+                    <Badge>Schema-driven UI</Badge>
                   </div>
-                  <Badge>{state.receipts.length} provider receipts</Badge>
-                </div>
-                <div className="integration-grid">
-                  {state.integrations.map((p) => (
-                    <div className="integration" key={p.id}>
-                      <span
-                        className={`integration-monogram ${p.id === "gemma" ? "accent" : ""}`}
-                      >
-                        {p.name.slice(0, 1)}
+                  <div className="evidence-summary">
+                    <div className="panel evidence-local">
+                      <span className="evidence-icon">
+                        <CheckCheck size={24} />
                       </span>
                       <div>
-                        <strong>{p.name}</strong>
-                        <p>{p.role}</p>
+                        <h3>Working in this workspace</h3>
+                        <p>
+                          SQLite persistence, bounded planning, ticket scoring,
+                          saved labels, drafts, approvals, checkpoints and
+                          idempotent retries.
+                        </p>
+                        <Badge kind="local">Local implementation</Badge>
                       </div>
+                    </div>
+                    <div className="panel evidence-local">
+                      <span className="evidence-icon neutral">
+                        <Layers size={24} />
+                      </span>
                       <div>
-                        <Badge
-                          kind={p.status === "configured" ? "configured" : ""}
-                        >
-                          {p.status === "configured"
-                            ? "Configured"
-                            : "Not connected"}
-                        </Badge>
-                        {p.proofCount > 0 && (
-                          <small>{p.proofCount} local request receipts</small>
-                        )}
+                        <h3>Honest about the missing pieces</h3>
+                        <p>
+                          No cloud sponsor category is claimed. Configuring an
+                          API key is only the first step. Live usage and
+                          independent evidence are still required.
+                        </p>
+                        <Badge>0 categories claimed</Badge>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </div>
-              {state.receipts.length > 0 && (
-                <div className="panel receipt-panel">
-                  <div className="panel-heading">
-                    <h2>Actual provider requests</h2>
                   </div>
-                  {state.receipts.map((r) => (
-                    <div className="receipt" key={r.id}>
-                      <strong>{r.provider}</strong>
-                      <span>{r.model || r.operation}</span>
-                      <span>{r.latencyMs} ms</span>
-                      <span>Cost unavailable</span>
+                  <div className="panel">
+                    <div className="panel-heading">
+                      <div>
+                        <h2>Integration readiness</h2>
+                        <p>
+                          Local features do not stand in for provider proof.
+                        </p>
+                      </div>
+                      <Badge>{state.receipts.length} provider receipts</Badge>
                     </div>
-                  ))}
-                </div>
+                    <div className="integration-grid">
+                      {state.integrations.map((p) => (
+                        <div className="integration" key={p.id}>
+                          <span
+                            className={`integration-monogram ${p.id === "gemma" ? "accent" : ""}`}
+                          >
+                            {p.name.slice(0, 1)}
+                          </span>
+                          <div>
+                            <strong>{p.name}</strong>
+                            <p>{p.role}</p>
+                          </div>
+                          <div>
+                            <Badge
+                              kind={
+                                p.status === "configured" ? "configured" : ""
+                              }
+                            >
+                              {p.status === "configured"
+                                ? "Configured"
+                                : "Not connected"}
+                            </Badge>
+                            {p.proofCount > 0 && (
+                              <small>
+                                {p.proofCount} local request receipts
+                              </small>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  {state.receipts.length > 0 && (
+                    <div className="panel receipt-panel">
+                      <div className="panel-heading">
+                        <h2>Actual provider requests</h2>
+                      </div>
+                      {state.receipts.map((r) => (
+                        <div className="receipt" key={r.id}>
+                          <strong>{r.provider}</strong>
+                          <span>{r.model || r.operation}</span>
+                          <span>{r.latencyMs} ms</span>
+                          <span>Cost unavailable</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div className="info-strip">
+                    <BookOpen size={18} />
+                    <p>
+                      Playbook URLs are checked-in references. They are not live
+                      research receipts. Priority scores use transparent rules,
+                      not predictive AI.
+                    </p>
+                  </div>
+                </>
               )}
-              <div className="info-strip">
-                <BookOpen size={18} />
-                <p>
-                  Playbook URLs are checked-in references. They are not live
-                  research receipts. Priority scores use transparent rules, not
-                  predictive AI.
-                </p>
-              </div>
-            </>
-          )}
+            </motion.div>
+          </AnimatePresence>
         </main>
         <footer className="app-footer">
           <span>
@@ -2118,8 +2333,10 @@ export default function App() {
                   </label>
                   <select
                     id="scope"
-                    value={scope}
-                    onChange={(e) => setScope(e.target.value)}
+                    value={prefs.scope}
+                    onChange={(e) =>
+                      setPrefs({ ...prefs, scope: e.target.value })
+                    }
                   >
                     <option value="all">All pending tickets</option>
                     <option value="urgent">Urgent tickets only</option>
@@ -2133,6 +2350,7 @@ export default function App() {
                     onClick={() =>
                       act(async () => {
                         await api("preferences", prefs);
+                        setScope(prefs.scope);
                         setModal(null);
                         notify("Your preferences are saved for the next run.");
                       })
@@ -2159,6 +2377,8 @@ export default function App() {
                           act(async () => {
                             await api("reset", {});
                             setCommand("");
+                            setScope("all");
+                            setConfirmReset(false);
                             setSelectedRun(null);
                             setModal(null);
                             goto("overview");
@@ -2201,12 +2421,12 @@ export default function App() {
                     autoFocus
                     aria-label="Search workspace tickets"
                     placeholder="Search ticket titles, people, or companies…"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
                 <div className="search-results">
-                  {filtered.slice(0, 8).map((t) => (
+                  {searchResults.slice(0, 8).map((t) => (
                     <button
                       key={t.id}
                       onClick={() => setModal({ type: "ticket", id: t.id })}
@@ -2221,7 +2441,7 @@ export default function App() {
                       <ChevronRight size={15} />
                     </button>
                   ))}
-                  {!filtered.length && (
+                  {!searchResults.length && (
                     <div className="empty">
                       <Search size={24} />
                       <p>No matches. Try another keyword.</p>

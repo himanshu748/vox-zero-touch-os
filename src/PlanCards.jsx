@@ -39,6 +39,7 @@ export default function PlanCards({
   activeKind = null,
   completedKinds = [],
   playback = false,
+  execution = null,
 }) {
   const reduced = useReducedMotion();
   const steps =
@@ -67,7 +68,11 @@ export default function PlanCards({
           ) : (
             <ShieldCheck size={14} />
           )}{" "}
-          {loading ? "Building your plan" : "A bounded plan, ready for review"}
+          {loading
+            ? "Building your plan"
+            : execution
+              ? `${execution.cursor} of ${steps.length} actions saved`
+              : "A bounded plan, ready for review"}
         </span>
         <span>{plan ? `${plan.steps.length} steps` : "Preview only"}</span>
       </div>
@@ -78,10 +83,25 @@ export default function PlanCards({
         {steps.map((step, i) => {
           const meta = ACTIONS[step.kind],
             Icon = meta.icon;
+          const done = execution
+            ? i < execution.cursor
+            : completedKinds.includes(step.kind);
+          const current = execution
+            ? i === execution.cursor && execution.status === "running"
+            : activeKind === step.kind;
+          const paused =
+            execution &&
+            i === execution.cursor &&
+            ["cancelled", "failed"].includes(execution.status);
           return (
             <motion.article
-              className={`generative-action ${step.kind} ${activeKind === step.kind ? "story-active" : ""} ${completedKinds.includes(step.kind) ? "story-complete" : ""} ${playback ? "story-playback" : ""}`}
+              className={`generative-action ${step.kind} ${current ? "story-active" : ""} ${done ? "story-complete" : ""} ${paused ? "step-paused" : ""} ${playback ? "story-playback" : ""}`}
               key={step.kind}
+              aria-label={
+                execution
+                  ? `${step.title}: ${done ? "Completed" : current ? "In progress" : paused ? "Paused" : "Queued"}`
+                  : undefined
+              }
               initial={reduced ? false : { opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{
@@ -101,8 +121,18 @@ export default function PlanCards({
               <h4>{step.title}</h4>
               <p>{step.detail}</p>
               <div className="generative-action-foot">
-                <span>{meta.tag}</span>
-                {plan && (!playback || completedKinds.includes(step.kind)) && (
+                <span>
+                  {execution
+                    ? done
+                      ? "Completed"
+                      : current
+                        ? "In progress"
+                        : paused
+                          ? "Paused at checkpoint"
+                          : "Queued"
+                    : meta.tag}
+                </span>
+                {plan && (execution ? done : !playback || done) && (
                   <motion.span
                     initial={reduced ? false : { scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
@@ -111,10 +141,12 @@ export default function PlanCards({
                     <Check size={12} />
                   </motion.span>
                 )}
-                {activeKind === step.kind && (
+                {current && (
                   <span
                     className="story-current-dot"
-                    aria-label="Current preview step"
+                    aria-label={
+                      execution ? "Current action" : "Current preview step"
+                    }
                   />
                 )}
               </div>

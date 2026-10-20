@@ -14,3 +14,7 @@ Personality: premium, precise, calm. Emotional target: the user sees a busy requ
 - Mobile: restrained displacement, immediate touch feedback and fewer simultaneous motion elements.
 
 The motion-graphics vocabulary informed the short input-to-plan-to-review narrative. Its separate video installation and render workflow was not used for this React UI edit.
+
+## Workspace continuity
+
+The workspace shares the same easing and duration tokens. Routes enter with a 12px movement and opacity change. Dialogs use the standard 300ms transition. The same fixed plan cards become execution cards with queued, active, paused and completed states derived from the persisted cursor. The voice control has an immediate hover response; its ring only repeats during active recording. Reduced-motion preferences disable spatial transitions and decorative loops.

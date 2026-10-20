@@ -4,26 +4,39 @@ Date: October 20, 2026 (India time).
 
 ## Automated
 
-- `npm test`: 13 tests passed.
-- `npm run typecheck`: passed, AI SDK adapter checked against installed package types.
+- `npm test`: 19 tests passed.
+- `npm run typecheck`: passed; covers the AI SDK adapter against installed package types.
 - `npm run build`: passed; landing and workspace load in separate JS chunks.
-- `node:sqlite`: database state is persisted locally; its experimental status is disclosed.
+- SQLite persistence, worker restart/resume, read-only previews, bounded scopes, retries, idempotency, ownership, single-use decisions, expired plans/approvals, saved preferences, reset, route parsing and useful error messages are covered.
+- SDK tests use `MockLanguageModelV4` from `ai/test`. They exercise SDK generation, streaming and validation. They are not live provider receipts.
 
-AI SDK tests use `MockLanguageModelV4` from `ai/test`. They verify the installed SDK generation, streaming and validation paths. They are not live model inference receipts.
+## Browser walkthrough
 
-## Browser
+Used the in-app browser's Playwright locators and viewport control. The main walkthrough used `127.0.0.1:4310/app` to isolate QA records from the existing `localhost:4310` workspace. The existing localhost records were preserved.
 
-Verified with the local in-app browser:
+- Landing to workspace entry, overview, queue filters, empty results and clearing filters.
+- Global search remains independent of the queue's query and draft filter. Ticket detail shows priorities, reasons, internal notes, labels and saved drafts.
+- Empty commands and unsafe instructions produce readable errors. An empty untriaged scope returns an explicit explanation.
+- Preview and edit instruction, then approve a real saved run. Stop, resume, and reload during execution preserved the run URL and checkpoint.
+- First run saved 24 triages, 7 labels and 6 drafts. One injected failure recovered without duplicate writes.
+- Rejected one draft and approved one simulated send, then rejected the remaining four. Pending count reached zero and history showed Completed.
+- Briefing controls changed between Play and Stop using browser speech. Physical audio output was not assessed.
+- Saved friendly reply style and urgent default scope survived reload. A subsequent six-ticket scoped run produced friendly drafts.
+- Reset confirmation and cancellation were checked in the UI; destructive reset execution and fresh seed/preferences were verified in the isolated automated API test.
+- Export JSON was triggered from Evidence; backend tests checked the exported ledger content. Documentation, evidence navigation and browser Back worked.
+- Cmd-K search, Cmd-Enter composer focus, Escape dismissal, dialog focus wrapping, mobile navigation focus and closed-sidebar visibility were checked.
+- Stopped the local server to verify the retry banner; restarting recovered the saved workspace. Expected connection errors occurred only during this test. A fresh post-restart browser session reported no console warnings or errors.
 
-- Created a plan from the queue workflow; the preview made no ticket mutation.
-- Approved the run: 24 tickets triaged, 7 internal labels saved, 6 reply drafts, one injected pre-write failure recovered, zero external sends.
-- Rejected one proposed reply and approved one simulated sandbox send. Pending count fell from 6 to 4. Backend tests separately verify that a foreign session is denied and a repeated decision is rejected.
-- After AI SDK integration, created a plan through `useObject` and the structured preview endpoint; all six fixed action cards rendered from the saved plan.
-- Desktop landing and workspace checked at 1440 px; mobile checked at 360 px and 390 px. The observed document width matched the viewport, without horizontal page scroll.
-- Hero image loaded. Navigation, workflow examples and mobile menu worked.
-- Workflow motion preview played and paused, with Resume visible and the active step preserved.
-- Replaced the original copper palette after user feedback. Current design is Geist with soft white/cobalt landing and a cool neutral workspace.
+## Responsive checks
 
-Live microphone transcription, paid model inference, ElevenLabs playback, physical hardware, cloud infrastructure, public hosting, contest eligibility and submission were not verified.
+Landing and workspace were inspected at 360×800, 768×1024 and desktop widths, with extra workspace checks at 1024×800 and 1280×720. Observed document width matched viewport width at the checked breakpoints.
 
-Screenshots in this folder are local browser observations, not vendor integration evidence. Earlier screenshots with copper artwork document a superseded design. Current deliverable screenshots use the silver/cobalt artwork.
+Mobile checks covered stacked approvals, a compact queue, a scrollable plan dialog, preferences, menu navigation and readable error feedback. Tablet checks covered the queue and evidence. Desktop checks covered overview and execution. Opening the mobile menu and resizing to desktop closed it and restored page interaction. The original preview was restored to its normal viewport.
+
+Landing navigation, mobile menu, example switching and workflow pause/resume were rechecked after changing shared styles. The current workspace matches the landing's Geist, soft white and cobalt design. Earlier dark/copper screenshots in this folder show superseded versions.
+
+## Limits
+
+Gemma inference and ElevenLabs transcription/playback remain unverified with live credentials. The disconnected voice state correctly offers a text command. Browser speech controls were exercised, but microphone hardware and audible output were not assessed. Reduced-motion behavior is implemented in code; OS-level reduced-motion preferences were not changed during this pass. No Safari/Firefox, public deployment, Temporal, Auth0, Browserbase or other cloud integration proof is claimed.
+
+Current screenshots and the detailed QA matrix are in the separate [QA output folder](../../qa/WORKSPACE-QA.md).

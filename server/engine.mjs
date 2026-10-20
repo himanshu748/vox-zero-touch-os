@@ -20,15 +20,19 @@ export function summary(state, run) {
     pending: drafts.filter((d) => d.status === "pending").length,
     sent: drafts.filter((d) => d.status === "sent").length,
     rejected: drafts.filter((d) => d.status === "rejected").length,
-    urgent: state.tickets.filter(
-      (t) => run.plan.ticketIds.includes(t.id) && t.priority === "urgent",
-    ).length,
+    urgent: run.prioritySnapshot
+      ? Object.values(run.prioritySnapshot).filter(
+          (priority) => priority === "urgent",
+        ).length
+      : state.tickets.filter(
+          (t) => run.plan.ticketIds.includes(t.id) && t.priority === "urgent",
+        ).length,
     retries: run.events.filter((e) => e.status === "retry").length,
   };
 }
 export function briefing(state, run) {
   const s = summary(state, run);
-  return `I triaged ${s.triaged} tickets, added ${s.labels} internal labels and prepared ${s.drafts} replies. ${s.urgent} tickets are urgent. ${s.pending} replies await your approval. ${s.sent} replies were sent inside the synthetic sandbox. No external messages were sent.`;
+  return `I triaged ${s.triaged} tickets, added ${s.labels} internal labels and prepared ${s.drafts} replies. ${s.urgent} tickets are urgent. ${s.pending} ${s.pending === 1 ? "reply awaits" : "replies await"} your approval. ${s.sent} ${s.sent === 1 ? "reply was" : "replies were"} sent inside the synthetic sandbox. No external messages were sent.`;
 }
 export function createEngine(store, { delay = 700 } = {}) {
   const working = new Map();
@@ -153,6 +157,9 @@ export function createEngine(store, { delay = 700 } = {}) {
                 Object.assign(t, risk(t));
                 t.triagedAt = stamp();
               }),
+            );
+            r.prioritySnapshot = Object.fromEntries(
+              tickets.map((ticket) => [ticket.id, ticket.priority]),
             );
             event(
               r,

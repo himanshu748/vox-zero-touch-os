@@ -63,6 +63,6 @@ The user deferred physical microphone testing. Browser speech hardware and Safar
 
 The npm audit reports an unpatched transitive `sprintf-js` formatter DoS advisory through Mastra's frontmatter chain; five package entries are affected. VOX does not expose frontmatter parsing or user-controlled format strings.
 
-An initial Google key-detail tool response was not fully redacted because Google used a newer credential format. A later SerpApi portal response also exposed its key. The key was not committed or packaged, and subsequent handling was redacted. Rotating the existing Google and SerpApi keys is recommended; it was not disabled automatically because it may be shared by other projects.
+Earlier Google and SerpApi portal responses exposed their key values. Both keys were rotated on October 20, 2026, and both old keys now return HTTP 401. The Google replacement preserves the existing Gemini API restriction and service-account binding. Both replacements were saved in Render's private server configuration. A fresh hosted recorded-voice flow passed planning, live searches, browser execution, reply approvals and ElevenLabs briefing playback after rotation. No credential values were committed or packaged.
 
 Earlier dark/copper screenshots show superseded designs. Current workspace and voice-flow screenshots use the Geist/white/cobalt system.

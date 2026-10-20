@@ -49,6 +49,7 @@ function mockModel({
 test("local AI SDK callback satisfies Stagehand's structured protocol and reports actual usage", async () => {
   let savedUsage;
   const model = createBrowserModel({
+    modelName: "google/gemini-3.8-flash",
     model: mockModel({
       onCall(options) {
         assert.equal(options.responseFormat.type, "json");
@@ -124,4 +125,22 @@ test("missing provider token counts remain unknown", async () => {
   const model = createBrowserModel({ model: mockModel({ tokens: false }) });
   const result = await model.generate(params);
   assert.equal(result.usage, undefined);
+});
+
+test("Gemma uses prompt-constrained JSON and returns parsed content to Stagehand validation", async () => {
+  const model = createBrowserModel({
+    modelName: "google/gemma-4-26b-a4b-it",
+    model: mockModel({
+      onCall(options) {
+        assert.equal(options.responseFormat.type, "text");
+        assert.match(
+          JSON.stringify(options.prompt),
+          /Return only JSON matching this schema/,
+        );
+        assert.match(JSON.stringify(options.prompt), /selector/);
+      },
+    }),
+  });
+  const result = await ClientLLMSchema.parse(model).generate(params);
+  assert.deepEqual(result.structuredContent, { selector: "button" });
 });

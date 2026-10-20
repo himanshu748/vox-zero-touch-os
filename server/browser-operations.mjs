@@ -247,9 +247,9 @@ export async function reviewTicketInBrowser(store, owner, id) {
     await page.goto(new URL("/browser/operations", origin).href);
     await stagehand.act(
       `Fill the Internal review note textarea with exactly: ${noteFor(id)}`,
-      { timeout: 30000 },
+      { timeout: 45000 },
     );
-    await stagehand.act("Click Save internal note.", { timeout: 30000 });
+    await stagehand.act("Click Save internal note.", { timeout: 45000 });
     const result = store
       .get(owner)
       .runs.find((item) => item.id === id).browserOperation;

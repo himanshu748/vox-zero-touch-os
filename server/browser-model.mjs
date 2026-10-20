@@ -8,7 +8,7 @@ import { createGoogleGenerativeAI } from "@ai-sdk/google";
 /** @typedef {{inputTokens:number|null,outputTokens:number|null,totalTokens:number|null,model:string,requestId?:string}} Usage */
 
 export const browserModelName = () =>
-  process.env.STAGEHAND_MODEL || "google/gemini-2.5-flash";
+  process.env.STAGEHAND_MODEL || "google/gemma-4-26b-a4b-it";
 
 /** @param {BrowserParams['messages']} messages @returns {import('ai').ModelMessage[]} */
 function messagesForAI(messages) {
@@ -49,11 +49,12 @@ function messagesForAI(messages) {
 /**
  * Stagehand executes this callback in our server process. Only model output
  * returns to the browser runtime; the Google credential stays on Render.
- * @param {{model?:import('ai').LanguageModel,maxCalls?:number,beforeCall?:()=>Promise<void>,onUsage?:(usage:Usage)=>Promise<void>}} [options]
+ * @param {{model?:import('ai').LanguageModel,modelName?:string,maxCalls?:number,beforeCall?:()=>Promise<void>,onUsage?:(usage:Usage)=>Promise<void>}} [options]
  * @returns {ClientLLM}
  */
 export function createBrowserModel({
   model,
+  modelName = browserModelName(),
   maxCalls = 2,
   beforeCall,
   onUsage,
@@ -70,7 +71,8 @@ export function createBrowserModel({
         throw new Error("The approved browser model budget is exhausted.");
       calls++;
       await beforeCall?.();
-      const name = browserModelName();
+      const name = modelName;
+      const promptJSON = /^google\/gemma/i.test(name);
       if (!name.startsWith("google/"))
         throw new Error(
           "The browser model must use the configured Google provider.",
@@ -83,22 +85,28 @@ export function createBrowserModel({
               process.env.GOOGLE_GENERATIVE_AI_API_KEY ||
               process.env.GOOGLE_API_KEY,
           })(name.slice("google/".length)),
-        instructions: params.systemPrompt,
+        instructions:
+          (params.systemPrompt || "") +
+          (promptJSON
+            ? `\nReturn only JSON matching this schema, without Markdown: ${JSON.stringify(params.responseFormat.schema)}`
+            : ""),
         messages,
-        output: Output.object({
-          schema: jsonSchema(
-            /** @type {import('ai').JSONSchema7} */ (
-              params.responseFormat.schema
-            ),
-          ),
-          name: params.responseFormat.name,
-          description: params.responseFormat.description,
-        }),
+        output: promptJSON
+          ? Output.text()
+          : Output.object({
+              schema: jsonSchema(
+                /** @type {import('ai').JSONSchema7} */ (
+                  params.responseFormat.schema
+                ),
+              ),
+              name: params.responseFormat.name,
+              description: params.responseFormat.description,
+            }),
         temperature: params.temperature ?? 0,
         stopSequences: params.stopSequences,
         maxOutputTokens: 1600,
         maxRetries: 0,
-        timeout: 30000,
+        timeout: 45000,
         telemetry: {
           isEnabled: Boolean(process.env.SENTRY_DSN),
           functionId: "vox-browser-action",
@@ -123,7 +131,16 @@ export function createBrowserModel({
         role: "assistant",
         content: { type: "text", text: result.text },
         outputFormat: "json_schema",
-        structuredContent: /** @type {BrowserJSON} */ (result.output),
+        structuredContent: /** @type {BrowserJSON} */ (
+          promptJSON
+            ? JSON.parse(
+                result.text
+                  .trim()
+                  .replace(/^```(?:json)?\s*/i, "")
+                  .replace(/\s*```$/, ""),
+              )
+            : result.output
+        ),
         stopReason: result.finishReason,
         ...(completeUsage
           ? {

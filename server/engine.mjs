@@ -12,6 +12,7 @@ import { predictEscalation } from "./escalation.mjs";
 import { reviewDraft } from "./draft-review.mjs";
 import { providerTask } from "./provider-task.mjs";
 import { retrieveKnowledge } from "./knowledge-retrieval.mjs";
+import { activityFailure } from "./activity-failure.mjs";
 const stamp = () => new Date().toISOString();
 export function event(run, title, detail, status = "completed") {
   run.events.push({ id: randomUUID(), title, detail, status, at: stamp() });
@@ -471,8 +472,8 @@ export function createEngine(
         const run = state.runs.find((run) => run.id === id);
         if (run?.status === "running") {
           run.status = "failed";
-          run.error =
-            "An activity failed. Saved work is preserved; inspect the timeline before resuming.";
+          run.failure = activityFailure(error);
+          run.error = run.failure.message;
           event(run, "Activity stopped", run.error, "failed");
         }
       });

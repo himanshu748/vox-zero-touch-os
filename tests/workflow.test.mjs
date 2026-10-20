@@ -477,7 +477,10 @@ test("resuming a failed Gemma draft step reuses completed responses instead of p
     delay: 1,
     generate: async () => {
       calls++;
-      if (calls === 2) throw new Error("test-only provider interruption");
+      if (calls === 2)
+        throw Object.assign(new Error("test-only sensitive provider body"), {
+          statusCode: 503,
+        });
       return {
         output: {
           body: "A cautious reply based on the supplied support playbook.",
@@ -513,6 +516,8 @@ test("resuming a failed Gemma draft step reuses completed responses instead of p
   });
   await engine.start(owner, id);
   assert.equal(store.get(owner).runs[0].status, "failed");
+  assert.equal(store.get(owner).runs[0].failure.code, "provider_unavailable");
+  assert(!store.get(owner).runs[0].error.includes("sensitive provider body"));
   assert.equal(Object.keys(store.get(owner).runs[0].modelDrafts).length, 1);
   store.mutate(owner, (state) => (state.runs[0].status = "running"));
   await engine.start(owner, id);

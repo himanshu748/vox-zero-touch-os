@@ -1,0 +1,21 @@
+import React, { lazy, Suspense } from "react";
+import { createRoot } from "react-dom/client";
+import { MotionConfig } from "motion/react";
+const App = lazy(() => import("./App"));
+const Landing = lazy(() => import("./Landing"));
+import "./styles.css";
+createRoot(document.getElementById("root")).render(
+  <React.StrictMode>
+    <MotionConfig reducedMotion="user">
+      <Suspense
+        fallback={
+          <div className="loading-screen">
+            <p>Getting your workspace ready…</p>
+          </div>
+        }
+      >
+        {window.location.pathname.startsWith("/app") ? <App /> : <Landing />}
+      </Suspense>
+    </MotionConfig>
+  </React.StrictMode>,
+);

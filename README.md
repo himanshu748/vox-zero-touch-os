@@ -68,7 +68,7 @@ Set `PUBLIC_ORIGIN`, Auth0's issuer/client credentials/session secret and `AUTH0
 
 `SERPAPI_API_KEY` enables up to two live searches per approved research plan. URLs, timestamps and provider search IDs are retained. `BACKBOARD_API_KEY` stores and recalls the workspace's reply-style preference. A returned memory ID follows the next plan. `SENTRY_DSN` enables actual AI SDK and tool tracing with prompt/response recording disabled and exact environment-secret redaction.
 
-`BROWSERBASE_API_KEY` and project ID enable two bounded Stagehand actions against VOX's hosted synthetic helpdesk: fill and save one internal note. An HttpOnly, three-minute signed grant permits only the approved run/ticket/note. The saved field, session ID and ledger are checked before execution continues. No external helpdesk credentials or customer data are used. The browser model callback runs on Render through Vercel AI SDK, so the Google key is never sent to the Browserbase runtime. Gemma uses prompt-constrained JSON and Stagehand validates the requested schema before executing an action. The two-call browser budget is persisted across retries.
+`BROWSERBASE_API_KEY` and project ID enable two bounded Stagehand actions against VOX's hosted synthetic helpdesk: fill and save one internal note. An HttpOnly, three-minute signed grant permits only the approved run/ticket/note. The saved field, session ID and ledger are checked before execution continues. No external helpdesk credentials or customer data are used. Stagehand executes two explicit approved actions against the fixed form. Model-based selector self-healing is disabled; no Google credential is sent to Browserbase. Gemma plans and drafts through Vercel AI SDK on Render. The browser stays open until the acknowledged save response and persisted field agree.
 
 On Render, use `npm ci --include=dev && npm run build`, `npm start`, `/healthz`, one instance and Node 22.18+. Store keys in a secret file and set `VOX_ENV_FILE=/etc/secrets/vox.env`. Do not put keys in Vite client variables. Atlas must allow only the service's outbound ranges. Hosted provider verification is distinct from local tests and physical microphone checks.
 
@@ -81,7 +81,7 @@ npm run build
 npm start
 ```
 
-37 automated checks pass. Type checking covers both AI SDK adapters. Browser verification exercised the real provider chain with a synthetic spoken file: live Scribe transcription → live Gemma plan → two live Gemma drafts → Mastra approval suspension/resume → live ElevenLabs briefing. Replay and process restart reused the saved audio. Provider receipts and a real Mastra snapshot were exported. Physical microphone testing was deferred by the user.
+32 automated checks pass. Type checking covers the AI SDK adapter. Browser verification exercised the real provider chain with a synthetic spoken file: live Scribe transcription → live Gemma plan → two live Gemma drafts → Mastra approval suspension/resume → live ElevenLabs briefing. Replay and process restart reused the saved audio. Provider receipts and a real Mastra snapshot were exported. Physical microphone testing was deferred by the user.
 
 The workspace and landing share Geist typography, soft white surfaces, near-black headings, cobalt accents and motion tokens. Mobile/tablet/desktop checks cover menus, dialogs, plan cards, approvals and evidence.
 

@@ -1,7 +1,6 @@
 import express from "express";
 import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
-import { browserModelName, createBrowserModel } from "./browser-model.mjs";
 
 const grantSchema = z
   .object({
@@ -191,33 +190,13 @@ export async function reviewTicketInBrowser(store, owner, id) {
     // Stagehand attaches the browser context; context methods require this first.
     stagehand = await Stagehand.create({
       browser,
-      model: createBrowserModel({
-        maxCalls: Math.max(
-          0,
-          run.plan.maxBrowserModelCalls - (run.browserModelCalls || 0),
-        ),
-        beforeCall: async () => {
-          store.mutate(owner, (state) => {
-            const current = state.runs.find((item) => item.id === id);
-            if (
-              (current.browserModelCalls || 0) >=
-              current.plan.maxBrowserModelCalls
-            )
-              throw new Error(
-                "The approved browser model budget is exhausted.",
-              );
-            current.browserModelCalls = (current.browserModelCalls || 0) + 1;
-          });
-          await store.flush?.();
+      model: {
+        generate: async () => {
+          throw new Error(
+            "Browser model self-healing is disabled for the approved fixed form.",
+          );
         },
-        onUsage: async (usage) => {
-          store.mutate(owner, (state) => {
-            const current = state.runs.find((item) => item.id === id);
-            (current.browserModelUsage ||= []).push(usage);
-          });
-          await store.flush?.();
-        },
-      }),
+      },
       logging: { level: "off" },
     });
     await browser.context.setDomainPolicy({
@@ -246,15 +225,28 @@ export async function reviewTicketInBrowser(store, owner, id) {
       (await browser.context.pages())[0] || (await browser.context.newPage());
     await page.goto(new URL("/browser/operations", origin).href);
     const fill = await stagehand.act(
-      `Fill the Internal review note textarea with exactly: ${noteFor(id)}`,
-      { page, timeout: 45000 },
+      {
+        selector: "#note",
+        description: "Fill the approved internal review note",
+        method: "fill",
+        arguments: [noteFor(id)],
+      },
+      { page, timeout: 15000 },
     );
     if (!fill.data.success)
       throw new Error("The browser did not fill the approved note.");
-    const save = await stagehand.act("Click Save internal note.", {
-      page,
-      timeout: 45000,
-    });
+    const save = await stagehand.act(
+      {
+        selector: 'button[type="submit"]',
+        description: "Save the approved internal review note",
+        method: "click",
+        arguments: [],
+      },
+      {
+        page,
+        timeout: 15000,
+      },
+    );
     store.mutate(owner, (state) => {
       const current = state.runs.find((item) => item.id === id);
       current.browserActions = {
@@ -289,26 +281,9 @@ export async function reviewTicketInBrowser(store, owner, id) {
         (item) => item.id === result.receiptId,
       );
       receipt.latencyMs = Date.now() - start;
-      receipt.model = browserModelName();
-      const usage =
-        state.runs.find((item) => item.id === id).browserModelUsage || [];
-      receipt.modelCalls = usage.length;
-      receipt.usage =
-        usage.length &&
-        usage.every((item) =>
-          [item.inputTokens, item.outputTokens, item.totalTokens].every(
-            Number.isInteger,
-          ),
-        )
-          ? usage.reduce(
-              (sum, item) => ({
-                inputTokens: sum.inputTokens + item.inputTokens,
-                outputTokens: sum.outputTokens + item.outputTokens,
-                totalTokens: sum.totalTokens + item.totalTokens,
-              }),
-              { inputTokens: 0, outputTokens: 0, totalTokens: 0 },
-            )
-          : null;
+      receipt.operationMode = "approved selectors";
+      receipt.modelCalls = 0;
+      receipt.usage = null;
     });
     await store.flush?.();
     return result;

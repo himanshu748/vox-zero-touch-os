@@ -150,7 +150,8 @@ export function buildPlan(command, scope, intent, tickets, provider) {
     researchMode: liveResearch ? "serpapi" : "local",
     maxSearchCalls: liveResearch && actions.includes("research") ? 2 : 0,
     browserMode: liveBrowser ? "browserbase" : "local",
-    maxBrowserModelCalls: liveBrowser && actions.includes("tag") ? 2 : 0,
+    maxBrowserActions: liveBrowser && actions.includes("tag") ? 2 : 0,
+    maxBrowserModelCalls: 0,
     estimatedCalls: provider === "local" ? 0 : 1 + draftCount,
     maxProviderCalls: 8,
     boundaries: [

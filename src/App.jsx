@@ -2308,9 +2308,12 @@ export default function App() {
                   {plan.maxSearchCalls > 0 && (
                     <Badge>Up to {plan.maxSearchCalls} web searches</Badge>
                   )}
-                  {plan.maxBrowserModelCalls > 0 && (
+                  {(plan.maxBrowserActions ?? plan.maxBrowserModelCalls) >
+                    0 && (
                     <Badge>
-                      Up to {plan.maxBrowserModelCalls} browser actions
+                      Up to{" "}
+                      {plan.maxBrowserActions ?? plan.maxBrowserModelCalls}{" "}
+                      browser actions
                     </Badge>
                   )}
                   {plan.memory && (

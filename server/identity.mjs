@@ -19,6 +19,7 @@ export function configureIdentity(app) {
       clientSecret: process.env.AUTH0_CLIENT_SECRET,
       secret: process.env.AUTH0_SESSION_SECRET,
       baseURL: process.env.PUBLIC_ORIGIN,
+      getLoginState: () => ({ returnTo: "/app" }),
       authorizationParams: {
         response_type: "code",
         scope: "openid profile email",
@@ -53,12 +54,10 @@ export function requireIdentity(req, res, next) {
     process.env.AUTH0_REQUIRE_APPROVAL_LOGIN === "true" &&
     !authenticatedOwner(req)
   )
-    return res
-      .status(401)
-      .json({
-        error:
-          "Sign in with an authorized Auth0 account to approve or reject replies.",
-        login: "/auth/login",
-      });
+    return res.status(401).json({
+      error:
+        "Sign in with an authorized Auth0 account to approve or reject replies.",
+      login: "/auth/login",
+    });
   next();
 }

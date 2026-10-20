@@ -1,0 +1,12 @@
+{
+  "copilot": {
+    "sessionId": "93041358-8a15-446f-b6a7-051549f9f954",
+    "operation": "Review of server/research.mjs",
+    "evidence": "https://github.com/himanshu748/vox-zero-touch-os/blob/main/docs/evidence/copilot-research-review.txt"
+  },
+  "entire": {
+    "checkpointId": "01M5C30E624VW1TZKB3QJG05NT",
+    "commit": "9f5c7317c6cd83c01b0159d323a28522361bf35c",
+    "evidence": "https://github.com/himanshu748/vox-zero-touch-os/blob/main/docs/evidence/entire-checkpoint.json"
+  }
+}

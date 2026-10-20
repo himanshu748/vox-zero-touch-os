@@ -2155,7 +2155,11 @@ export default function App() {
                         <div className="receipt" key={r.id}>
                           <strong>{r.provider}</strong>
                           <span>{r.model || r.operation}</span>
-                          <span>{r.latencyMs} ms</span>
+                          <span>
+                            {r.latencyMs == null
+                              ? "Latency unavailable"
+                              : `${r.latencyMs} ms`}
+                          </span>
                           <span>Cost unavailable</span>
                         </div>
                       ))}
@@ -2256,6 +2260,17 @@ export default function App() {
                       : "Configured Gemma endpoint"}
                   </Badge>
                   <Badge>{plan.estimatedCalls} estimated model calls</Badge>
+                  {plan.maxSearchCalls > 0 && (
+                    <Badge>Up to {plan.maxSearchCalls} web searches</Badge>
+                  )}
+                  {plan.maxBrowserModelCalls > 0 && (
+                    <Badge>
+                      Up to {plan.maxBrowserModelCalls} browser AI calls
+                    </Badge>
+                  )}
+                  {plan.memory && (
+                    <Badge>Backboard reply preference recalled</Badge>
+                  )}
                   {plan.input?.kind === "voice" && (
                     <Badge>
                       ElevenLabs voice {plan.input.edited ? "· edited" : ""}
@@ -2324,6 +2339,15 @@ export default function App() {
                       </div>
                     </div>
                     <div className="message-body">{t.body}</div>
+                    {t.browserNote && (
+                      <div className="detail-section">
+                        <h4>Browserbase review</h4>
+                        <p>{t.browserNote}</p>
+                        <small>
+                          Saved through the hosted helpdesk UI by Stagehand.
+                        </small>
+                      </div>
+                    )}
                     <div className="tags">
                       {t.tags.map((tag) => (
                         <Badge key={tag}>{tag}</Badge>

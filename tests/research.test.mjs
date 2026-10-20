@@ -1,9 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import {randomUUID} from 'node:crypto';
 import { searchGuidance } from "../server/research.mjs";
 test("live research validates upstream shape, bounds results and preserves real source provenance", async (t) => {
   const previous = process.env.SERPAPI_API_KEY;
-  process.env.SERPAPI_API_KEY = "test-only-provider-key";
+  process.env.SERPAPI_API_KEY = randomUUID();
   t.after(() => {
     if (previous === undefined) delete process.env.SERPAPI_API_KEY;
     else process.env.SERPAPI_API_KEY = previous;

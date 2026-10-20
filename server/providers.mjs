@@ -1,6 +1,7 @@
 import { generateStructured, modelConnection } from "./ai.mjs";
 import { intentSchema } from "./planner.mjs";
 import { browserEnabled } from "./browser-operations.mjs";
+import development from "../docs/evidence/development.json" with { type: "json" };
 export const gemmaEnabled = () => modelConnection().ready;
 export const voiceEnabled = () => Boolean(process.env.ELEVENLABS_API_KEY);
 export async function planWithGemma(command) {
@@ -64,8 +65,18 @@ export function integrationStatus(receipts, { storage, identity } = {}) {
     ],
     ["sentry", "Sentry", "Agent tracing", Boolean(process.env.SENTRY_DSN)],
     ["digitalocean", "DigitalOcean", "Inference hosting", false],
-    ["entire", "Entire", "Development sessions", false],
-    ["copilot", "GitHub Copilot", "Development evidence", false],
+    [
+      "entire",
+      "Entire",
+      "Development sessions",
+      Boolean(development.entire.checkpointId),
+    ],
+    [
+      "copilot",
+      "GitHub Copilot",
+      "Development evidence",
+      Boolean(development.copilot.sessionId),
+    ],
     ["tabpfn", "TabPFN", "Escalation prediction", false],
     ["tinker", "Tinker", "Model fine-tuning", false],
     ["ultramarine", "Ultramarine", "Document review", false],
@@ -85,5 +96,6 @@ export function integrationStatus(receipts, { storage, identity } = {}) {
           ? receipts.filter((r) => r.provider === "ElevenLabs").length
           : receipts.filter((r) => r.provider === name).length,
     claimable: false,
+    evidence: development[id]?.evidence || null,
   }));
 }

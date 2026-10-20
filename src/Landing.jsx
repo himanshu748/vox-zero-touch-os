@@ -116,11 +116,11 @@ const EXAMPLES = [
 const FAQ = [
   [
     "What can I actually try right now?",
-    "The local sandbox has 24 fictional tickets. Create a bounded plan, run triage, save labels and reply drafts, watch an injected activity retry, and approve or reject simulated sends. The work is persisted in your isolated workspace.",
+    "Explore 24 fictional tickets. Sign in to use connected AI, create a bounded plan, run triage, save labels and reply drafts, and approve or reject simulated sends. The work is persisted in your isolated workspace.",
   ],
   [
     "Is an AI model already connected?",
-    "The default sandbox uses transparent local rules and templates. Vercel AI SDK powers the structured model adapters and streaming plan UI. Connect your own Gemma endpoint to enable model-generated plans and replies. Live provider usage is never implied when it has not happened.",
+    "The hosted workspace connects Gemma through Vercel AI SDK for streamed plans and reply drafts. Live provider use requires an authorized account. The evidence console shows configuration and saved request receipts. A local installation without credentials uses labeled rules and templates.",
   ],
   [
     "Does VOX send messages to real customers?",
@@ -311,7 +311,7 @@ export default function Landing() {
                 className="hero-caption"
               >
                 <ShieldCheck size={13} />
-                Try the synthetic sandbox. No account required.
+                Explore the sandbox. Sign in for live AI.
               </motion.div>
             </div>
             <motion.div
@@ -635,7 +635,7 @@ export default function Landing() {
                     <span>YOUR SYNTHETIC WORKSPACE</span>
                     <span>
                       <i />
-                      Live local data
+                      Saved workspace data
                     </span>
                   </div>
                   <h3>
@@ -890,8 +890,8 @@ export default function Landing() {
                 </h3>
                 <p>
                   A replaceable Gemma adapter keeps open-weight inference in
-                  reach. The default sandbox uses local rules until you connect
-                  an endpoint.
+                  reach. The evidence console identifies the configured model
+                  and its actual request receipts.
                 </p>
                 <a href="/app#evidence" className="landing-text-link">
                   See what’s connected
@@ -922,9 +922,9 @@ export default function Landing() {
             <div className="build-honesty">
               <span className="build-dot" />
               <p>
-                Currently a local synthetic sandbox. Live provider proofs, cloud
-                orchestration, public deployment, and contest submission remain
-                separate milestones.
+                A hosted synthetic helpdesk with real provider requests. Every
+                simulated send requires approval. Integration evidence stays
+                separate from contest qualification.
               </p>
             </div>
           </div>
@@ -970,7 +970,7 @@ export default function Landing() {
                 with a sentence<span>.</span>
               </h2>
               <OpenLink>Get your day back</OpenLink>
-              <p>No account required. No real customer data. Your final say.</p>
+              <p>Fictional tickets. Real workflows. Your final say.</p>
             </Reveal>
           </div>
         </section>

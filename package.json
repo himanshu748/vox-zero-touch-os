@@ -20,6 +20,7 @@
     "@ai-sdk/react": "^4.0.150",
     "@browserbasehq/sdk": "2.22.0",
     "@browserbasehq/stagehand": "4.3.0",
+    "@fontsource-variable/geist": "5.3.0",
     "@mastra/core": "1.78.0",
     "@mastra/libsql": "1.26.2",
     "@sentry/node": "11.8.0",

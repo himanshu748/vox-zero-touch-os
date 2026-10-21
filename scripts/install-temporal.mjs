@@ -1,12 +1,17 @@
 import { createHash } from "node:crypto";
 import { mkdir, writeFile, rm } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
-try {
-  process.loadEnvFile(process.env.VOX_ENV_FILE || ".env");
-} catch (error) {
-  if (error.code !== "ENOENT") throw error;
+if (process.env.VOX_MODEL_MODE !== "local") {
+  try {
+    process.loadEnvFile(process.env.VOX_ENV_FILE || ".env");
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
 }
-if (process.env.TEMPORAL_SELF_HOSTED === "true") {
+if (
+  process.env.VOX_MODEL_MODE !== "local" &&
+  process.env.TEMPORAL_SELF_HOSTED === "true"
+) {
   if (process.platform !== "linux" || process.arch !== "x64")
     throw new Error(
       "The hosted installer supports Linux x64. Use the verified vendor binary for local profiling.",

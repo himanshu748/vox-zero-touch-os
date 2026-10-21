@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { randomUUID } from "node:crypto";
+import { isLocalModelMode } from "./model-mode.mjs";
 export function createMemory({ fetchImpl = fetch } = {}) {
   async function request(path, body) {
     const start = Date.now();
@@ -46,7 +47,7 @@ export function createMemory({ fetchImpl = fetch } = {}) {
   }
   return {
     async saveStyle(store, owner, style) {
-      if (!process.env.BACKBOARD_API_KEY) return null;
+      if (isLocalModelMode() || !process.env.BACKBOARD_API_KEY) return null;
       if (store.get(owner).memory?.savedStyle === style) return null;
       const id = await assistant(store, owner);
       const result = await request(`/assistants/${id}/memories`, {
@@ -61,6 +62,7 @@ export function createMemory({ fetchImpl = fetch } = {}) {
     },
     async recall(store, owner) {
       if (
+        isLocalModelMode() ||
         !process.env.BACKBOARD_API_KEY ||
         !store.get(owner).memory?.assistantId
       )

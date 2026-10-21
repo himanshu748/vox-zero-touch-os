@@ -6,6 +6,7 @@ import { flushTelemetry } from "./telemetry.mjs";
 import { connectAtlas } from "./atlas.mjs";
 import { closeKnowledge } from "./knowledge-retrieval.mjs";
 import { stopSelfHostedTemporal } from "./temporal-self-host.mjs";
+import { stopLocalTemporal } from "./local-runtime.mjs";
 const store = createStore(
   resolve(process.env.DATA_DIR || "data", "vox.sqlite"),
 );
@@ -36,6 +37,7 @@ async function shutdown() {
   const stopped = new Promise((resolve) => server.close(resolve));
   await engine.close();
   await stopSelfHostedTemporal();
+  await stopLocalTemporal();
   await closeKnowledge();
   await vite?.close();
   await flushTelemetry();

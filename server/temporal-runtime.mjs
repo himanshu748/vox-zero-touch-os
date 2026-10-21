@@ -1,11 +1,13 @@
 import { fileURLToPath } from "node:url";
 import { existsSync } from "node:fs";
+import { isLocalModelMode, assertLoopbackURL } from "./model-mode.mjs";
 
 // Temporal owns durable scheduling/history. Mastra owns the validated stage graph.
 // Only ids go into Temporal payloads; ticket text stays in VOX's operational store.
 export async function createTemporalRuntime({ store, execute, event }) {
   const address = process.env.TEMPORAL_ADDRESS;
   if (!address) return null;
+  if (isLocalModelMode()) assertLoopbackURL(`http://${address}`);
   const [
     { Client, Connection, WorkflowExecutionAlreadyStartedError },
     { Worker, NativeConnection, bundleWorkflowCode },
@@ -19,7 +21,9 @@ export async function createTemporalRuntime({ store, execute, event }) {
   const taskQueue = process.env.TEMPORAL_TASK_QUEUE || "vox-support";
   const options = {
     address,
-    ...(process.env.TEMPORAL_SELF_HOSTED !== "true" && process.env.TEMPORAL_API_KEY
+    ...(!isLocalModelMode() &&
+    process.env.TEMPORAL_SELF_HOSTED !== "true" &&
+    process.env.TEMPORAL_API_KEY
       ? { tls: true, apiKey: process.env.TEMPORAL_API_KEY }
       : {}),
   };

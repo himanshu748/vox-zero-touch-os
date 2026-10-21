@@ -1,5 +1,5 @@
 :root {
-  font-family: "Geist", sans-serif;
+  font-family: "Geist Variable", sans-serif;
   color: #151923;
   background: #f7f8fb;
   font-synthesis: none;
@@ -412,7 +412,7 @@ kbd {
   padding: 2px 4px;
   border-radius: 4px;
   font:
-    10px "Geist",
+    10px "Geist Variable",
     sans-serif;
 }
 .notification-button {

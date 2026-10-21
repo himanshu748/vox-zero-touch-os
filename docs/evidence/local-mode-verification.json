@@ -1,0 +1,100 @@
+{
+  "verifiedAt": "2026-10-21T08:11:16.972320+00:00",
+  "branch": "week3-local-lazy-payoff",
+  "baseCommit": "dad350f811d3cc3db7473ef01a6023712e67ef6b",
+  "scope": "Local code, synthetic local databases and a file-only DEV revision; no production deployment, DEV edit, billing action or credential change.",
+  "tests": {
+    "command": "npm test",
+    "passed": 49,
+    "failed": 0,
+    "localModeTransportTests": 5,
+    "fixtures": "Mocked compatible transport plus isolated loopback HTTP; no external hosts observed.",
+    "coverage": [
+      "strict plan schema",
+      "two pending model drafts and owner-bound decisions",
+      "completed intent reservation reuse",
+      "local streamed final validation",
+      "oversized draft rejection without template fallback",
+      "local Qwen fallback transport",
+      "remote endpoints/cloud tags/redirect rejection",
+      "cloud settings do not activate Atlas, Auth0 or provider calls"
+    ]
+  },
+  "typecheck": {
+    "command": "npm run typecheck",
+    "passed": true
+  },
+  "productionBuild": {
+    "command": "VOX_MODEL_MODE=local npm run build",
+    "passed": true,
+    "note": "Build flag skips .env loading and the hosted server installer; runtime mode is not baked into the browser bundle."
+  },
+  "realInference": {
+    "receipt": "docs/evidence/lazy-payoff.json",
+    "endpoint": "http://127.0.0.1:11434/v1",
+    "model": "gemma3:4b",
+    "runtime": "Ollama 0.31.1",
+    "hardware": "MacBook Air M4, 16 GB",
+    "mocked": false
+  },
+  "initialLocalGrammarFailure": {
+    "observed": "Ollama HTTP 400: Failed to initialize samplers: failed to parse grammar",
+    "resolution": "Omit string length hints from local inference schema; retain strict final Zod validation and token ceiling.",
+    "regressionTestPassed": true
+  },
+  "browser": {
+    "entry": "http://127.0.0.1:4320/app",
+    "runId": "784f7ec2-0c66-4045-b0d4-20f6dbb9b9c3",
+    "realStreamedPlan": true,
+    "triaged": 24,
+    "labels": 7,
+    "drafts": 2,
+    "simulatedApproved": 1,
+    "rejected": 1,
+    "pending": 0,
+    "skippedExternalReceiptsVisible": true,
+    "successfulLocalRequests": 4,
+    "voiceButtonsDisabled": true,
+    "keyboardFocusWrap": true,
+    "escapeDismissed": true,
+    "sameRunReadableAfterReload": true,
+    "mobile": {
+      "viewportWidth": 390,
+      "documentWidth": 390,
+      "navigationWorked": true
+    },
+    "desktop": {
+      "viewportWidth": 1280,
+      "documentWidth": 1280
+    },
+    "fontFamily": "Geist Variable",
+    "externalFontStylesheetLinks": 0,
+    "screenshot": "docs/evidence/local-open-weight.png",
+    "screenshotIsTimedBenchmark": false,
+    "devBrowserLimit": "Vite websocket reconnect errors were observed around local server restarts; the real UI journey and persisted results passed."
+  },
+  "source": {
+    "repository": "https://github.com/himanshu748/vox-zero-touch-os",
+    "public": true,
+    "license": "MIT",
+    "createdAt": "2026-10-20T06:24:37Z"
+  },
+  "unverified": [
+    "Human manual preparation, instruction, plan review and reply review timing",
+    "General draft quality and production accuracy",
+    "Real Qwen3-8B fallback inference on hardware (transport tested only)",
+    "llama.cpp runtime (compatible configuration documented only)",
+    "OS network disconnection / packet capture",
+    "Browser reduced-motion preference was not toggled; existing MotionConfig and reduced-motion styles remain."
+  ],
+  "manualTime": null,
+  "DEVPostChanged": false,
+  "productionChanged": false,
+  "secretReview": {
+    "scope": "full staged text files",
+    "knownPatternFindings": 0,
+    "omittedBinaryFiles": ["docs/evidence/local-open-weight.png"],
+    "newScreenshotManuallyInspected": true,
+    "gitHistoryScanned": false
+  }
+}

@@ -1,6 +1,7 @@
 import express from "express";
 import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
+import { isLocalModelMode } from "./model-mode.mjs";
 
 const grantSchema = z
   .object({
@@ -13,6 +14,7 @@ const grantSchema = z
   .strict();
 const signingKey = () => process.env.AUTH0_SESSION_SECRET;
 export const browserEnabled = () =>
+  !isLocalModelMode() &&
   Boolean(
     process.env.BROWSERBASE_API_KEY &&
     process.env.BROWSERBASE_PROJECT_ID &&
@@ -64,6 +66,7 @@ const escapeHTML = (text) =>
       ],
   );
 export function configureBrowserOperations(app, store) {
+  if (isLocalModelMode()) return;
   function authorize(req, res, next) {
     const token = req.headers.cookie
       ?.split("; ")

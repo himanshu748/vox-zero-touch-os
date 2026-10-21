@@ -2,6 +2,7 @@ import express from "express";
 import { activityFailure } from "./activity-failure.mjs";
 import { toTextStream } from "ai";
 import { streamStructured, modelConnection } from "./ai.mjs";
+import { isLocalModelMode, skippedLocalReceipts } from "./model-mode.mjs";
 import { createVoiceServices, inspectAudio } from "./voice.mjs";
 import { intentSchema } from "../shared/contracts.mjs";
 import { randomUUID, randomBytes, createHash } from "node:crypto";
@@ -41,6 +42,10 @@ export function createApp(
   const identityEnabled = configureIdentity(app),
     memory = createMemory();
   configureBrowserOperations(app, store);
+  app.get(["/", "/judge"], (req, res, next) => {
+    if (isLocalModelMode()) return res.redirect("/app");
+    next();
+  });
   app.disable("x-powered-by");
   app.use((req, res, next) => {
     res.set({
@@ -129,7 +134,23 @@ export function createApp(
     next();
   });
   const usesModels = (req) =>
-    gemmaEnabled() && (!req.isJudge || req.judgeAccess.mode === "live");
+    gemmaEnabled() &&
+    (isLocalModelMode() || !req.isJudge || req.judgeAccess.mode === "live");
+  const modelProvider = (req) =>
+    usesModels(req) ? (isLocalModelMode() ? "local-model" : "gemma") : "local";
+  app.use("/api", (req, res, next) => {
+    if (isLocalModelMode() && ["/transcribe", "/speech"].includes(req.path))
+      return res.status(409).json({
+        error:
+          "Voice is skipped in local mode. Use a text command and the saved text briefing.",
+        receipt: {
+          provider: "ElevenLabs",
+          status: "skipped",
+          operation: "skipped in local mode",
+        },
+      });
+    next();
+  });
   const makePlan = (req, command, scope, intent, tickets, provider) => {
     const result = buildPlan(
       command,
@@ -206,6 +227,7 @@ export function createApp(
       return next();
     }
     if (
+      !isLocalModelMode() &&
       process.env.VOX_REQUIRE_PROVIDER_LOGIN === "true" &&
       req.method === "POST" &&
       /^\/(plans(?:\/stream)?|transcribe|speech|preferences|runs(?:\/.*)?)$/.test(
@@ -272,12 +294,14 @@ export function createApp(
         identity: identityEnabled,
       }),
       capabilities: {
+        modelMode: isLocalModelMode() ? "local" : "hosted",
         gemma: usesModels(req),
         intentNormalizer: Boolean(
-          usesModels(req) &&
-          process.env.TINKER_API_KEY &&
-          process.env.TINKER_MODEL &&
-          Date.parse(process.env.TINKER_MODEL_EXPIRES_AT) > Date.now(),
+          isLocalModelMode() ||
+          (usesModels(req) &&
+            process.env.TINKER_API_KEY &&
+            process.env.TINKER_MODEL &&
+            Date.parse(process.env.TINKER_MODEL_EXPIRES_AT) > Date.now()),
         ),
         elevenlabs:
           voiceEnabled() && (!req.isJudge || req.judgeAccess.mode === "live"),
@@ -411,6 +435,7 @@ export function createApp(
             id: randomUUID(),
             planId: input.requestId,
             provider: "Gemma endpoint",
+            execution: isLocalModelMode() ? "local" : "cloud",
             sdk: "Vercel AI SDK",
             model: response.modelId,
             requestId: response.id,
@@ -433,7 +458,7 @@ export function createApp(
             input.scope,
             intent,
             state.tickets,
-            usesModels(req) ? "gemma" : "local",
+            modelProvider(req),
           ),
           id: input.requestId,
           createdAt: new Date().toISOString(),
@@ -444,7 +469,7 @@ export function createApp(
           ui: "schema-driven plan cards",
           normalization: normalization
             ? {
-                provider: "Tinker",
+                provider: normalization.receipt.provider,
                 ...normalization.value,
                 expiresAt: process.env.TINKER_MODEL_EXPIRES_AT,
               }
@@ -460,6 +485,13 @@ export function createApp(
         store.mutate(req.owner, (s) => {
           s.plans.push(plan);
           if (receipt) s.receipts.push(receipt);
+          if (isLocalModelMode())
+            s.receipts.push(
+              ...skippedLocalReceipts(plan.id).map((r) => ({
+                id: randomUUID(),
+                ...r,
+              })),
+            );
         });
         await store.flush?.();
         if (!usesModels(req)) res.write(JSON.stringify(intent));
@@ -512,18 +544,11 @@ export function createApp(
       } else intent = localIntent(command);
       intent = normalizedIntent(intent, normalization?.value);
       const plan = {
-        ...makePlan(
-          req,
-          command,
-          scope,
-          intent,
-          s.tickets,
-          usesModels(req) ? "gemma" : "local",
-        ),
+        ...makePlan(req, command, scope, intent, s.tickets, modelProvider(req)),
         id: planId,
         normalization: normalization
           ? {
-              provider: "Tinker",
+              provider: normalization.receipt.provider,
               ...normalization.value,
               expiresAt: process.env.TINKER_MODEL_EXPIRES_AT,
             }
@@ -543,6 +568,13 @@ export function createApp(
       };
       store.mutate(req.owner, (state) => {
         state.plans.push(plan);
+        if (isLocalModelMode())
+          state.receipts.push(
+            ...skippedLocalReceipts(plan.id).map((r) => ({
+              id: randomUUID(),
+              ...r,
+            })),
+          );
         if (receipt)
           state.receipts.push({
             ...receipt,

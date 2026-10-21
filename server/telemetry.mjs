@@ -1,4 +1,5 @@
 import * as Sentry from "@sentry/node";
+import { isLocalModelMode } from "./model-mode.mjs";
 let enabled = false;
 function redact(event) {
   let serialized = JSON.stringify(event);
@@ -24,6 +25,7 @@ function redact(event) {
   return JSON.parse(serialized);
 }
 export function initializeTelemetry() {
+  if (isLocalModelMode()) return;
   if (!process.env.SENTRY_DSN) return;
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
@@ -45,7 +47,7 @@ export function initializeTelemetry() {
   enabled = true;
 }
 export async function traceActivity(runId, name, fn, onTrace) {
-  if (!enabled) return fn();
+  if (isLocalModelMode() || !enabled) return fn();
   return Sentry.startSpan(
     {
       name: `VOX ${name}`,
@@ -71,4 +73,4 @@ export async function traceActivity(runId, name, fn, onTrace) {
   );
 }
 export const flushTelemetry = () =>
-  enabled ? Sentry.flush(5000) : Promise.resolve(true);
+  !isLocalModelMode() && enabled ? Sentry.flush(5000) : Promise.resolve(true);

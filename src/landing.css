@@ -6,7 +6,7 @@
   --lp-muted: #657080;
   --lp-border: #e0e5ed;
   --lp-cream: #ffffff;
-  --lp-font: "Geist", sans-serif;
+  --lp-font: "Geist Variable", sans-serif;
 }
 .landing-page button,
 .landing-page a {
@@ -3242,10 +3242,10 @@
   --lp-orange: #3657ff;
   --lp-muted: #657080;
   --lp-border: #e0e5ed;
-  --lp-font: "Geist", sans-serif;
+  --lp-font: "Geist Variable", sans-serif;
   background: #f7f8fb;
   color: #4e5d75;
-  font-family: "Geist", sans-serif;
+  font-family: "Geist Variable", sans-serif;
 }
 .landing-nav {
   background: #f7f8fb;
@@ -3298,7 +3298,7 @@
   box-shadow: 0 0 0 5px #1d315110;
 }
 .landing-hero h1 {
-  font-family: "Geist", sans-serif;
+  font-family: "Geist Variable", sans-serif;
   font-weight: 550;
   letter-spacing: -0.065em;
   line-height: 1.015;

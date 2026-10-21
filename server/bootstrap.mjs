@@ -1,10 +1,17 @@
 import { initializeTelemetry } from "./telemetry.mjs";
-try {
-  process.loadEnvFile(process.env.VOX_ENV_FILE || ".env");
-} catch (error) {
-  if (error.code !== "ENOENT") throw error;
+import { isLocalModelMode } from "./model-mode.mjs";
+import { configureLocalRuntime, startLocalTemporal } from "./local-runtime.mjs";
+let localTemporal;
+if (isLocalModelMode()) configureLocalRuntime();
+else {
+  try {
+    process.loadEnvFile(process.env.VOX_ENV_FILE || ".env");
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
 }
 if (
+  !isLocalModelMode() &&
   process.env.NODE_ENV === "production" &&
   [
     "GOOGLE_GENERATIVE_AI_API_KEY",
@@ -38,8 +45,14 @@ if (
 }
 initializeTelemetry();
 const { startSelfHostedTemporal } = await import("./temporal-self-host.mjs");
-await startSelfHostedTemporal();
+if (isLocalModelMode()) localTemporal = await startLocalTemporal();
+else await startSelfHostedTemporal();
 const { verifySelfHostedTemporal } =
   await import("./temporal-startup-check.mjs");
-await verifySelfHostedTemporal();
-await import("./index.mjs");
+if (!isLocalModelMode()) await verifySelfHostedTemporal();
+try {
+  await import("./index.mjs");
+} catch (error) {
+  await localTemporal?.close();
+  throw error;
+}

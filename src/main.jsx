@@ -1,6 +1,7 @@
 import React, { lazy, Suspense } from "react";
 import { createRoot } from "react-dom/client";
 import { MotionConfig } from "motion/react";
+import "@fontsource-variable/geist";
 const App = lazy(() => import("./App"));
 const Landing = lazy(() => import("./Landing"));
 import "./styles.css";

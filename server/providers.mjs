@@ -6,8 +6,10 @@ import { escalationEnabled } from "./escalation.mjs";
 import { reviewEnabled } from "./draft-review.mjs";
 import { normalizationEnabled } from "./intent-normalizer.mjs";
 import { knowledgeEnabled } from "./knowledge-retrieval.mjs";
+import { isLocalModelMode } from "./model-mode.mjs";
 export const gemmaEnabled = () => modelConnection().ready;
-export const voiceEnabled = () => Boolean(process.env.ELEVENLABS_API_KEY);
+export const voiceEnabled = () =>
+  !isLocalModelMode() && Boolean(process.env.ELEVENLABS_API_KEY);
 export async function planWithGemma(command) {
   const start = Date.now();
   const result = await generateStructured({
@@ -25,6 +27,7 @@ export async function planWithGemma(command) {
     intent: intentSchema.parse(result.output),
     receipt: {
       provider: "Gemma endpoint",
+      execution: isLocalModelMode() ? "local" : "cloud",
       model: result.model,
       sdk: result.sdk,
       requestId: result.requestId,
@@ -36,6 +39,7 @@ export async function planWithGemma(command) {
   };
 }
 export function integrationStatus(receipts, { storage, identity } = {}) {
+  receipts = receipts.filter((receipt) => receipt.status !== "skipped");
   const defs = [
     ["gemma", "Gemma", "Open-weight planning", gemmaEnabled()],
     ["elevenlabs", "ElevenLabs", "Speech in and out", voiceEnabled()],
@@ -102,7 +106,12 @@ export function integrationStatus(receipts, { storage, identity } = {}) {
     id,
     name,
     role,
-    status: configured ? "configured" : "not connected",
+    status:
+      isLocalModelMode() && !["gemma", "temporal", "mastra"].includes(id)
+        ? "skipped in local mode"
+        : configured
+          ? "configured"
+          : "not connected",
     proofCount:
       id === "gemma"
         ? receipts.filter((r) => r.provider === "Gemma endpoint").length

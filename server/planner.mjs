@@ -5,6 +5,7 @@ import { escalationEnabled } from "./escalation.mjs";
 import { reviewEnabled } from "./draft-review.mjs";
 import { knowledgeEnabled } from "./knowledge-retrieval.mjs";
 import { normalizationEnabled } from "./intent-normalizer.mjs";
+import { isLocalModelMode } from "./model-mode.mjs";
 export { intentSchema };
 export const commandSchema = z
   .object({
@@ -78,11 +79,17 @@ export function localIntent(command) {
 }
 export function buildPlan(command, scope, intent, tickets, provider) {
   const liveResearch =
-    Boolean(process.env.SERPAPI_API_KEY) && provider !== "local";
-  const liveBrowser = browserEnabled() && provider !== "local";
-  const livePrediction = escalationEnabled() && provider !== "local";
-  const liveReview = reviewEnabled() && provider !== "local";
-  const liveKnowledge = knowledgeEnabled() && provider !== "local";
+    !isLocalModelMode() &&
+    Boolean(process.env.SERPAPI_API_KEY) &&
+    provider !== "local";
+  const liveBrowser =
+    !isLocalModelMode() && browserEnabled() && provider !== "local";
+  const livePrediction =
+    !isLocalModelMode() && escalationEnabled() && provider !== "local";
+  const liveReview =
+    !isLocalModelMode() && reviewEnabled() && provider !== "local";
+  const liveKnowledge =
+    !isLocalModelMode() && knowledgeEnabled() && provider !== "local";
   const chosen = tickets.filter((t) =>
     scope === "urgent"
       ? risk(t).score >= 75
@@ -160,6 +167,12 @@ export function buildPlan(command, scope, intent, tickets, provider) {
     draftCount,
     steps,
     provider,
+    modelMode:
+      provider === "local-model"
+        ? "local"
+        : provider === "gemma"
+          ? "cloud"
+          : "rules",
     predictionMode: livePrediction ? "tabpfn" : "rules",
     maxPredictionCalls: livePrediction ? 1 : 0,
     maxPredictionTokens: livePrediction ? 50000 : 0,

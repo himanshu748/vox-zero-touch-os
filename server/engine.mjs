@@ -52,6 +52,7 @@ export function createEngine(
     predict = predictEscalation,
     review = reviewDraft,
     retrieve = retrieveKnowledge,
+    onStage,
   } = {},
 ) {
   let closed = false;
@@ -181,7 +182,10 @@ export function createEngine(
       }
     }
     let modelDrafts = null;
-    if (step.kind === "draft" && run.plan.provider === "gemma") {
+    if (
+      step.kind === "draft" &&
+      ["gemma", "local-model"].includes(run.plan.provider)
+    ) {
       const sorted = state.tickets
         .filter((t) => run.plan.ticketIds.includes(t.id))
         .sort((a, b) => b.score - a.score)
@@ -253,6 +257,7 @@ export function createEngine(
             id: randomUUID(),
             runId: id,
             provider: "Gemma endpoint",
+            execution: run.plan.modelMode || "cloud",
             model: result.model,
             sdk: result.sdk,
             requestId: result.requestId,
@@ -420,10 +425,11 @@ export function createEngine(
                 review: r.draftReviews?.[t.id] || null,
                 createdAt: stamp(),
                 expiresAt: new Date(Date.now() + 86400000).toISOString(),
-                provider:
-                  r.plan.provider === "gemma"
-                    ? "Gemma endpoint"
-                    : "Local template",
+                provider: ["gemma", "local-model"].includes(r.plan.provider)
+                  ? r.plan.provider === "local-model"
+                    ? "Local Gemma model"
+                    : "Gemma endpoint"
+                  : "Local template",
               });
             }),
           );
@@ -451,18 +457,24 @@ export function createEngine(
   }
   const runtime = createWorkflowRuntime({
     store,
-    applyActivity: (owner, id, kind) =>
-      traceActivity(
-        id,
-        kind,
-        () => applyActivity(owner, id, kind),
-        (traceId) =>
-          store.mutate(owner, (s) => {
-            const run = s.runs.find((item) => item.id === id);
-            if (run && !run.traces?.includes(traceId))
-              (run.traces ||= []).push(traceId);
-          }),
-      ),
+    applyActivity: async (owner, id, kind) => {
+      const before = performance.now();
+      try {
+        return await traceActivity(
+          id,
+          kind,
+          () => applyActivity(owner, id, kind),
+          (traceId) =>
+            store.mutate(owner, (s) => {
+              const run = s.runs.find((item) => item.id === id);
+              if (run && !run.traces?.includes(traceId))
+                (run.traces ||= []).push(traceId);
+            }),
+        );
+      } finally {
+        onStage?.({ kind, durationMs: performance.now() - before });
+      }
+    },
     event,
     summary,
     delay,

@@ -14,6 +14,8 @@ The [owner workspace](https://getvox.tech/app) keeps its verified Auth0 owner re
 
 ## Run
 
+**Local open-weight AI:** [setup and isolation](docs/LOCAL.md) · [measured lazy payoff and manual timing sheet](docs/LAZY_PAYOFF.md). `VOX_MODEL_MODE=local npm run dev` uses local Gemma for intent, planning and drafting, starts isolated local Temporal/SQLite persistence, and skips external providers. This is separate from the rules-only demo and does not change the hosted site. The proposed article revision is [a file-only draft](docs/DEV_POST_DRAFT.md).
+
 Requires Node.js 22.18 or newer. SQLite uses Node's built-in experimental `node:sqlite` API.
 
 ```bash

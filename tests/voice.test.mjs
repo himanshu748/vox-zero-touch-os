@@ -68,7 +68,8 @@ test("speech replays use an owner-bound cache, including concurrent requests", a
   voiceEnv(t);
   const store = createStore(":memory:");
   t.after(() => store.close());
-  let calls = 0;
+  let calls = 0,
+    reservations = 0;
   const voice = createVoiceServices({
     fetchImpl: async () => {
       calls++;
@@ -86,6 +87,9 @@ test("speech replays use an owner-bound cache, including concurrent requests", a
     runId: "run",
     text: "Two replies need your review.",
     store,
+    beforeGenerate: async () => {
+      reservations++;
+    },
   };
   const [first, second] = await Promise.all([
     voice.speak(input),
@@ -96,6 +100,18 @@ test("speech replays use an owner-bound cache, including concurrent requests", a
   assert.equal(second.cached, true);
   assert.equal(second.receipt, null);
   assert.equal((await voice.speak(input)).cached, true);
+  assert.equal(calls, 1);
+  assert.equal(reservations, 1);
+  await assert.rejects(
+    voice.speak({
+      ...input,
+      text: "Another briefing.",
+      beforeGenerate: async () => {
+        throw new Error("Allowance exhausted");
+      },
+    }),
+    /Allowance exhausted/,
+  );
   assert.equal(calls, 1);
   await voice.speak({ ...input, owner: "b" });
   assert.equal(calls, 2);

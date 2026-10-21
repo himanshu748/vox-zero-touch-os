@@ -4,7 +4,7 @@ import { z } from "zod";
 
 const endpoint = "https://api.elevenlabs.io/v1";
 const failure = (message, status = 422) =>
-  Object.assign(new Error(message), { status });
+  Object.assign(new Error(message), { status, publicMessage: true });
 const requestId = (response) =>
   response.headers.get("request-id") ||
   response.headers.get("x-request-id") ||
@@ -113,7 +113,14 @@ export function createVoiceServices({ fetchImpl = fetch } = {}) {
         },
       };
     },
-    async speak({ owner, runId, text, store, isCurrent = () => true }) {
+    async speak({
+      owner,
+      runId,
+      text,
+      store,
+      isCurrent = () => true,
+      beforeGenerate = async () => {},
+    }) {
       if (!process.env.ELEVENLABS_API_KEY || !process.env.ELEVENLABS_VOICE_ID)
         throw failure("ElevenLabs voice is not configured.", 503);
       if (!text || text.length > 4000)
@@ -134,6 +141,7 @@ export function createVoiceServices({ fetchImpl = fetch } = {}) {
           receipt: null,
         };
       const job = (async () => {
+        await beforeGenerate();
         const start = Date.now();
         const response = await fetchImpl(
           `${endpoint}/text-to-speech/${encodeURIComponent(voiceId)}?output_format=mp3_44100_128`,

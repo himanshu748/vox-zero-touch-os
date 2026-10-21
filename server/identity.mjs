@@ -50,6 +50,7 @@ export function authenticatedOwner(req) {
   return `auth0:${createHash("sha256").update(`${process.env.AUTH0_ISSUER_BASE_URL}:${req.oidc.user.sub}`).digest("hex")}`;
 }
 export function requireIdentity(req, res, next) {
+  if (req.judgeAccess?.canDecide) return next();
   if (
     process.env.AUTH0_REQUIRE_APPROVAL_LOGIN === "true" &&
     !authenticatedOwner(req)

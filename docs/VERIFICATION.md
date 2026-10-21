@@ -1,10 +1,10 @@
 # Verification receipt
 
-Date: October 20, 2026 (India time).
+Date: October 21, 2026 (India time).
 
 ## Automated
 
-- `npm test`: 41 tests passed.
+- `npm test`: 44 tests passed.
 - `npm run typecheck`: passed; covers the AI SDK adapter against installed package types.
 - `npm run build`: passed; landing and workspace load in separate JS chunks.
 - SQLite persistence, worker restart/resume, read-only previews, bounded scopes, retries, idempotency, ownership, single-use decisions, expired plans/approvals, saved preferences, reset, route parsing and useful error messages are covered.
@@ -85,3 +85,9 @@ The deployment moved from Singapore to free Render Virginia beside the isolated 
 One search returned irrelevant dictionary/general-interest references; that draft was rejected. Retrieval and AI review do not guarantee factual correctness or useful citations. Physical microphone, a second live unauthorized account, production accuracy and high availability remain unverified. No Supabase project, paid Temporal Cloud account, new paid plan or top-up was used. The Tinker checkpoint expires October 27, 2026.
 
 This live journey ran on commit `e4ce349e4d8e6e6dfd39f2b6769149ccfb7559c7`. The subsequent safe failure-label change `02dd26c974e087cfd0573f6984478b00bc0e1e56` is live as deployment `dep-dbbpbaafngtc73a2r7b0`. The completed run, every receipt ID and the cached audio survived that deployment; replay again reported no new generation. Trusted HTTPS health returned 200 and a guest plan request returned 401. Local automated SDK/provider tests use mocks or injected transports where stated; they do not substitute for these live receipts. No GitHub CI run is claimed for this release.
+
+## Bounded judge access
+
+The `/judge` route uses a separate HttpOnly session and owner namespace, ignoring Auth0 owner identity. Automated tests exercise actual HTTP/Mastra execution using explicitly injected test model responses: normal guest denial, unclaimed judge denial, eight-pass hard cap, two-draft clamp, saved preview recovery, cross-session denial, single-use approve/reject, provider-free planning, and quota persistence across reset and reopening the database. Voice tests verify that concurrent/cached speech reserves only once and a denied reservation makes no fetch. These tests are not live provider receipts.
+
+The provider-free local judge journey was exercised in the in-app browser at desktop and 390×844: entry, plan cards, execution with one retry, six template drafts awaiting review, mobile review dialog, keyboard focus and Escape. Document scroll width equalled 390px. Existing reduced-motion handling is retained; the active browser preference was normal motion and reduced-motion OS mode was not toggled in this pass. Hosted live verification is recorded separately after deployment.

@@ -1,6 +1,6 @@
 # Remaining requirements
 
-The [hosted workspace](https://getvox.tech/app) uses real providers against a fictional helpdesk. The requested expansion targets 18 categories; see [SPONSORS.md](SPONSORS.md) for the actual proof level of each.
+The [judge workspace](https://getvox.tech/judge) uses real providers against a fictional helpdesk. The requested expansion targets 18 categories; see [SPONSORS.md](SPONSORS.md) for the actual proof level of each.
 
 The expanded hosted journey passed on free Render Virginia, including full Temporal/Tiger persistence across a service stop/resume, individual approvals and real speech playback. [Observed results](evidence/hosted-expansion.json).
 
@@ -15,3 +15,5 @@ The expanded hosted journey passed on free Render Virginia, including full Tempo
 - **Release:** a judge-facing video, public project article, eligibility review and final competition submission remain separate work. No entry has been submitted.
 
 The dependency audit includes an unpatched transitive formatter DoS advisory through Mastra's frontmatter chain. VOX does not expose that parsing path. Previously exposed Google and SerpApi keys were rotated, their old values rejected with HTTP 401, and their replacements passed the earlier hosted voice journey. Credentials remain excluded from source and packages.
+
+Judges have a separate explicitly authorized public allowance: eight live sessions total, one plan/two drafts/one voice upload/two speech generations each, with server-side persistent counters. The owner workspace retains Auth0 restrictions. See [JUDGES.md](JUDGES.md) for the live and provider-free paths and their limits.

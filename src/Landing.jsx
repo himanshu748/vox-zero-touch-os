@@ -157,7 +157,7 @@ function OpenLink({
   return (
     <a
       className={`landing-button ${secondary ? "outline" : "solid"} ${className}`}
-      href="/app"
+      href="/judge"
     >
       {children}
       <ArrowUpRight size={17} />
@@ -190,7 +190,7 @@ export default function Landing() {
     document
       .querySelector("meta[name=theme-color]")
       ?.setAttribute("content", "#f7f8fb");
-    fetch("/api/state")
+    fetch("/api/state?workspace=judge")
       .then((r) => r.json())
       .then(setWorkspace)
       .catch(() => {});
@@ -528,7 +528,7 @@ export default function Landing() {
                     <span>
                       Illustration only. Try a real saved run in the workspace.
                     </span>
-                    <a href="/app">
+                    <a href="/judge">
                       Try it
                       <ArrowUpRight size={13} />
                     </a>
@@ -595,7 +595,7 @@ export default function Landing() {
                   <LockKeyhole size={11} />
                   vox / workspace
                 </span>
-                <a href="/app">
+                <a href="/judge">
                   Step inside
                   <ArrowUpRight size={13} />
                 </a>
@@ -678,7 +678,7 @@ export default function Landing() {
                     </div>
                     {workspace ? (
                       workspace.tickets.slice(0, 3).map((t) => (
-                        <a href="/app" key={t.id}>
+                        <a href="/judge" key={t.id}>
                           <span>
                             <small>{t.id}</small>
                             <strong>{t.title}</strong>
@@ -704,7 +704,7 @@ export default function Landing() {
                   <div className="mini-status">
                     <ShieldCheck size={13} />
                     <span>Every send waits for an individual approval.</span>
-                    <a href="/app#approvals">
+                    <a href="/judge#approvals">
                       Inspect approvals
                       <ArrowRight size={12} />
                     </a>
@@ -779,7 +779,7 @@ export default function Landing() {
                   Stop a run and inspect its saved progress.
                 </li>
               </ul>
-              <a href="/app#approvals" className="landing-text-link">
+              <a href="/judge#approvals" className="landing-text-link">
                 See the approval inbox
                 <ArrowUpRight size={15} />
               </a>
@@ -893,7 +893,7 @@ export default function Landing() {
                   reach. The evidence console identifies the configured model
                   and its actual request receipts.
                 </p>
-                <a href="/app#evidence" className="landing-text-link">
+                <a href="/judge#evidence" className="landing-text-link">
                   See what’s connected
                   <ArrowUpRight size={14} />
                 </a>
@@ -913,7 +913,7 @@ export default function Landing() {
                   decisions. Configured services and completed integrations are
                   reported separately.
                 </p>
-                <a href="/app#evidence" className="landing-text-link">
+                <a href="/judge#evidence" className="landing-text-link">
                   Open the evidence console
                   <ArrowUpRight size={14} />
                 </a>
@@ -983,12 +983,12 @@ export default function Landing() {
           </div>
           <nav aria-label="Footer navigation">
             <a href="#how-it-works">How it works</a>
-            <a href="/app#help">Documentation</a>
-            <a href="/app#evidence">
+            <a href="/judge#help">Documentation</a>
+            <a href="/judge#evidence">
               Evidence
               <ArrowUpRight size={12} />
             </a>
-            <a href="/app">
+            <a href="/judge">
               Open workspace
               <ArrowUpRight size={12} />
             </a>

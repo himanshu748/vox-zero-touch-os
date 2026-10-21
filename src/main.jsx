@@ -14,7 +14,11 @@ createRoot(document.getElementById("root")).render(
           </div>
         }
       >
-        {window.location.pathname.startsWith("/app") ? <App /> : <Landing />}
+        {/^\/(app|judge)(\/|$)/.test(window.location.pathname) ? (
+          <App />
+        ) : (
+          <Landing />
+        )}
       </Suspense>
     </MotionConfig>
   </React.StrictMode>,

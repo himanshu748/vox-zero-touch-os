@@ -3622,3 +3622,99 @@ input[type="checkbox"] {
     text-align: right;
   }
 }
+
+/* The judge entry uses the existing workspace type, surfaces and motion tokens. */
+.judge-access {
+  display: flex;
+  gap: 24px;
+  justify-content: space-between;
+  align-items: center;
+  padding: 22px 24px;
+  margin-bottom: 28px;
+  border: 1px solid #dce2f8;
+  border-radius: 16px;
+  background: linear-gradient(110deg, #f0f2ff, #fff 78%);
+}
+.judge-access .eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10px;
+}
+.judge-access h2 {
+  margin: 8px 0;
+  font-size: 23px;
+  font-weight: 650;
+  letter-spacing: -0.7px;
+}
+.judge-access p {
+  max-width: 650px;
+  margin: 0;
+  color: #62697b;
+  font-size: 13px;
+  line-height: 1.65;
+}
+.judge-access small {
+  display: block;
+  max-width: 650px;
+  margin-top: 10px;
+  color: #62697b;
+  font-size: 11px;
+  line-height: 1.6;
+}
+.judge-access-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  flex-shrink: 0;
+}
+.judge-access-actions .button {
+  justify-content: center;
+  white-space: nowrap;
+}
+.judge-access-actions .text-button {
+  text-align: center;
+  font-size: 11px;
+}
+.judge-usage {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.judge-usage span {
+  font-size: 11px;
+  padding: 5px 9px;
+  border: 1px solid #dce2f8;
+  background: #fff;
+  border-radius: 6px;
+  color: #4b556c;
+}
+@media (max-width: 1000px) {
+  .judge-access {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .judge-access-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+}
+@media (max-width: 540px) {
+  .judge-access {
+    padding: 19px 17px;
+    margin-bottom: 22px;
+  }
+  .judge-access h2 {
+    font-size: 22px;
+  }
+  .judge-access-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .judge-access-actions .button {
+    white-space: normal;
+  }
+}

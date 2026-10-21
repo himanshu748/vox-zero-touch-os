@@ -1,7 +1,8 @@
 import express from "express";
+import { activityFailure } from "./activity-failure.mjs";
 import { toTextStream } from "ai";
 import { streamStructured, modelConnection } from "./ai.mjs";
-import { createVoiceServices } from "./voice.mjs";
+import { createVoiceServices, inspectAudio } from "./voice.mjs";
 import { intentSchema } from "../shared/contracts.mjs";
 import { randomUUID, randomBytes, createHash } from "node:crypto";
 import { z } from "zod";
@@ -21,12 +22,22 @@ import {
 import { createMemory } from "./memory.mjs";
 import { configureBrowserOperations } from "./browser-operations.mjs";
 import { normalizePlan, normalizedIntent } from "./intent-normalizer.mjs";
+import {
+  activateJudge,
+  judgeStatus,
+  reserveJudgeRequest,
+} from "./judge-access.mjs";
 export function createApp(
   store,
-  { delay = 700, voice = createVoiceServices() } = {},
+  {
+    delay = 700,
+    voice = createVoiceServices(),
+    planModel = planWithGemma,
+    engineOptions = {},
+  } = {},
 ) {
   const app = express(),
-    engine = createEngine(store, { delay });
+    engine = createEngine(store, { ...engineOptions, delay });
   const identityEnabled = configureIdentity(app),
     memory = createMemory();
   configureBrowserOperations(app, store);
@@ -75,30 +86,34 @@ export function createApp(
     next();
   });
   app.use("/api", (req, res, next) => {
-    const identityOwner = authenticatedOwner(req);
+    req.isJudge = req.query.workspace === "judge";
+    const identityOwner = req.isJudge ? null : authenticatedOwner(req);
     if (identityOwner) {
       req.owner = identityOwner;
       return next();
     }
+    const cookieName = req.isJudge ? "vox_judge_session" : "vox_session";
     let token = req.headers.cookie
       ?.split("; ")
-      .find((c) => c.startsWith("vox_session="))
+      .find((c) => c.startsWith(`${cookieName}=`))
       ?.split("=")[1];
     let hash = token ? createHash("sha256").update(token).digest("hex") : null;
     let session = hash
       ? store.db.prepare("SELECT owner FROM sessions WHERE token=?").get(hash)
       : null;
-    if (!session) {
+    if (!session || (req.isJudge && !session.owner.startsWith("judge:"))) {
       token = randomBytes(32).toString("base64url");
       hash = createHash("sha256").update(token).digest("hex");
-      session = { owner: randomUUID() };
+      session = { owner: `${req.isJudge ? "judge:" : ""}${randomUUID()}` };
       store.db
         .prepare("INSERT INTO sessions VALUES (?,?)")
         .run(hash, session.owner);
-      res.cookie("vox_session", token, {
+      res.cookie(cookieName, token, {
         httpOnly: true,
         sameSite: "strict",
-        secure: process.env.COOKIE_SECURE === "true",
+        secure:
+          process.env.COOKIE_SECURE === "true" ||
+          Boolean(process.env.PUBLIC_ORIGIN?.startsWith("https:")),
         maxAge: 604800000,
       });
     }
@@ -110,6 +125,86 @@ export function createApp(
   const wrap = (fn) => (req, res, next) =>
     Promise.resolve(fn(req, res)).catch(next);
   app.use("/api", (req, res, next) => {
+    if (req.isJudge) req.judgeAccess = judgeStatus(store, req.owner);
+    next();
+  });
+  const usesModels = (req) =>
+    gemmaEnabled() && (!req.isJudge || req.judgeAccess.mode === "live");
+  const makePlan = (req, command, scope, intent, tickets, provider) => {
+    const result = buildPlan(
+      command,
+      scope,
+      req.isJudge && provider === "gemma"
+        ? { ...intent, draftLimit: Math.min(intent.draftLimit || 2, 2) }
+        : intent,
+      tickets,
+      provider,
+    );
+    if (req.isJudge && provider === "gemma") result.maxProviderCalls = 5;
+    return result;
+  };
+  async function preparePlanning(req) {
+    if (req.isJudge && req.judgeAccess.mode === "live") {
+      await reserveJudgeRequest(store, req.owner, "plan");
+      // Only the bounded reply-style preference enters Backboard, once per pass.
+      await memory.saveStyle(
+        store,
+        req.owner,
+        store.get(req.owner).preferences.style,
+      );
+    }
+    return usesModels(req) ? memory.recall(store, req.owner) : null;
+  }
+  app.use("/api", (req, res, next) => {
+    if (
+      req.isJudge &&
+      req.method === "POST" &&
+      req.path !== "/judge/activate"
+    ) {
+      if (req.judgeAccess.mode === "unclaimed")
+        return res.status(409).json({
+          error: "Choose a live evaluation or provider-free sandbox first.",
+        });
+      if (
+        ["/transcribe", "/speech"].includes(req.path) &&
+        req.judgeAccess.mode !== "live"
+      )
+        return res.status(403).json({
+          error:
+            "This is the provider-free sandbox. Use a text command and the labelled browser briefing.",
+        });
+      if (
+        req.judgeAccess.mode === "expired" &&
+        (/^\/plans/.test(req.path) ||
+          req.path === "/runs" ||
+          req.path.endsWith("/resume"))
+      )
+        return res.status(403).json({
+          error:
+            "This live pass expired. Saved work is available; choose the provider-free sandbox to continue.",
+        });
+      if (
+        (req.path === "/runs" || req.path.endsWith("/resume")) &&
+        req.judgeAccess.mode === "sandbox"
+      ) {
+        const run = store
+          .get(req.owner)
+          .runs.find((item) => item.id === req.path.split("/")[2]);
+        const selectedPlan =
+          req.body?.planId &&
+          store
+            .get(req.owner)
+            .plans.find((item) => item.id === req.body.planId);
+        if (
+          run?.plan?.provider === "gemma" ||
+          selectedPlan?.provider === "gemma"
+        )
+          return res.status(403).json({
+            error: "A live run can only resume under its live judge pass.",
+          });
+      }
+      return next();
+    }
     if (
       process.env.VOX_REQUIRE_PROVIDER_LOGIN === "true" &&
       req.method === "POST" &&
@@ -125,6 +220,25 @@ export function createApp(
       });
     next();
   });
+  app.post(
+    "/api/judge/activate",
+    wrap(async (req, res) => {
+      if (!req.isJudge)
+        return res
+          .status(403)
+          .json({ error: "Open the judge workspace to begin." });
+      const { mode } = z
+        .object({ mode: z.enum(["live", "sandbox"]) })
+        .strict()
+        .parse(req.body);
+      if (mode === "live" && !gemmaEnabled())
+        return res.status(503).json({
+          error:
+            "Live models are unavailable. The provider-free sandbox is ready to use.",
+        });
+      res.json(await activateJudge(store, req.owner, mode));
+    }),
+  );
   app.get("/healthz", (_, res) =>
     res.json({
       status: "ok",
@@ -139,6 +253,15 @@ export function createApp(
       ledger: undefined,
       plans: undefined,
       normalizations: undefined,
+      judgePreview: req.isJudge
+        ? [...s.plans]
+            .reverse()
+            .find(
+              (plan) =>
+                plan.status === "preview" &&
+                Date.now() - Date.parse(plan.createdAt) <= 900000,
+            ) || null
+        : undefined,
       runs: s.runs.map((r) => ({
         ...r,
         metrics: summary(s, r),
@@ -149,19 +272,30 @@ export function createApp(
         identity: identityEnabled,
       }),
       capabilities: {
-        gemma: gemmaEnabled(),
+        gemma: usesModels(req),
         intentNormalizer: Boolean(
+          usesModels(req) &&
           process.env.TINKER_API_KEY &&
           process.env.TINKER_MODEL &&
           Date.parse(process.env.TINKER_MODEL_EXPIRES_AT) > Date.now(),
         ),
-        elevenlabs: voiceEnabled(),
-        speech: voiceEnabled() && Boolean(process.env.ELEVENLABS_VOICE_ID),
+        elevenlabs:
+          voiceEnabled() && (!req.isJudge || req.judgeAccess.mode === "live"),
+        speech:
+          voiceEnabled() &&
+          Boolean(process.env.ELEVENLABS_VOICE_ID) &&
+          (!req.isJudge || req.judgeAccess.mode === "live"),
         aiSdk: "7.0.146",
         orchestration: "Mastra 1.78.0",
         temporal: Boolean(process.env.TEMPORAL_ADDRESS),
         identity: identityEnabled,
-        authenticated: Boolean(authenticatedOwner(req)),
+        authenticated: !req.isJudge && Boolean(authenticatedOwner(req)),
+        judge: req.isJudge
+          ? {
+              ...req.judgeAccess,
+              available: req.judgeAccess.available && gemmaEnabled(),
+            }
+          : null,
         storage: store.storageMode || "SQLite",
         gemmaModel: gemmaEnabled() ? modelConnection().model : null,
         sentryTraceBase: /^[a-z0-9-]+$/.test(process.env.SENTRY_ORG || "")
@@ -173,9 +307,11 @@ export function createApp(
       },
       session: {
         id: req.owner.slice(-8),
-        kind: authenticatedOwner(req)
-          ? "Auth0 identity"
-          : "isolated guest session",
+        kind: req.isJudge
+          ? "private judge session"
+          : authenticatedOwner(req)
+            ? "Auth0 identity"
+            : "isolated guest session",
       },
     });
   });
@@ -230,7 +366,7 @@ export function createApp(
         controller = new AbortController();
       // Check the scope before any model request or streaming response starts.
       buildPlan(input.command, input.scope, local, state.tickets, "local");
-      const remembered = await memory.recall(store, req.owner);
+      const remembered = await preparePlanning(req);
       res.on("close", () => {
         if (!res.writableEnded) controller.abort();
       });
@@ -241,7 +377,7 @@ export function createApp(
         "X-Accel-Buffering": "no",
       });
       try {
-        const normalization = gemmaEnabled()
+        const normalization = usesModels(req)
           ? await normalizePlan(
               store,
               req.owner,
@@ -250,7 +386,7 @@ export function createApp(
               { signal: controller.signal },
             )
           : null;
-        if (gemmaEnabled()) {
+        if (usesModels(req)) {
           const start = Date.now();
           const result = streamStructured({
             schema: intentSchema,
@@ -291,12 +427,13 @@ export function createApp(
         if (controller.signal.aborted) return;
         intent = normalizedIntent(intent, normalization?.value);
         const plan = {
-          ...buildPlan(
+          ...makePlan(
+            req,
             input.command,
             input.scope,
             intent,
             state.tickets,
-            gemmaEnabled() ? "gemma" : "local",
+            usesModels(req) ? "gemma" : "local",
           ),
           id: input.requestId,
           createdAt: new Date().toISOString(),
@@ -325,7 +462,7 @@ export function createApp(
           if (receipt) s.receipts.push(receipt);
         });
         await store.flush?.();
-        if (!gemmaEnabled()) res.write(JSON.stringify(intent));
+        if (!usesModels(req)) res.write(JSON.stringify(intent));
         res.end();
       } catch (error) {
         if (!res.headersSent) {
@@ -364,23 +501,24 @@ export function createApp(
         });
       localIntent(command);
       buildPlan(command, scope, localIntent(command), s.tickets, "local");
-      const remembered = await memory.recall(store, req.owner);
+      const remembered = await preparePlanning(req);
       const planId = randomUUID();
-      const normalization = gemmaEnabled()
+      const normalization = usesModels(req)
         ? await normalizePlan(store, req.owner, planId, command)
         : null;
       let intent, receipt;
-      if (gemmaEnabled()) {
-        ({ intent, receipt } = await planWithGemma(command));
+      if (usesModels(req)) {
+        ({ intent, receipt } = await planModel(command));
       } else intent = localIntent(command);
       intent = normalizedIntent(intent, normalization?.value);
       const plan = {
-        ...buildPlan(
+        ...makePlan(
+          req,
           command,
           scope,
           intent,
           s.tickets,
-          gemmaEnabled() ? "gemma" : "local",
+          usesModels(req) ? "gemma" : "local",
         ),
         id: planId,
         normalization: normalization
@@ -567,7 +705,7 @@ export function createApp(
         .strict()
         .parse(req.body);
       store.mutate(req.owner, (s) => (s.preferences = prefs));
-      await memory.saveStyle(store, req.owner, prefs.style);
+      if (!req.isJudge) await memory.saveStyle(store, req.owner, prefs.style);
       await store.flush?.();
       res.json(prefs);
     }),
@@ -577,7 +715,12 @@ export function createApp(
       return res
         .status(409)
         .json({ error: "Stop the running workflow before resetting." });
+    const judgeMode = req.isJudge && store.get(req.owner).judgeMode;
     store.reset(req.owner);
+    if (judgeMode)
+      store.mutate(req.owner, (state) => {
+        state.judgeMode = judgeMode;
+      });
     res.json({ ok: true });
   });
   app.post(
@@ -596,6 +739,14 @@ export function createApp(
         return res
           .status(400)
           .json({ error: "Record an audio command first." });
+      if (req.isJudge) {
+        const audio = await inspectAudio(req.body, req.headers["content-type"]);
+        if (req.body.length > 2 * 1024 * 1024 || audio.durationSeconds > 20.5)
+          return res.status(422).json({
+            error: "Judge voice commands must be at most 20 seconds and 2 MB.",
+          });
+        await reserveJudgeRequest(store, req.owner, "transcribe");
+      }
       const workspaceCreatedAt = store.get(req.owner).createdAt;
       const controller = new AbortController();
       res.on("close", () => {
@@ -656,6 +807,9 @@ export function createApp(
         runId,
         text: briefing(s, run),
         store,
+        beforeGenerate: req.isJudge
+          ? () => reserveJudgeRequest(store, req.owner, "speech")
+          : undefined,
         isCurrent: () => {
           const fresh = store.get(req.owner),
             current = fresh.runs.find((item) => item.id === runId);
@@ -703,7 +857,9 @@ export function createApp(
       error:
         err instanceof z.ZodError
           ? "Invalid request. Check the required fields and supported actions."
-          : err.message,
+          : req.isJudge && !err.publicMessage
+            ? activityFailure(err).message
+            : err.message,
     });
   });
   return { app, engine };

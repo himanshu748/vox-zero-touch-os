@@ -165,17 +165,17 @@ export function createEngine(
             ?.liveSources?.some((source) => source.ticketId === ticket.id)
         )
           continue;
-        const result = await searchGuidance(ticket, {
-          signal: controllers.get(id)?.signal,
-        });
-        if (!result)
-          throw new Error(
-            "The approved live research provider is no longer configured.",
-          );
+        const result = await providerTask(
+          store,
+          owner,
+          id,
+          `serpapi:${ticket.id}`,
+          run.plan.maxSearchCalls,
+          () => searchGuidance(ticket, { signal: controllers.get(id)?.signal }),
+        );
         store.mutate(owner, (s) => {
           const current = s.runs.find((item) => item.id === id);
           (current.liveSources ||= []).push(...result.sources);
-          s.receipts.push({ id: randomUUID(), runId: id, ...result.receipt });
         });
         await store.flush?.();
       }
@@ -213,6 +213,7 @@ export function createEngine(
           if (current.providerAttempts > current.plan.maxProviderCalls)
             throw new Error("Provider call budget reached.");
         });
+        await store.flush?.();
         const result = await generate({
           schema: z.object({ body: z.string().min(20).max(3000) }).strict(),
           signal: controllers.get(id)?.signal,

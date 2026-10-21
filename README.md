@@ -6,7 +6,9 @@ VOX is a support-operations workspace with live Gemma planning/drafting, ElevenL
 
 ## Hosted workspace
 
-[Open VOX](https://getvox.tech/app). Guests can inspect an isolated synthetic workspace; live provider calls and approvals require the configured, verified Auth0 owner. DigitalOcean remains disconnected by owner choice. The sponsor-only expansion uses self-hosted Temporal with Tiger; the hosted voice journey now runs on free Render in Virginia beside Tiger. [Integration evidence and limits](docs/SPONSORS.md).
+[Try VOX as a judge](https://getvox.tech/judge). No account is required. Eight explicitly approved live passes are available across all browsers; each has one plan, two drafts, one voice upload (20 seconds / 2 MB), and two briefing generations. A pass lasts 24 hours; failed attempts count. The provider-free sandbox remains available when live passes are exhausted. Only the originating session can decide its drafts, and every send is simulated. [Judge guide](docs/JUDGES.md).
+
+The [owner workspace](https://getvox.tech/app) keeps its verified Auth0 owner requirement for live calls and approvals. DigitalOcean remains disconnected by owner choice. The sponsor-only expansion uses self-hosted Temporal with Tiger; the hosted voice journey now runs on free Render in Virginia beside Tiger. [Integration evidence and limits](docs/SPONSORS.md).
 
 ## Run
 
@@ -24,7 +26,7 @@ npm run dev
 - Evidence: http://localhost:4310/app#evidence
 - Health: http://localhost:4310/healthz
 
-Without provider credentials, the app explicitly uses local rules and templates. A configured provider failure does not silently fall back to local generation. Each guest session has an isolated workspace. Production live providers require HTTPS, Auth0 and a verified allowed owner email; paid provider routes and approvals reject guests.
+Without provider credentials, the app explicitly uses local rules and templates. A configured provider failure does not silently fall back to local generation. Each guest session has an isolated workspace. Production live providers require HTTPS, Auth0 and a verified allowed owner email; ordinary owner-workspace provider routes and approvals reject guests. The separate `/judge` route is the explicitly bounded public exception.
 
 ## Voice to execution
 

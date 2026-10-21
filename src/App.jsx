@@ -3,6 +3,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useObject } from "@ai-sdk/react";
 import { intentSchema } from "../shared/contracts.mjs";
 import PlanCards from "./PlanCards";
+import JudgeAccess from "./JudgeAccess";
 import { recordingWave } from "./voice-audio";
 import { VOX_MOTION } from "./motion-system";
 import {
@@ -58,6 +59,9 @@ import {
 } from "lucide-react";
 const DEFAULT_COMMAND =
   "Triage the pending tickets, research likely fixes, draft replies, and tag the urgent ones. Ask me before sending anything.";
+const IS_JUDGE = window.location.pathname.startsWith("/judge");
+const endpoint = (path) => `/api/${path}${IS_JUDGE ? "?workspace=judge" : ""}`;
+const VOICE_SECONDS = IS_JUDGE ? 20 : 60;
 function DraftReview({ review }) {
   if (!review) return null;
   return (
@@ -129,7 +133,7 @@ const statusLabel = (s) =>
   })[s] || s;
 async function api(path, body) {
   const res = await fetch(
-    `/api/${path}`,
+    endpoint(path),
     body === undefined
       ? {}
       : {
@@ -458,7 +462,7 @@ export default function App() {
     [],
   );
   const planStream = useObject({
-    api: "/api/plans/stream",
+    api: endpoint("plans/stream"),
     schema: intentSchema,
     onFinish: async ({ object, error }) => {
       const requestId = planRequest.current;
@@ -626,7 +630,7 @@ export default function App() {
     setBusy(true);
     setVoicePhase("transcribing");
     try {
-      const response = await fetch("/api/transcribe", {
+      const response = await fetch(endpoint("transcribe"), {
         method: "POST",
         headers: { "content-type": blob.type || "application/octet-stream" },
         body: blob,
@@ -658,8 +662,11 @@ export default function App() {
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file || !voiceConsent || busy || recording) return;
-    if (file.size > 8 * 1024 * 1024) {
-      notify("Choose an audio file smaller than 8 MB.", "error");
+    if (file.size > (IS_JUDGE ? 2 : 8) * 1024 * 1024) {
+      notify(
+        `Choose an audio file smaller than ${IS_JUDGE ? 2 : 8} MB.`,
+        "error",
+      );
       return;
     }
     await transcribeBlob(file);
@@ -739,7 +746,7 @@ export default function App() {
       recorder.start();
       timer = setTimeout(() => {
         if (recorder.state !== "inactive") recorder.stop();
-      }, 60000);
+      }, VOICE_SECONDS * 1000);
       recordRef.current = {
         stop: () => {
           if (recorder.state !== "inactive") recorder.stop();
@@ -785,7 +792,7 @@ export default function App() {
       speechRequest.current = controller;
       setSpeechLoading(true);
       try {
-        const res = await fetch("/api/speech", {
+        const res = await fetch(endpoint("speech"), {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({ runId: run.id }),
@@ -993,7 +1000,10 @@ export default function App() {
         >
           <span className="workspace-icon">H</span>
           <span>
-            My workspace<small>Personal sandbox</small>
+            {IS_JUDGE ? "Judge workspace" : "My workspace"}
+            <small>
+              {IS_JUDGE ? "Private evaluation" : "Personal sandbox"}
+            </small>
           </span>
           <ChevronDown size={15} />
         </button>
@@ -1075,11 +1085,13 @@ export default function App() {
           <div className="user-card">
             <span className="user-avatar">H</span>
             <span>
-              My workspace
+              {IS_JUDGE ? "Judge workspace" : "My workspace"}
               <small>
-                {state.capabilities.authenticated
-                  ? "Auth0 account"
-                  : "Guest session"}{" "}
+                {IS_JUDGE
+                  ? "Private browser session"
+                  : state.capabilities.authenticated
+                    ? "Auth0 account"
+                    : "Guest session"}{" "}
                 · {state.session.id}
               </small>
             </span>
@@ -1099,7 +1111,7 @@ export default function App() {
               <MoreHorizontal size={18} />
             </button>
           </div>
-          {state.capabilities.identity && (
+          {state.capabilities.identity && !IS_JUDGE && (
             <a
               className="nav-item"
               href={
@@ -1176,6 +1188,31 @@ export default function App() {
           </div>
         </header>
         <main id="workspace-main" ref={mainRef} tabIndex={-1}>
+          <JudgeAccess
+            info={state.capabilities.judge}
+            busy={busy}
+            savedPlan={state.judgePreview}
+            onReviewPlan={() => {
+              setPlan(state.judgePreview);
+              setModal({ type: "plan" });
+            }}
+            onActivate={(mode) =>
+              act(async () => {
+                await api("judge/activate", { mode });
+                setTranscript(null);
+                setPlan(null);
+                if (!command)
+                  setCommand(
+                    "Triage all support tickets, research fixes, tag urgent ones, and draft two replies. Ask me before sending anything.",
+                  );
+                notify(
+                  mode === "live"
+                    ? "Your live pass is reserved. Review your instruction to begin."
+                    : "Provider-free sandbox ready. No external model calls.",
+                );
+              })
+            }
+          />
           {loadError && (
             <div className="connection-banner" role="status">
               <RefreshCw size={15} />
@@ -1253,6 +1290,11 @@ export default function App() {
                                 ? "Stop recording"
                                 : "Record a voice command"
                             }
+                            disabled={
+                              busy ||
+                              (IS_JUDGE &&
+                                state.capabilities.judge?.mode !== "live")
+                            }
                             onClick={voiceStart}
                           >
                             {recording ? (
@@ -1289,6 +1331,11 @@ export default function App() {
                         <div className="composer-bottom">
                           <button
                             className="composer-mic"
+                            disabled={
+                              busy ||
+                              (IS_JUDGE &&
+                                state.capabilities.judge?.mode !== "live")
+                            }
                             onClick={voiceStart}
                             aria-label="Record a command"
                           >
@@ -1311,7 +1358,16 @@ export default function App() {
                           </select>
                           <button
                             className="button primary"
-                            disabled={busy || !!active}
+                            disabled={
+                              busy ||
+                              !!active ||
+                              (IS_JUDGE &&
+                                (!state.capabilities.judge?.canDecide ||
+                                  state.capabilities.judge?.mode ===
+                                    "expired" ||
+                                  (state.capabilities.judge?.mode === "live" &&
+                                    state.capabilities.judge.used.plan >= 1)))
+                            }
                             onClick={preview}
                           >
                             {busy ? (
@@ -1667,11 +1723,13 @@ export default function App() {
                     </div>
                     <Badge kind="local">
                       <LockKeyhole size={13} />
-                      {state.capabilities.authenticated
-                        ? "Auth0 account approvals"
-                        : state.capabilities.identity
-                          ? "Sign in for approvals"
-                          : "Session-bound approvals"}
+                      {IS_JUDGE
+                        ? "Private session approvals"
+                        : state.capabilities.authenticated
+                          ? "Auth0 account approvals"
+                          : state.capabilities.identity
+                            ? "Sign in for approvals"
+                            : "Session-bound approvals"}
                     </Badge>
                   </div>
                   <div className="list-toolbar approval-toolbar">
@@ -1814,7 +1872,9 @@ export default function App() {
                     </div>
                     <button
                       className="button secondary"
-                      onClick={() => window.location.assign("/api/evidence")}
+                      onClick={() =>
+                        window.location.assign(endpoint("evidence"))
+                      }
                     >
                       <Download size={15} />
                       Export evidence
@@ -2115,7 +2175,9 @@ export default function App() {
                     </div>
                     <button
                       className="button secondary"
-                      onClick={() => window.location.assign("/api/evidence")}
+                      onClick={() =>
+                        window.location.assign(endpoint("evidence"))
+                      }
                     >
                       <Download size={15} />
                       Export JSON
@@ -2562,11 +2624,13 @@ export default function App() {
                     <div className="info-strip">
                       <LockKeyhole size={18} />
                       <p>
-                        {state.capabilities.authenticated
-                          ? "Only this authenticated Auth0 account can decide this action. Every decision is single-use."
-                          : state.capabilities.identity
-                            ? "Sign in with the authorized Auth0 account to decide this action."
-                            : "Only your isolated guest session can decide this action. This is local session authorization."}
+                        {IS_JUDGE
+                          ? "Only your private judge session can decide this action. Every decision is single-use; nothing is delivered externally."
+                          : state.capabilities.authenticated
+                            ? "Only this authenticated Auth0 account can decide this action. Every decision is single-use."
+                            : state.capabilities.identity
+                              ? "Sign in with the authorized Auth0 account to decide this action."
+                              : "Only your isolated guest session can decide this action. This is local session authorization."}
                       </p>
                     </div>
                     <div className="modal-actions">
@@ -2617,9 +2681,9 @@ export default function App() {
                 </h3>
                 <p>
                   {recording
-                    ? "Recording stops automatically after 60 seconds. Stop when you’re ready."
+                    ? `Recording stops automatically after ${VOICE_SECONDS} seconds. Stop when you’re ready.`
                     : state.capabilities.elevenlabs
-                      ? "Record up to 60 seconds. Your audio is sent to ElevenLabs for transcription. VOX does not save the recording. Provider retention follows your account terms."
+                      ? `Record up to ${VOICE_SECONDS} seconds. Your audio is sent to ElevenLabs for transcription. VOX does not save the recording. Provider retention follows your account terms.`
                       : "ElevenLabs is not connected in this workspace. Add the server credentials to enable recording and transcription. Text commands work now."}
                 </p>
                 {recording ? (
@@ -2678,7 +2742,8 @@ export default function App() {
                           <Download size={14} /> Or upload an audio command
                         </span>
                         <small>
-                          Up to 60 seconds · 8 MB · Audio is not saved
+                          Up to {VOICE_SECONDS} seconds · {IS_JUDGE ? 2 : 8} MB
+                          · Audio is not saved
                         </small>
                       </label>
                     )}

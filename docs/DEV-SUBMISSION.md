@@ -45,7 +45,7 @@ Eight live passes were enabled from existing free/promotional balances. One was 
 
 **Try rules-only demo** uses fixed priority rules, checked-in guidance and reply templates. It lets you practice planning and approvals without reserving a live pass. It makes no model, search, browser-automation or voice-provider requests; persistence and telemetry still operate. The mode is labelled.
 
-![The completed anonymous hosted VOX run: the approved instruction, saved ticket counts and recorded workflow.](https://raw.githubusercontent.com/himanshu748/vox-zero-touch-os/main/docs/evidence/judge-workflow-clarity.png)
+![The completed anonymous hosted VOX run: the approved instruction, saved ticket counts and recorded workflow.](https://raw.githubusercontent.com/himanshu748/vox-zero-touch-os/9bfc07d5657d41a43213a9fb7b699f6ae0db43d6/docs/evidence/judge-workflow-clarity.png)
 
 The anonymous recorded-voice run completed with:
 
@@ -129,7 +129,7 @@ Each of those jobs is bounded, and each has a limitation. The playbooks are auth
 
 An earlier hosted drafting attempt failed with a real Gemma internal error. Sentry's model span identified the provider boundary. Explicit resume reused completed activities and cached successful responses; VOX now shows a safe checkpoint explanation without exposing the upstream error body or silently switching to templates.
 
-![Actual Sentry Agent Activity from the later successful anonymous judge run, with a selected Gemma span and prompt capture disabled.](https://raw.githubusercontent.com/himanshu748/vox-zero-touch-os/main/docs/evidence/sentry-judge-trace.png)
+![Actual Sentry Agent Activity from the later successful anonymous judge run, with a selected Gemma span and prompt capture disabled.](https://raw.githubusercontent.com/himanshu748/vox-zero-touch-os/9bfc07d5657d41a43213a9fb7b699f6ae0db43d6/docs/evidence/sentry-judge-trace.png)
 
 This screenshot is from the later successful judge run. Its selected span reports **17.05 seconds and about 1.8K tokens**. Sentry's displayed cost is estimated; provider-billed cost is unavailable. The red internal-label interruption in the timeline was an injected retry test, separate from the real Gemma error.
 

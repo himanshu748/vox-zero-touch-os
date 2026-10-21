@@ -3529,6 +3529,26 @@ input[type="checkbox"] {
   font-size: 9px;
   margin-top: 10px;
 }
+.voice-access-status {
+  margin-top: 12px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #596880;
+}
+.voice-access-status:empty {
+  display: none;
+}
+.voice-access-status .text-button {
+  margin-top: 6px;
+}
+.voice-access-status .voice-error,
+.voice-modal .voice-error {
+  color: #943c35;
+  background: #fff4f2;
+  border: 1px solid #edd6d2;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
 .voice-upload {
   width: 100%;
   max-width: 350px;

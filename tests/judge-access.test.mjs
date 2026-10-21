@@ -26,7 +26,7 @@ function environment(t, values) {
   });
 }
 
-test("eight durable judge passes cannot be overallocated, refreshed by reset, or replayed", async (t) => {
+test("eight durable judge sessions allow repeat requests without resetting usage or extending expiry", async (t) => {
   environment(t, { VOX_JUDGE_LIVE_SESSIONS: "999" });
   const store = createStore(":memory:");
   t.after(() => store.close());
@@ -43,17 +43,14 @@ test("eight durable judge passes cannot be overallocated, refreshed by reset, or
   assert.equal(judgeStatus(store, "judge:other").remainingSessions, 0);
   await reserveJudgeRequest(store, "judge:0", "plan");
   store.reset("judge:0");
-  await assert.rejects(
-    reserveJudgeRequest(store, "judge:0", "plan"),
-    /planning attempt/,
-  );
+  await reserveJudgeRequest(store, "judge:0", "plan");
+  assert.equal(judgeStatus(store, "judge:0").used.plan, 2);
   await assert.rejects(activateJudge(store, "judge:0", "live"), /already used/);
   await reserveJudgeRequest(store, "judge:0", "speech");
   await reserveJudgeRequest(store, "judge:0", "speech");
-  await assert.rejects(
-    reserveJudgeRequest(store, "judge:0", "speech"),
-    /two briefing/,
-  );
+  await reserveJudgeRequest(store, "judge:0", "speech");
+  assert.equal(judgeStatus(store, "judge:0").used.speech, 3);
+  assert.equal(judgeStatus(store, "judge:0").limits.plan, null);
   assert.equal(
     judgeStatus(store, "judge:0", Date.now() + 86401000).mode,
     "expired",
@@ -154,10 +151,6 @@ test("anonymous judges can execute and decide their own bounded live run; normal
   assert.equal(plan.draftCount, 2);
   assert.equal(plan.maxProviderCalls, 5);
   assert.equal((await a("state")).data.judgePreview.id, plan.id);
-  assert.equal(
-    (await a("plans", { command: "Triage more tickets" })).status,
-    429,
-  );
   assert.equal((await b(`plans/${plan.id}`)).status, 404);
   await a("runs", { planId: plan.id });
   let state;
@@ -192,8 +185,13 @@ test("anonymous judges can execute and decide their own bounded live run; normal
   assert.equal(local.provider, "local");
   assert.equal(local.draftCount, 2);
   assert.equal(modelCalls, 3);
+  const repeated = await a("plans", { command: "Triage more tickets" });
+  assert.equal(repeated.status, 201);
+  assert.equal(repeated.data.draftCount, 2);
+  assert.equal(modelCalls, 4);
   await a("reset", {});
-  assert.equal((await a("plans", { command: "Triage the queue" })).status, 429);
+  assert.equal((await a("plans", { command: "Triage the queue" })).status, 201);
+  assert.equal((await a("state")).data.capabilities.judge.used.plan, 3);
 });
 
 test("judge reservations persist after reopening storage and a failed acknowledgement blocks provider access", async (t) => {
@@ -208,10 +206,8 @@ test("judge reservations persist after reopening storage and a failed acknowledg
   t.after(() => store.close());
   assert.equal(judgeStatus(store, "judge:durable").used.plan, 1);
   assert.equal(judgeStatus(store, "judge:other").remainingSessions, 7);
-  await assert.rejects(
-    reserveJudgeRequest(store, "judge:durable", "plan"),
-    /planning attempt/,
-  );
+  await reserveJudgeRequest(store, "judge:durable", "plan");
+  assert.equal(judgeStatus(store, "judge:durable").used.plan, 2);
   await assert.rejects(
     activateJudge(store, "judge:bad", "unlimited"),
     /supported/,

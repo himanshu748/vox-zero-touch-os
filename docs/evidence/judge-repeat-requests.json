@@ -1,0 +1,32 @@
+{
+  "checkedAt": "2026-10-21",
+  "authorization": "Owner requested repeat plans, voice uploads and briefings; provider key caps and billing remain unchanged.",
+  "change": {
+    "perSessionRequestCeilings": null,
+    "sharedLiveSessionCeiling": 8,
+    "sessionDurationHours": 24,
+    "draftsPerRun": 2,
+    "requestReservationsAndUncertainReplayGuard": "retained",
+    "approvalAndSessionOwnershipChecks": "retained"
+  },
+  "tests": {"passed": 62, "typecheck": "passed", "productionBuild": "passed"},
+  "localBrowser": {
+    "mode": "In-memory synthetic server; injected voice responses; external HTTP transport denied",
+    "voiceAttempts": 3,
+    "successfulInjectedTranscripts": 2,
+    "deliberateInjectedFailures": 1,
+    "errorPersistedAfterDialogClose": true,
+    "recordButtonAvailableAfterFormerCeiling": true,
+    "latestTranscriptRestoredAfterReload": true,
+    "keyboardEnterOpensDialog": true,
+    "keyboardEscapeClosesDialog": true,
+    "mobileWidth": 390,
+    "mobileDocumentWidth": 390,
+    "externalHTTPAttempts": 0
+  },
+  "limits": [
+    "This is local regression evidence, not a fresh live-provider voice result.",
+    "Physical microphone and speaker hardware were not exercised.",
+    "No provider credits, purchases, top-ups or key-cap changes were used in verification."
+  ]
+}

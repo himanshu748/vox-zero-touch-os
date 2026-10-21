@@ -1,8 +1,10 @@
 const budgetOwner = "internal:judge-allowance-v1";
 export const JUDGE_LIMITS = Object.freeze({
-  plan: 1,
-  transcribe: 1,
-  speech: 2,
+  // The owner permits repeat requests within an active pass. Null means no
+  // per-pass request ceiling; counters, expiry and provider reservations remain.
+  plan: null,
+  transcribe: null,
+  speech: null,
 });
 const failure = (message, status = 429) =>
   Object.assign(new Error(message), { status, publicMessage: true });
@@ -87,13 +89,10 @@ export async function reserveJudgeRequest(store, owner, kind) {
     throw failure("Activate a live judge session before using providers.", 403);
   store.mutate(budgetOwner, (state) => {
     const pass = state.judgeClaims?.[owner];
-    if (!pass || (pass.used[kind] || 0) >= JUDGE_LIMITS[kind])
-      throw failure(
-        `This live pass has used its ${kind === "plan" ? "planning attempt" : kind === "transcribe" ? "voice upload" : "two briefing generations"}. Saved work and cached audio remain available.`,
-      );
+    if (!pass) throw failure("This live session is unavailable.", 403);
     pass.used[kind] = (pass.used[kind] || 0) + 1;
   });
   // A reservation must survive restart before any provider request starts.
-  // Failed/uncertain requests consume their slot; reset never refunds it.
+  // Failed/uncertain attempts remain counted; reset never erases usage.
   await store.flush?.();
 }

@@ -17,11 +17,11 @@ export default function JudgeAccess({
     >
       <div className="judge-access-copy">
         <span className="eyebrow">
-          <ShieldCheck size={14} /> VOICE-CONTROLLED SUPPORT ASSISTANT
+          <ShieldCheck size={14} /> YOUR OPERATIONS CO-WORKER
         </span>
         <h2>
           {starting
-            ? "Meet your 24-ticket support queue."
+            ? "Take VOX for a working test drive."
             : info.mode === "live"
               ? "Your live support workspace."
               : info.mode === "expired"
@@ -30,7 +30,7 @@ export default function JudgeAccess({
         </h2>
         <p>
           {starting
-            ? "VOX prioritizes tickets, finds guidance and drafts replies from one voice or text instruction. Review its plan, let it do the work, then approve or reject each reply. These tickets are fictional and sends are simulated."
+            ? "Start with 24 fictional support tickets. Give VOX a goal, review its plan, and return to the reply decisions. Live AI uses a limited free pass. The rules-only demo lets you explore the workflow without one. Sends are simulated."
             : info.mode === "live"
               ? "Real providers. Fictional tickets. Only this browser session can review your replies. Your pass lasts 24 hours."
               : info.mode === "expired"

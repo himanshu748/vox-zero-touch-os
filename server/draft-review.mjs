@@ -1,6 +1,7 @@
 import { z } from "zod";
 import OpenAI from "openai";
 import { VERSION as openaiVersion } from "openai/version";
+import { zodResponseFormat } from "openai/helpers/zod";
 import { providerJSON } from "./provider-http.mjs";
 
 export const reviewEnabled = () =>
@@ -22,6 +23,29 @@ export const draftReviewSchema = z
       .max(5),
   })
   .strict();
+
+function validateReviewPart(schema, data, phase, requestId) {
+  const result = schema.safeParse(data);
+  if (result.success) return result.data;
+  // Keep enough diagnostics to fix a rejected contract without logging the
+  // ticket, model text, upstream messages, credentials or arbitrary values.
+  console.warn(
+    "Ultramarine response contract rejected",
+    JSON.stringify({
+      phase,
+      requestId: /^req_[A-Za-z0-9_-]{1,128}$/.test(requestId || "")
+        ? requestId
+        : null,
+      issues: result.error.issues.slice(0, 10).map((issue) => ({
+        code: issue.code,
+        path: issue.path
+          .filter((part) => /^[a-z_0-9]+$/.test(String(part)))
+          .join("."),
+      })),
+    }),
+  );
+  throw result.error;
+}
 
 // This is advice, never authorization to send. No tools or executable output.
 export async function reviewDraft(
@@ -76,7 +100,7 @@ export async function reviewDraft(
           reasoning_effort: "low",
           max_completion_tokens: 3072,
           stream: false,
-          response_format: { type: "json_object" },
+          response_format: zodResponseFormat(draftReviewSchema, "draft_review"),
           messages: [
             {
               role: "system",
@@ -95,29 +119,36 @@ export async function reviewDraft(
       "The draft review could not be completed. No automatic retry was made.",
     );
   }
-  const output = z
-    .object({
-      id: z.string().min(1),
-      model: z.string().min(1),
-      choices: z
-        .array(
-          z.object({
-            finish_reason: z.literal("stop"),
-            message: z.object({ content: z.string().min(1).max(20000) }),
-          }),
-        )
-        .length(1),
-      usage: z.object({
-        prompt_tokens: z.number().int().nonnegative(),
-        completion_tokens: z.number().int().nonnegative(),
-        prompt_tokens_details: z
-          .object({ cached_tokens: z.number().int().nonnegative() })
-          .optional(),
-      }),
-    })
-    .parse(data);
-  const review = draftReviewSchema.parse(
+  const envelope = z.object({
+    id: z.string().min(1),
+    model: z.string().min(1),
+    choices: z
+      .array(
+        z.object({
+          finish_reason: z.literal("stop"),
+          message: z.object({ content: z.string().min(1).max(20000) }),
+        }),
+      )
+      .length(1),
+    usage: z.object({
+      prompt_tokens: z.number().int().nonnegative(),
+      completion_tokens: z.number().int().nonnegative(),
+      prompt_tokens_details: z
+        .object({ cached_tokens: z.number().int().nonnegative() })
+        .optional(),
+    }),
+  });
+  const output = validateReviewPart(
+    envelope,
+    data,
+    "envelope",
+    response.headers.get("x-request-id"),
+  );
+  const review = validateReviewPart(
+    draftReviewSchema,
     JSON.parse(output.choices[0].message.content),
+    "advice",
+    response.headers.get("x-request-id"),
   );
   if (
     review.issues.some((issue) => issue.severity === "blocking") &&

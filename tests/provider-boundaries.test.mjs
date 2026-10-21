@@ -55,6 +55,8 @@ const input = {
   ],
 };
 test("Ultramarine review bounds cost, validates advice and never echoes provider errors", async (t) => {
+  const diagnostics = [];
+  t.mock.method(console, "warn", (...args) => diagnostics.push(args.join(" ")));
   const before = process.env.PAPERINSTRUMENTS_API_KEY;
   process.env.PAPERINSTRUMENTS_API_KEY = "test-only";
   t.after(() => {
@@ -98,6 +100,17 @@ test("Ultramarine review bounds cost, validates advice and never echoes provider
       assert.equal(options.redirect, "error");
       const body = JSON.parse(options.body);
       assert.equal(body.max_completion_tokens, 3072);
+      assert.equal(body.response_format.type, "json_schema");
+      assert.equal(body.response_format.json_schema.strict, true);
+      assert.deepEqual(body.response_format.json_schema.schema.required, [
+        "verdict",
+        "summary",
+        "issues",
+      ]);
+      assert.equal(
+        body.response_format.json_schema.schema.additionalProperties,
+        false,
+      );
       assert.equal(body.tools, undefined);
       return Response.json(payload);
     },
@@ -117,6 +130,8 @@ test("Ultramarine review bounds cost, validates advice and never echoes provider
   await assert.rejects(
     reviewDraft(input, { fetchImpl: async () => Response.json(payload) }),
   );
+  assert.match(diagnostics.join(" "), /choices.0.finish_reason/);
+  assert.ok(!diagnostics.join(" ").includes("secret upstream"));
 });
 
 test("Ultramarine SDK never retries billable failures and preserves cancellation and size limits", async (t) => {

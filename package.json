@@ -15,7 +15,8 @@
     "typecheck": "tsc -p tsconfig.ai.json",
     "evaluate:planning": "node scripts/evaluate-planning.mjs",
     "benchmark:local": "node scripts/benchmark-local.mjs",
-    "verify:recorded-predictions": "node scripts/replay-escalation.mjs"
+    "verify:recorded-predictions": "node scripts/replay-escalation.mjs",
+    "verify:startup": "node scripts/verify-local-startup.mjs"
   },
   "dependencies": {
     "@ai-sdk/google": "4.0.101",

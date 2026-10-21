@@ -91,7 +91,7 @@ npm run build
 npm start
 ```
 
-52 automated checks pass. Type checking covers the AI SDK adapter. Browser verification exercised the real provider chain with a synthetic spoken file: live Scribe transcription → live Gemma plan → two live Gemma drafts → Mastra approval suspension/resume → live ElevenLabs briefing. Replay and process restart reused the saved audio. The expanded hosted pass produced 15 successful provider receipts, real Temporal history through completion, and a Mastra success state. A full service stop/resume preserved both approvals and every completed provider receipt. Two Google internal-error failures required explicit checkpoint resumes. Physical microphone testing was deferred by the user. [Hosted evidence](docs/evidence/hosted-expansion.json).
+54 automated checks pass. Type checking covers the AI SDK adapter. Browser verification exercised the real provider chain with a synthetic spoken file: live Scribe transcription → live Gemma plan → two live Gemma drafts → Mastra approval suspension/resume → live ElevenLabs briefing. Replay and process restart reused the saved audio. The expanded hosted pass produced 15 successful provider receipts, real Temporal history through completion, and a Mastra success state. A full service stop/resume preserved both approvals and every completed provider receipt. Two Google internal-error failures required explicit checkpoint resumes. Physical microphone testing was deferred by the user. [Hosted evidence](docs/evidence/hosted-expansion.json).
 
 The workspace and landing share Geist typography, soft white surfaces, near-black headings, cobalt accents and motion tokens. Mobile/tablet/desktop checks cover menus, dialogs, plan cards, approvals and evidence.
 

@@ -4,7 +4,7 @@ Date: October 21, 2026 (India time).
 
 ## Automated
 
-- Latest branch verification: `npm test` passed **52 tests**, including the local-mode transport and benchmark-statistics checks. Earlier sections below describe earlier hosted observations and their original counts.
+- Latest branch verification: `npm test` passed **54 tests**, including the local-mode transport and benchmark-statistics checks. Earlier sections below describe earlier hosted observations and their original counts.
 - `npm run typecheck`: passed; covers the AI SDK adapter against installed package types.
 - `npm run build`: passed; landing and workspace load in separate JS chunks.
 - SQLite persistence, worker restart/resume, read-only previews, bounded scopes, retries, idempotency, ownership, single-use decisions, expired plans/approvals, saved preferences, reset, route parsing and useful error messages are covered.
@@ -20,6 +20,7 @@ Date: October 21, 2026 (India time).
 - Nine [axe-core development audits](evidence/accessibility-summary.json) reported zero automated violations at the recorded desktop/mobile views with real OS reduced motion enabled. The raw incomplete checks remain available. The OS preference and viewport were restored. A new local demo was then captured with ordinary motion, one simulated approval and one rejection; [captioned walkthrough receipt](evidence/local-demo.json).
 - A signal-handling smoke test found that Temporal's own SIGINT handling could already be draining the worker before VOX called shutdown. The close path now checks the SDK worker state and releases connections in `finally`; the subsequent real SIGINT exited successfully. Vite now shares VOX's HTTP server for its socket. A fresh browser tab after restart reopened the completed run, logged `[vite] connected.`, and had no warning/error entries.
 - A pinned, read-only GitHub Actions workflow now runs the suite, typecheck, recorded prediction replay and production build without provider secrets. Its current run result must be checked separately from these local results.
+- Startup regressions now cover inherited hosted Secure-cookie/origin settings and asynchronous HTTP bind errors. A real local bootstrap deliberately hit `EADDRINUSE`, exited with code 1 and left no owned Temporal listener. [Receipt](evidence/local-startup.json). The normal HTTP session stays continuous, while a foreign inherited origin is rejected.
 
 ## Browser walkthrough
 

@@ -59,7 +59,7 @@ export function createApp(
       if (
         origin &&
         origin !== `${req.protocol}://${req.get("host")}` &&
-        origin !== process.env.PUBLIC_ORIGIN
+        (isLocalModelMode() || origin !== process.env.PUBLIC_ORIGIN)
       )
         return res
           .status(403)
@@ -118,8 +118,9 @@ export function createApp(
         httpOnly: true,
         sameSite: "strict",
         secure:
-          process.env.COOKIE_SECURE === "true" ||
-          Boolean(process.env.PUBLIC_ORIGIN?.startsWith("https:")),
+          !isLocalModelMode() &&
+          (process.env.COOKIE_SECURE === "true" ||
+            Boolean(process.env.PUBLIC_ORIGIN?.startsWith("https:"))),
         maxAge: 604800000,
       });
     }

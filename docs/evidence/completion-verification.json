@@ -3,7 +3,7 @@
   "branch": "week3-local-lazy-payoff",
   "scope": "Local synthetic data, saved provider receipts, code and file-only documentation. No live DEV edit, production data access, deployment, new cloud usage, secret change or billing action.",
   "tests": {
-    "passed": 52,
+    "passed": 54,
     "failed": 0,
     "skipped": 0,
     "command": "npm test"
@@ -46,5 +46,12 @@
     "Hosted voice benchmark requires separately authorized credentials/quota/test records",
     "Merge/deployment and live DEV revision remain outside current authorization",
     "Optional real Qwen3-8B fallback and llama.cpp runtime unverified"
-  ]
+  ],
+  "startupRegression": "local-startup.json",
+  "startupBoundaries": {
+    "inheritedHostedCookieAndOriginIgnored": true,
+    "localSessionCookieRemainsHttpOnlyAndStrict": true,
+    "occupiedHttpPortRejectsStartup": true,
+    "ownedTemporalCleanupVerified": true
+  }
 }

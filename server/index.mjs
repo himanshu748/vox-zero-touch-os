@@ -8,6 +8,7 @@ import { connectAtlas } from "./atlas.mjs";
 import { closeKnowledge } from "./knowledge-retrieval.mjs";
 import { stopSelfHostedTemporal } from "./temporal-self-host.mjs";
 import { stopLocalTemporal } from "./local-runtime.mjs";
+import { listenServer } from "./listener.mjs";
 const store = createStore(
   resolve(process.env.DATA_DIR || "data", "vox.sqlite"),
 );
@@ -29,25 +30,32 @@ if (process.env.NODE_ENV === "production") {
   app.use(vite.middlewares);
 }
 const port = Number(process.env.PORT || 4310);
-server.listen(port, process.env.HOST || "127.0.0.1", () => {
-  console.log(`VOX is ready at http://localhost:${port}`);
-  engine.resumeAll();
-});
-let shuttingDown = false;
+let closing;
+function closeResources() {
+  return (closing ||= (async () => {
+    const stopped = new Promise((resolve) => server.close(resolve));
+    await engine.close();
+    await stopSelfHostedTemporal();
+    await stopLocalTemporal();
+    await closeKnowledge();
+    await vite?.close();
+    await flushTelemetry();
+    await atlas?.close();
+    server.closeAllConnections();
+    await stopped;
+    store.close();
+  })());
+}
+try {
+  await listenServer(server, port, process.env.HOST || "127.0.0.1");
+} catch (error) {
+  await closeResources();
+  throw error;
+}
+console.log(`VOX is ready at http://localhost:${port}`);
+engine.resumeAll();
 async function shutdown() {
-  if (shuttingDown) return;
-  shuttingDown = true;
-  const stopped = new Promise((resolve) => server.close(resolve));
-  await engine.close();
-  await stopSelfHostedTemporal();
-  await stopLocalTemporal();
-  await closeKnowledge();
-  await vite?.close();
-  await flushTelemetry();
-  await atlas?.close();
-  server.closeAllConnections();
-  await stopped;
-  store.close();
+  await closeResources();
   process.exit(0);
 }
 process.on("SIGTERM", shutdown);

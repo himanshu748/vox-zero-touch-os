@@ -42,6 +42,7 @@ function environment(t) {
     "AUTH0_CLIENT_SECRET",
     "AUTH0_SESSION_SECRET",
     "PUBLIC_ORIGIN",
+    "COOKIE_SECURE",
     "AUTH0_REQUIRE_APPROVAL_LOGIN",
     "VOX_REQUIRE_PROVIDER_LOGIN",
   ];
@@ -54,6 +55,8 @@ function environment(t) {
   process.env.VOX_LOCAL_MODEL = "gemma3:4b";
   process.env.AUTH0_REQUIRE_APPROVAL_LOGIN = "true";
   process.env.VOX_REQUIRE_PROVIDER_LOGIN = "true";
+  process.env.COOKIE_SECURE = "true";
+  process.env.PUBLIC_ORIGIN = "https://hosted.example";
   delete process.env.TEMPORAL_ADDRESS;
   t.after(() => {
     for (const key of keys)
@@ -148,7 +151,11 @@ async function fixture(t) {
       },
     );
     cookie = response.headers.get("set-cookie")?.split(";")[0] || cookie;
-    return { status: response.status, data: await response.json() };
+    return {
+      status: response.status,
+      data: await response.json(),
+      setCookie: response.headers.get("set-cookie"),
+    };
   };
   return {
     store,
@@ -177,7 +184,20 @@ test("local models prepare two real model drafts; approval and reservations surv
     null,
   );
   assert.equal(connected, false);
-  const initial = (await api("state")).data;
+  const firstState = await api("state");
+  assert.doesNotMatch(firstState.setCookie, /;\s*Secure\b/i);
+  assert.match(firstState.setCookie, /HttpOnly/);
+  assert.match(firstState.setCookie, /SameSite=Strict/);
+  const initial = firstState.data;
+  const inheritedOrigin = await fetch(base + "/api/preferences", {
+    method: "POST",
+    headers: {
+      Origin: "https://hosted.example",
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({ style: "friendly" }),
+  });
+  assert.equal(inheritedOrigin.status, 403);
   assert.equal(initial.capabilities.modelMode, "local");
   assert.equal(initial.capabilities.elevenlabs, false);
   assert.equal(initial.capabilities.identity, false);

@@ -18,6 +18,8 @@ export function configureLocalRuntime() {
   );
   process.env.HOST = "127.0.0.1";
   process.env.PORT = process.env.VOX_LOCAL_PORT || "4320";
+  process.env.PUBLIC_ORIGIN = `http://127.0.0.1:${process.env.PORT}`;
+  process.env.COOKIE_SECURE = "false";
   process.env.TEMPORAL_NAMESPACE = "vox-local";
   process.env.TEMPORAL_TASK_QUEUE = "vox-local-support";
   globalThis.fetch = loopbackFetch();

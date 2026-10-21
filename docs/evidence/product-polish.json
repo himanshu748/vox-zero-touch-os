@@ -1,0 +1,108 @@
+{
+  "checkedAt": "2026-10-21T17:04:53.788Z",
+  "deployment": "e0e06d1e5690305a60fed87d64c0b7b53e8042c1",
+  "localBrowserJourney": {
+    "mode": "rules-only; no live model inference",
+    "triaged": 24,
+    "labels": 7,
+    "drafts": 2,
+    "sentInSandbox": 1,
+    "rejected": 1,
+    "keyboardPlanning": "Control+Enter",
+    "approvalFocusWrap": true,
+    "mobileDrawerEscapeRestoresFocus": true
+  },
+  "responsive": {
+    "landingWidth": 390,
+    "landingDocumentWidth": 390,
+    "workspaceWidth": 390,
+    "workspaceDocumentWidth": 390
+  },
+  "accessibility": {
+    "landingViolations": 0,
+    "landingIncomplete": 0,
+    "workspaceViolations": 0,
+    "workspaceIncomplete": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "targets": [
+          [
+            ".judge-access-copy > .eyebrow"
+          ],
+          [
+            ".judge-access-copy > h2"
+          ],
+          [
+            ".judge-access-copy > p"
+          ],
+          [
+            "a[href$=\"app\"]"
+          ],
+          [
+            ".console-label"
+          ],
+          [
+            ".voice-intro > h2"
+          ],
+          [
+            ".voice-intro > h2 > span"
+          ],
+          [
+            ".orb-label"
+          ],
+          [
+            ".suggestions > span"
+          ],
+          [
+            ".suggestions > button:nth-child(2)"
+          ],
+          [
+            ".suggestions > button:nth-child(3)"
+          ],
+          [
+            ".console-disclosure > span"
+          ],
+          [
+            ".console-disclosure > button"
+          ],
+          [
+            "tr:nth-child(1) > td:nth-child(3) > .urgent.badge > .priority-lines"
+          ],
+          [
+            "tr:nth-child(2) > td:nth-child(3) > .urgent.badge > .priority-lines"
+          ],
+          [
+            "tr:nth-child(3) > td:nth-child(3) > .urgent.badge > .priority-lines"
+          ],
+          [
+            "tr:nth-child(4) > td:nth-child(3) > .urgent.badge > .priority-lines"
+          ],
+          [
+            "tr:nth-child(5) > td:nth-child(3) > .urgent.badge > .priority-lines"
+          ]
+        ]
+      }
+    ]
+  },
+  "motion": {
+    "newMotion": "Hero entrance and card hover; existing reduced-motion handling retained",
+    "freshOSReducedMotionTest": false,
+    "historicalOSProof": "docs/evidence/accessibility/"
+  },
+  "limits": [
+    "Synthetic support workflow; no customer systems connected.",
+    "Automated accessibility checks do not establish complete WCAG conformance."
+  ],
+  "additionalPreviewCheck": {
+    "workflow": "queue-brief",
+    "plannedSteps": [
+      "inspect",
+      "triage",
+      "tag",
+      "brief"
+    ],
+    "draftStepPresent": false,
+    "executed": false
+  }
+}

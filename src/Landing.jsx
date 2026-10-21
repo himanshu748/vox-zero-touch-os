@@ -255,7 +255,7 @@ export default function Landing() {
                       ease: VOX_MOTION.ease,
                     }}
                   >
-                    Say the work.
+                    Say it once.
                   </motion.span>
                 </span>
                 <span className="hero-line">
@@ -268,7 +268,7 @@ export default function Landing() {
                       ease: VOX_MOTION.ease,
                     }}
                   >
-                    Step away.
+                    Come back
                   </motion.span>
                 </span>
                 <span className="hero-line hero-accent">
@@ -281,7 +281,7 @@ export default function Landing() {
                       ease: VOX_MOTION.ease,
                     }}
                   >
-                    Stay in control.
+                    to decisions.
                   </motion.span>
                 </span>
               </h1>
@@ -289,9 +289,9 @@ export default function Landing() {
                 {...enter}
                 transition={{ ...enter.transition, delay: 0.14 }}
               >
-                One instruction becomes a plan, researched answers, saved
-                updates and a clear handoff. Start with support operations: VOX
-                handles the preparation. You keep the decisions.
+                Give VOX the support queue and approve its plan. It sorts the
+                urgent work, finds guidance and prepares two replies. You
+                decide what goes forward.
               </motion.p>
               <motion.div
                 className="hero-ctas"
@@ -335,8 +335,8 @@ export default function Landing() {
           </div>
           <div className="landing-container hero-bottom">
             <span>
-              For makers and small teams who need the work done, with the
-              important decisions still theirs.
+              An operations co-worker for makers and small teams.
+              Support is the first working workflow.
             </span>
             <a href="#how-it-works">
               SEE THE TICKET WORKFLOW
@@ -348,7 +348,7 @@ export default function Landing() {
           <span>
             One instruction.
             <br />
-            <strong>Four concrete outcomes.</strong>
+            <strong>Work you can inspect.</strong>
           </span>
           <div>
             <Workflow size={19} />
@@ -506,8 +506,8 @@ export default function Landing() {
                 <span>02</span>
                 <h3>See the plan before the work.</h3>
                 <p>
-                  Typed action cards make the scope, side effects, and approval
-                  boundary clear.
+                  Review the tickets in scope, the requested actions and what
+                  will need your approval.
                 </p>
               </Reveal>
               <Reveal>
@@ -598,9 +598,9 @@ export default function Landing() {
                     </span>
                   </div>
                   <h3>
-                    A little order.
+                  The queue is here.
                     <br />
-                    <span>A lot more breathing room.</span>
+                    <span>So is the next step.</span>
                   </h3>
                   <div className="mini-metrics">
                     <div>
@@ -685,10 +685,10 @@ export default function Landing() {
               <Reveal>
                 <Workflow size={20} />
                 <div>
-                  <h3>Interruptions happen. Work stays.</h3>
+                  <h3>Pick up where the run stopped.</h3>
                   <p>
-                    Local checkpoints preserve progress. An idempotency ledger
-                    protects saved changes.
+                    Inspect saved progress after an interruption. Completed
+                    requests reuse their saved results on resume.
                   </p>
                 </div>
               </Reveal>
@@ -713,12 +713,12 @@ export default function Landing() {
                 03 / A HUMAN IN THE LOOP
               </div>
               <h2>
-                A little autonomy.
-                <br />A lot of intention.
+                Delegate the prep.
+                <br />Keep the final say.
               </h2>
               <p>
-                Let VOX handle the safe steps. Keep the decisions that deserve
-                you.
+                Read the draft, check its sources and decide whether it should
+                move forward. Each reply waits for its own approval.
               </p>
               <ul>
                 <li>
@@ -806,15 +806,14 @@ export default function Landing() {
                   04 / OPEN, INSPECTABLE WORKFLOWS
                 </div>
                 <h2>
-                  Open by design.
+                  Run your model.
                   <br />
-                  <span>Honest by default.</span>
+                  <span>Inspect its work.</span>
                 </h2>
               </div>
               <p>
-                The model is replaceable. The workflow is inspectable.
-                <br />
-                Your control over the outcome stays the same.
+                Use local Gemma on your laptop or try the hosted AI workflow.
+                Both keep the plan review and individual reply approvals.
               </p>
             </Reveal>
             <div className="open-grid">
@@ -824,8 +823,8 @@ export default function Landing() {
                   <span>THE AI LAYER</span>
                 </div>
                 <h3>
-                  A model response.
-                  <br />A meaningful interface.
+                  Read the plan.
+                  <br />Then start the work.
                 </h3>
                 <p>
                   Vercel AI SDK turns structured responses into readable plan
@@ -863,14 +862,14 @@ export default function Landing() {
                   <span>THE EVIDENCE</span>
                 </div>
                 <h3>
-                  Less hand-waving.
+                  See what ran.
                   <br />
-                  More receipts.
+                  Check what changed.
                 </h3>
                 <p>
-                  Inspect saved actions, request receipts, sources and
-                  decisions. Read the actual request receipts alongside the work
-                  they produced.
+                  Follow each saved action to its sources, provider receipts
+                  and approval decision. Export the run when you want to check
+                  the details.
                 </p>
                 <a href="/judge#evidence" className="landing-text-link">
                   Open the evidence console
@@ -891,10 +890,10 @@ export default function Landing() {
         <section className="faq-section landing-container">
           <Reveal className="faq-heading">
             <div className="landing-eyebrow">
-              <span />A FEW THINGS WORTH KNOWING
+              <span />BEFORE YOU TRY IT
             </div>
-            <h2>Clear on the details.</h2>
-            <p>A quieter workflow starts with fewer unknowns.</p>
+            <h2>Know what you’re trying.</h2>
+            <p>The models, the data and the limits of this release.</p>
           </Reveal>
           <div className="faq-list">
             {FAQ.map(([q, a], i) => (
@@ -921,15 +920,15 @@ export default function Landing() {
                 <AudioLines size={42} strokeWidth={1.1} />
               </span>
               <div className="landing-eyebrow">
-                A LITTLE LESS WORK. A LITTLE MORE LIFE.
+                YOUR FIRST HANDOFF IS READY
               </div>
               <h2>
-                Your next break starts
+                Give VOX the queue.
                 <br />
-                with a sentence<span>.</span>
+                Make the final call<span>.</span>
               </h2>
-              <OpenLink>Get your day back</OpenLink>
-              <p>Fictional tickets. Real workflows. Your final say.</p>
+              <OpenLink>Try the support workflow</OpenLink>
+              <p>No signup. 24 fictional tickets. Every send is simulated.</p>
             </Reveal>
           </div>
         </section>
@@ -954,7 +953,7 @@ export default function Landing() {
           </nav>
         </div>
         <div className="landing-footer-bottom">
-          <span>© {new Date().getFullYear()} VOX. Built with intention.</span>
+          <span>© {new Date().getFullYear()} VOX. Open source under MIT.</span>
           <span>
             <ShieldCheck size={12} />
             Synthetic sandbox · Human in control

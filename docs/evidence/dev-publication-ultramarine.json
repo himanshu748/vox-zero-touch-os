@@ -1,0 +1,24 @@
+{
+  "checkedAt": "2026-10-21T17:30:09Z",
+  "articleId": 4887283,
+  "url": "https://dev.to/himanshu_748/vox-i-asked-for-two-support-replies-then-i-turned-the-server-off-54l0",
+  "title": "VOX: I asked for two support replies. Then I turned the server off.",
+  "publishedAt": "2026-10-21T06:45:42Z",
+  "bodySHA256": "54c6a5dada75cfb93b88b010629e353f5a07048caf3d2aa4525201a242629342",
+  "bodyMatchesRepositoryDraft": true,
+  "prizeCategoryRows": 18,
+  "tags": [
+    "devchallenge",
+    "hf26challenge"
+  ],
+  "youtubeVideoId": "K9MYbrX1T74",
+  "youtubeEmbedPresent": true,
+  "ultramarineOfficialSDKAndActualCostPresent": true,
+  "functionalVerificationCommit": "22fcfa46d715c14a7c808b06fdfc56880de157ce",
+  "evidenceCommit": "495961c3e0a93dee6517dda7e97bd7778af66b50",
+  "manualTimeMeasured": false,
+  "limits": [
+    "Public publication verified; category eligibility remains the organizer decision.",
+    "The 30-minute manual value is an author estimate, not a measured baseline."
+  ]
+}

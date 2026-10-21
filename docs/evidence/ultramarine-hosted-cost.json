@@ -1,0 +1,146 @@
+{
+  "schemaVersion": 1,
+  "verifiedAt": "2026-10-21T17:16:46.342Z",
+  "origin": "https://getvox.tech",
+  "runId": "786aad1a-af8b-4a7c-9d3e-d8578a492f7b",
+  "deployedCommit": "22fcfa46d715c14a7c808b06fdfc56880de157ce",
+  "sdk": {
+    "name": "Official OpenAI Node SDK",
+    "version": "7.41.0",
+    "baseURL": "https://api.paperinstruments.com/v1",
+    "maxRetries": 0
+  },
+  "billing": {
+    "source": "https://api.paperinstruments.com/v1/usage",
+    "chargedNanodollars": 340950,
+    "chargedUSD": 0.00034095,
+    "basis": "Observed settled prepaid-credit balance debit, not a token-price estimate.",
+    "funding": "Existing promotional balance; no purchase or top-up.",
+    "scope": "Ultramarine's two advisory reviews only; not the full multi-provider run cost.",
+    "attribution": "Organization-wide request and input/output/cache token deltas exactly match these two saved receipts. No other Paper Instruments usage was initiated in the window.",
+    "before": {
+      "observedAt": "2026-10-21T17:14:32.602Z",
+      "source": "https://api.paperinstruments.com/v1/usage",
+      "unit": "nanodollars; 1 USD = 1000000000 nanodollars",
+      "usage": {
+        "billing_status": "active",
+        "available_nanodollars": 4998431700,
+        "reserved_nanodollars": 0,
+        "period_start": 1790812800,
+        "period_end": 1793491200,
+        "requests": 8,
+        "prompt_tokens": 4912,
+        "cached_prompt_tokens": 0,
+        "completion_tokens": 1663,
+        "reasoning_tokens": 190,
+        "total_tokens": 6575
+      }
+    },
+    "after": {
+      "observedAt": "2026-10-21T17:16:46.342Z",
+      "source": "https://api.paperinstruments.com/v1/usage",
+      "unit": "nanodollars; 1 USD = 1000000000 nanodollars",
+      "usage": {
+        "billing_status": "active",
+        "available_nanodollars": 4998090750,
+        "reserved_nanodollars": 0,
+        "period_start": 1790812800,
+        "period_end": 1793491200,
+        "requests": 10,
+        "prompt_tokens": 6225,
+        "cached_prompt_tokens": 0,
+        "completion_tokens": 1951,
+        "reasoning_tokens": 216,
+        "total_tokens": 8176
+      }
+    },
+    "usageDelta": {
+      "requests": 2,
+      "prompt_tokens": 1313,
+      "cached_prompt_tokens": 0,
+      "completion_tokens": 288,
+      "reasoning_tokens": 26,
+      "total_tokens": 1601
+    }
+  },
+  "result": {
+    "status": "completed",
+    "metrics": {
+      "tickets": 24,
+      "triaged": 24,
+      "labels": 7,
+      "drafts": 2,
+      "pending": 0,
+      "sent": 1,
+      "rejected": 1,
+      "urgent": 6,
+      "retries": 2
+    },
+    "mastra": "success",
+    "reviews": {
+      "VX-1050": {
+        "verdict": "ready_for_human",
+        "summary": "The draft reply is a diagnostic request consistent with the referenced troubleshooting guidance. It asks the customer to check service health, logs, error timestamps, resource metrics, and database connection pool limits, all of which are supported by the 'Service troubleshooting' source. It does not assert any invented completed actions, does not claim a root cause, and does not recommend unsafe production changes. It contains no payment or access-bypass steps. Minor note: it does not address the intermittent 500 responses specifically, but this is not an unsupported claim.",
+        "issues": [
+          {
+            "severity": "warning",
+            "concern": "The draft does not acknowledge or address the intermittent 500 responses, which is the customer's primary symptom, and does not mention confirming the root cause before recommending production changes.",
+            "suggestion": "Add a line acknowledging the 500s are consistent with connection exhaustion and state that no production changes should be made until the root cause is confirmed, per the referenced guidance."
+          }
+        ]
+      },
+      "VX-1055": {
+        "verdict": "ready_for_human",
+        "summary": "The draft requests diagnostic information (service logs, error timestamps, resource metrics) from the customer, which aligns with the referenced service troubleshooting guidance. It makes no unsupported claims, asserts no completed actions, and recommends no unsafe access or payment steps.",
+        "issues": []
+      }
+    }
+  },
+  "receipts": [
+    {
+      "id": "38e63dd9-4959-47e3-b9be-db37c92367f6",
+      "runId": "786aad1a-af8b-4a7c-9d3e-d8578a492f7b",
+      "provider": "Ultramarine",
+      "sdk": "OpenAI Node SDK",
+      "sdkVersion": "7.41.0",
+      "operation": "draft review",
+      "model": "ultramarine-1-flash",
+      "requestId": "req_agqv65uqmfzvba2rdnncq3hxf4",
+      "latencyMs": 1238,
+      "usage": {
+        "inputTokens": 659,
+        "outputTokens": 200,
+        "cachedTokens": 0
+      },
+      "cost": 0.00019884999999999998,
+      "costBasis": "Published USD token rates, 2026-10-20; estimate, not an invoice",
+      "costIsEstimate": true,
+      "createdAt": "2026-10-21T17:16:09.142Z"
+    },
+    {
+      "id": "78e34457-39d7-4e01-8584-de3f91243eea",
+      "runId": "786aad1a-af8b-4a7c-9d3e-d8578a492f7b",
+      "provider": "Ultramarine",
+      "sdk": "OpenAI Node SDK",
+      "sdkVersion": "7.41.0",
+      "operation": "draft review",
+      "model": "ultramarine-1-flash",
+      "requestId": "req_agqv65uxzj7mbgww2wprdd5cmu",
+      "latencyMs": 724,
+      "usage": {
+        "inputTokens": 654,
+        "outputTokens": 88,
+        "cachedTokens": 0
+      },
+      "cost": 0.00014209999999999998,
+      "costBasis": "Published USD token rates, 2026-10-20; estimate, not an invoice",
+      "costIsEstimate": true,
+      "createdAt": "2026-10-21T17:16:10.742Z"
+    }
+  ],
+  "limitations": [
+    "Advisory review against supplied references cannot establish independent factual correctness or authorize sending.",
+    "The provider usage API is organization-wide. The reconciler rejects mismatched request or token counts, outstanding reservations and crossed billing periods.",
+    "Per-request UI costs remain explicitly estimated; this artifact measures the combined settled credit debit for this verification window."
+  ]
+}

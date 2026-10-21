@@ -1,0 +1,103 @@
+{
+  "checkedAt": "2026-10-21T09:53:27.274Z",
+  "runId": "2e9aec8b-01bf-4b4d-a4e5-46f6b58fdfe9",
+  "mode": "Real local UI captures assembled into a captioned 110-second walkthrough; edited timing, not a continuous screen recording or benchmark",
+  "model": "gemma3:4b",
+  "result": {
+    "triaged": 24,
+    "labels": 7,
+    "drafts": 2,
+    "sent": 1,
+    "rejected": 1,
+    "pending": 0,
+    "retries": 2
+  },
+  "mastraStatus": "success",
+  "temporal": {
+    "status": "COMPLETED",
+    "historyEvents": 21
+  },
+  "successfulModelRequests": 4,
+  "explicitSkippedReceipts": 8,
+  "physicalVoiceUsed": false,
+  "cloudProviderRequests": false,
+  "outputFile": "docs/evidence/local-demo.mp4",
+  "frames": [
+    {
+      "file": "01-workspace.png",
+      "sha256": "1f27491dcbc383711af9c1f1e5f4d5742c4a82d26f03c2f6d4a8395a23e2b285"
+    },
+    {
+      "file": "02-command.png",
+      "sha256": "e0fe8f211b34e41f9dba99c1f7cacc3b6064ef8e2683467c2c0cbb6c4c67ff62"
+    },
+    {
+      "file": "03-plan.png",
+      "sha256": "1813dfca9a57198c04bd8c0d4499d6b077320fc965e72af359d1a597ce2d861d"
+    },
+    {
+      "file": "04-running.png",
+      "sha256": "db3b5d0da83d94cf60c43c3a3302757717aa23b9337f97a82b81c15bbab12448"
+    },
+    {
+      "file": "05-two-decisions.png",
+      "sha256": "18ed451551ffe9524eb8f1e9794566ea63ddb51b284670c056364a5e00e163b1"
+    },
+    {
+      "file": "06-review.png",
+      "sha256": "5608fa4aa2c609cadc98b63d2de51f57ff7f5602c72bceadb7674afe4d75c808"
+    },
+    {
+      "file": "07-one-approved.png",
+      "sha256": "9e12929a1d4d622a4e46072e38e57329c5296c5d206717594bbe8d917f40584a"
+    },
+    {
+      "file": "08-reject-review.png",
+      "sha256": "e53309ab56007731d759e20bf2b9ada4728e0f1a80915e142fafae8df11d1b3a"
+    },
+    {
+      "file": "09-completed.png",
+      "sha256": "f17eea00f7f7fbe939f3f096c81c6d4728cdb7517c7884bcb571237bc09bcdaf"
+    },
+    {
+      "file": "10-evidence.png",
+      "sha256": "f2b25cd6dbbe6f0ba3236f37dd58b3175ea07b9a885192d9f8dbbec5b3201708"
+    }
+  ],
+  "limitations": [
+    "Synthetic support data and simulated sends.",
+    "This local walkthrough does not show the hosted voice or Ultramarine path.",
+    "Human review and manual preparation times are not measured.",
+    "Pointer motion and captions are editorial overlays on actual UI screenshots."
+  ],
+  "videoProbe": {
+    "programs": [],
+    "streams": [
+      {
+        "codec_name": "h264",
+        "width": 1280,
+        "height": 960,
+        "r_frame_rate": "60/1"
+      }
+    ],
+    "format": {
+      "duration": "110.000000",
+      "size": "3120000"
+    }
+  },
+  "sha256": "20009d4bee10edfcc9ca5320e056cf9b1d4d561dbea030a98b23df29f29bf450",
+  "rendering": {
+    "renderer": "browser-video-recording skill screenshot renderer",
+    "runtime": "imageio-ffmpeg 0.6.0 bundled ffmpeg 7.1; standalone ffprobe 5.0.1",
+    "captions": "Burned English captions; silent; explicitly labelled local and edited",
+    "sourceSize": [
+      1280,
+      960
+    ],
+    "outputSize": [
+      1280,
+      960
+    ],
+    "fps": 60
+  }
+}

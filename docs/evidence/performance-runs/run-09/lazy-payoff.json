@@ -1,0 +1,227 @@
+{
+  "schemaVersion": 1,
+  "status": "completed",
+  "startedAt": "2026-10-21T08:53:38.177Z",
+  "finishedAt": "2026-10-21T08:53:55.581Z",
+  "modelMode": "local",
+  "models": [
+    "gemma3:4b"
+  ],
+  "endpoint": "http://127.0.0.1:11434/v1",
+  "modelLoadedAtStart": true,
+  "modelRuntime": {
+    "name": "Ollama",
+    "version": "0.31.1"
+  },
+  "hardware": {
+    "description": "MacBook Air M4, 16 GB",
+    "cpu": "Apple M4",
+    "memoryBytes": 17179869184,
+    "machineIdentifier": "Mac16,12",
+    "platform": "darwin",
+    "arch": "arm64",
+    "osRelease": "25.5.0"
+  },
+  "dataset": {
+    "tickets": 24,
+    "sha256": "fa5abb880df3c5ae18e350e0f6cc8ee914b0636393f435adfd9a996f450186e7",
+    "file": "docs/evidence/performance-runs/run-09/lazy-payoff-queue.json"
+  },
+  "command": "Triage all 24 support tickets, research fixes from the local playbooks, tag urgent ones, and draft two replies. Ask before sending anything.",
+  "timing": {
+    "startupMs": 1484.5,
+    "planningAndNormalizationMs": 9441.84,
+    "preparationUntilTwoDecisionsMs": 17190.49,
+    "scriptedDecisionsAndCompletionMs": 213.51,
+    "stages": {
+      "inspect": {
+        "attempts": 1,
+        "wallClockMs": 1.97
+      },
+      "triage": {
+        "attempts": 1,
+        "wallClockMs": 2.14
+      },
+      "research": {
+        "attempts": 1,
+        "wallClockMs": 1.57
+      },
+      "tag": {
+        "attempts": 1,
+        "wallClockMs": 2.3
+      },
+      "draft": {
+        "attempts": 1,
+        "wallClockMs": 7571.45
+      },
+      "brief": {
+        "attempts": 1,
+        "wallClockMs": 6.4
+      }
+    }
+  },
+  "result": {
+    "tickets": 24,
+    "triaged": 24,
+    "labels": 7,
+    "drafts": 2,
+    "pending": 0,
+    "sent": 1,
+    "rejected": 1,
+    "urgent": 6,
+    "retries": 0,
+    "draftTicketIds": [
+      "VX-1044",
+      "VX-1050"
+    ],
+    "humanReplyDecisionsNeeded": 2,
+    "planApprovalNeeded": 1,
+    "totalHumanGates": 3
+  },
+  "drafts": [
+    {
+      "ticketId": "VX-1044",
+      "body": "Acknowledged. Review service health, logs, and resource metrics as suggested in the troubleshooting documentation. Investigate Retry-After headers for rate limiting issues.",
+      "source": {
+        "title": "Service troubleshooting",
+        "url": "https://render.com/docs/troubleshooting-deploys",
+        "kind": "checked-in reference, not live research"
+      },
+      "statusAtPreparation": "pending"
+    },
+    {
+      "ticketId": "VX-1050",
+      "body": "Acknowledged. Reviewing service health, logs, and resource metrics as suggested in the playbook documentation.",
+      "source": {
+        "title": "Service troubleshooting",
+        "url": "https://render.com/docs/troubleshooting-deploys",
+        "kind": "checked-in reference, not live research"
+      },
+      "statusAtPreparation": "pending"
+    }
+  ],
+  "orchestration": {
+    "mastra": "success",
+    "temporal": "COMPLETED",
+    "temporalEvents": 21,
+    "decisionSignals": 1
+  },
+  "requests": [
+    {
+      "provider": "Local intent model",
+      "model": "gemma3:4b",
+      "execution": "local",
+      "operation": "intent normalization",
+      "latencyMs": 2545,
+      "usage": {
+        "inputTokens": 168,
+        "outputTokens": 26,
+        "totalTokens": 194
+      },
+      "fallbackUsed": false
+    },
+    {
+      "provider": "Gemma endpoint",
+      "model": "gemma3:4b",
+      "execution": "local",
+      "operation": "structured generation",
+      "latencyMs": 6882,
+      "usage": {
+        "inputTokens": 135,
+        "outputTokens": 74,
+        "totalTokens": 209
+      },
+      "fallbackUsed": false
+    },
+    {
+      "provider": "Gemma endpoint",
+      "model": "gemma3:4b",
+      "execution": "local",
+      "operation": "structured generation",
+      "latencyMs": 2929,
+      "usage": {
+        "inputTokens": 198,
+        "outputTokens": 25,
+        "totalTokens": 223
+      },
+      "fallbackUsed": false
+    },
+    {
+      "provider": "Gemma endpoint",
+      "model": "gemma3:4b",
+      "execution": "local",
+      "operation": "structured generation",
+      "latencyMs": 4630,
+      "usage": {
+        "inputTokens": 211,
+        "outputTokens": 35,
+        "totalTokens": 246
+      },
+      "fallbackUsed": false
+    }
+  ],
+  "skipped": [
+    {
+      "provider": "SerpApi",
+      "status": "skipped",
+      "operation": "skipped in local mode"
+    },
+    {
+      "provider": "ElevenLabs",
+      "status": "skipped",
+      "operation": "skipped in local mode"
+    },
+    {
+      "provider": "Browserbase",
+      "status": "skipped",
+      "operation": "skipped in local mode"
+    },
+    {
+      "provider": "Backboard",
+      "status": "skipped",
+      "operation": "skipped in local mode"
+    },
+    {
+      "provider": "TabPFN",
+      "status": "skipped",
+      "operation": "skipped in local mode"
+    },
+    {
+      "provider": "Tiger Data",
+      "status": "skipped",
+      "operation": "skipped in local mode"
+    },
+    {
+      "provider": "Ultramarine",
+      "status": "skipped",
+      "operation": "skipped in local mode"
+    },
+    {
+      "provider": "Tinker",
+      "status": "skipped",
+      "operation": "skipped in local mode"
+    }
+  ],
+  "network": {
+    "applicationHttpHosts": [
+      "127.0.0.1"
+    ],
+    "externalHosts": [],
+    "externalHttpRequests": 0,
+    "temporalAddress": "127.0.0.1:17333",
+    "scope": "Application fetch destinations and loopback-only Temporal configuration; not an OS packet capture."
+  },
+  "manualBaseline": {
+    "status": "not measured",
+    "manualMinutes": null,
+    "humanReviewMinutes": null,
+    "timeSavedMinutes": null
+  },
+  "limitations": [
+    "One synthetic run; not production accuracy or an average.",
+    "Scripted plan approval and reply decisions; human reading/review time is not measured.",
+    "SLA priority remains deterministic; Gemma performs intent, planning and drafting.",
+    "Local Qwen3-8B fallback is transport-tested; real fallback execution is unverified unless fallbackUsed is true.",
+    "No physical voice input/output is used in local mode."
+  ]
+}

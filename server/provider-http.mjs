@@ -1,4 +1,5 @@
 // Server-only HTTP boundary. Provider errors never echo upstream bodies or secrets.
+import { isLocalModelMode, assertLoopbackURL } from "./model-mode.mjs";
 export async function providerJSON(
   url,
   {
@@ -9,6 +10,7 @@ export async function providerJSON(
     ...options
   } = {},
 ) {
+  if (isLocalModelMode()) assertLoopbackURL(url);
   let response;
   try {
     response = await fetchImpl(url, {

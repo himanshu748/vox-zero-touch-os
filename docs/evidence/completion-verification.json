@@ -1,0 +1,57 @@
+{
+  "verifiedAt": "2026-10-21T10:00:57.687168+00:00",
+  "branch": "week3-local-lazy-payoff",
+  "scope": "Local synthetic data, saved provider receipts, code and file-only documentation. No live DEV edit, production data access, deployment, new cloud usage, secret change or billing action.",
+  "tests": {
+    "passed": 54,
+    "failed": 0,
+    "skipped": 0,
+    "command": "npm test"
+  },
+  "typecheck": {
+    "command": "npm run typecheck",
+    "passed": true
+  },
+  "productionBuild": {
+    "command": "VOX_MODEL_MODE=local npm run build",
+    "passed": true
+  },
+  "modelEvaluation": "planning-evaluation.json",
+  "performance": "local-performance.json",
+  "browser": "completion-browser.json",
+  "video": "local-demo.json",
+  "accessibility": "accessibility-summary.json",
+  "restartSmoke": {
+    "sameSavedRun": "2e9aec8b-01bf-4b4d-a4e5-46f6b58fdfe9",
+    "savedCompletionReopened": true,
+    "viteSocketConnected": true,
+    "browserWarnings": 0,
+    "browserErrors": 0,
+    "cleanSigintExitCode": 0,
+    "ownedServersStopped": true
+  },
+  "ultramarine": {
+    "state": "Existing hosted advisory review remains used; suggestion/blocking labels improved in branch UI",
+    "newProviderCall": false,
+    "prizeClaimAdded": false,
+    "evidence": "ultramarine-review.json"
+  },
+  "publication": "dev-publication.json",
+  "manualTime": null,
+  "liveVoicePercentiles": null,
+  "remaining": [
+    "Manual preparation and human review timing/quality comparison",
+    "Physical microphone and audible output",
+    "Optional second live Auth0 account denial walkthrough",
+    "Hosted voice benchmark requires separately authorized credentials/quota/test records",
+    "Merge/deployment and live DEV revision remain outside current authorization",
+    "Optional real Qwen3-8B fallback and llama.cpp runtime unverified"
+  ],
+  "startupRegression": "local-startup.json",
+  "startupBoundaries": {
+    "inheritedHostedCookieAndOriginIgnored": true,
+    "localSessionCookieRemainsHttpOnlyAndStrict": true,
+    "occupiedHttpPortRejectsStartup": true,
+    "ownedTemporalCleanupVerified": true
+  }
+}

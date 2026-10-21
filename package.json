@@ -12,7 +12,11 @@
     "start": "NODE_ENV=production node server/bootstrap.mjs",
     "test": "node --test tests/*.test.mjs",
     "seed": "node server/seed.mjs",
-    "typecheck": "tsc -p tsconfig.ai.json"
+    "typecheck": "tsc -p tsconfig.ai.json",
+    "evaluate:planning": "node scripts/evaluate-planning.mjs",
+    "benchmark:local": "node scripts/benchmark-local.mjs",
+    "verify:recorded-predictions": "node scripts/replay-escalation.mjs",
+    "verify:startup": "node scripts/verify-local-startup.mjs"
   },
   "dependencies": {
     "@ai-sdk/google": "4.0.101",
@@ -20,6 +24,7 @@
     "@ai-sdk/react": "^4.0.150",
     "@browserbasehq/sdk": "2.22.0",
     "@browserbasehq/stagehand": "4.3.0",
+    "@fontsource-variable/geist": "5.3.0",
     "@mastra/core": "1.78.0",
     "@mastra/libsql": "1.26.2",
     "@sentry/node": "11.8.0",
@@ -41,6 +46,7 @@
   },
   "devDependencies": {
     "@types/node": "^26.6.5",
+    "axe-core": "4.11.0",
     "prettier": "^3.9.10",
     "typescript": "^7.0.2",
     "vite": "^6.1.0"

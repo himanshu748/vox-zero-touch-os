@@ -1,0 +1,15 @@
+{
+  "checkedAt": "2026-10-21T10:11:47.745Z",
+  "mode": "Real local bootstrap and Temporal CLI; forced HTTP bind failure, no model request",
+  "inheritedHostedSettings": {
+    "cookieSecure": true,
+    "publicOrigin": "https://hosted.example"
+  },
+  "applicationPort": 58819,
+  "temporalPort": 58820,
+  "exitCode": 1,
+  "error": "EADDRINUSE",
+  "ownedTemporalStillListening": false,
+  "cleanup": "Temporary synthetic data and owned HTTP listener removed; no production resources accessed",
+  "scope": "This checks local process cleanup. Cookie/origin isolation and session continuity are covered by the HTTP transport regression test."
+}

@@ -1,0 +1,166 @@
+{
+  "checkedAt": "2026-10-21T08:55:52.344Z",
+  "tool": "axe-core 4.11.0",
+  "url": "http://127.0.0.1:4321/?qa",
+  "viewport": {
+    "width": 390,
+    "height": 844,
+    "documentWidth": 390
+  },
+  "reducedMotion": true,
+  "rulesPassed": 44,
+  "violations": [],
+  "incomplete": [
+    {
+      "id": "color-contrast",
+      "impact": "serious",
+      "targets": [
+        [
+          ".top"
+        ],
+        [
+          ".floating-voice-card > div:nth-child(2) > span"
+        ],
+        [
+          ".floating-voice-card > div:nth-child(2) > p"
+        ],
+        [
+          ".inspect > .generative-action-top > .generative-index"
+        ],
+        [
+          ".inspect > h4"
+        ],
+        [
+          ".inspect > p"
+        ],
+        [
+          ".inspect > .generative-action-foot > span:nth-child(1)"
+        ],
+        [
+          ".triage > .generative-action-top > .generative-index"
+        ],
+        [
+          ".triage > h4"
+        ],
+        [
+          ".triage > p"
+        ],
+        [
+          ".triage > .generative-action-foot > span:nth-child(1)"
+        ],
+        [
+          ".research > .generative-action-top > .generative-index"
+        ],
+        [
+          ".research > h4"
+        ],
+        [
+          ".research > p"
+        ],
+        [
+          ".research > .generative-action-foot > span:nth-child(1)"
+        ],
+        [
+          ".draft > .generative-action-top > .generative-index"
+        ],
+        [
+          ".draft > h4"
+        ],
+        [
+          ".draft > p"
+        ],
+        [
+          ".draft > .generative-action-foot > span:nth-child(1)"
+        ],
+        [
+          ".illustration-top > span:nth-child(1)"
+        ],
+        [
+          ".illustration-label"
+        ],
+        [
+          ".approval-illustration > h3"
+        ],
+        [
+          ".illustration-avatar"
+        ],
+        [
+          ".approval-illustration-message > div:nth-child(2) > span"
+        ],
+        [
+          ".approval-illustration-message > div:nth-child(2) > small"
+        ],
+        [
+          ".approval-illustration > p"
+        ],
+        [
+          ".illustration-source"
+        ],
+        [
+          ".approval-illustration-actions > span:nth-child(1)"
+        ],
+        [
+          ".approval-illustration-actions > span:nth-child(2)"
+        ],
+        [
+          ".boundary-signature"
+        ],
+        [
+          ".open-symbol"
+        ],
+        [
+          ".open-card:nth-child(1) > .open-card-top > span:nth-child(2)"
+        ],
+        [
+          ".open-card:nth-child(1) > h3"
+        ],
+        [
+          ".open-card:nth-child(1) > p"
+        ],
+        [
+          ".open-card-tags > span:nth-child(1)"
+        ],
+        [
+          ".open-card-tags > span:nth-child(2)"
+        ],
+        [
+          ".open-card-tags > span:nth-child(3)"
+        ],
+        [
+          ".open-card:nth-child(2) > .open-card-top > span"
+        ],
+        [
+          ".open-card:nth-child(2) > h3"
+        ],
+        [
+          ".open-card:nth-child(2) > p"
+        ],
+        [
+          ".open-card:nth-child(2) > .landing-text-link[href$=\"judge#evidence\"]"
+        ],
+        [
+          ".open-card:nth-child(3) > .open-card-top > span:nth-child(2)"
+        ],
+        [
+          ".open-card:nth-child(3) > h3"
+        ],
+        [
+          ".open-card:nth-child(3) > p"
+        ],
+        [
+          ".open-card:nth-child(3) > .landing-text-link[href$=\"judge#evidence\"]"
+        ],
+        [
+          ".final-cta > .landing-container > div > .landing-eyebrow"
+        ],
+        [
+          ".final-cta > .landing-container > div > h2"
+        ],
+        [
+          ".final-cta > .landing-container > div > p"
+        ]
+      ]
+    }
+  ],
+  "motion": []
+}

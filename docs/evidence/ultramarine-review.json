@@ -1,0 +1,44 @@
+{
+  "review": {
+    "verdict": "needs_revision",
+    "summary": "The draft appropriately asks for logs and avoids confirming a cause, but it falsely states no configuration was changed while the ticket explicitly mentions the worker count was raised, and it omits relevant guidance from the reference about checking memory metrics and rebuilding after environment changes.",
+    "issues": [
+      {
+        "severity": "blocking",
+        "concern": "The claim 'No configuration has been changed' contradicts the ticket, which states the worker count was raised; this is an invented fact and may mislead the customer and internal reviewers.",
+        "suggestion": "Remove or correct the statement, e.g., acknowledge the worker count increase as a recent change to be reviewed."
+      },
+      {
+        "severity": "warning",
+        "concern": "The reference suggests checking memory metrics before changing instance size and rebuilding after environment changes; the draft does not include or acknowledge these steps, and exit code 137 is linked to memory pressure the team raised workers.",
+        "suggestion": "Add a request for memory/resource metrics around the deploy timestamp and note that rebuilding after reverting the worker count change may be required, pending log confirmation."
+      },
+      {
+        "severity": "warning",
+        "concern": "The draft does not acknowledge that the customer confirms customers cannot access the new release; urgency and impact should be acknowledged for a production incident.",
+        "suggestion": "Add brief acknowledgment of the production impact and a path to escalation if logs confirm resource exhaustion."
+      }
+    ]
+  },
+  "receipt": {
+    "provider": "Ultramarine",
+    "operation": "draft review",
+    "model": "ultramarine-1-flash",
+    "requestId": "req_agqvsqeb552ehhvhptfk2olqjm",
+    "latencyMs": 3352,
+    "usage": {
+      "inputTokens": 279,
+      "outputTokens": 311,
+      "cachedTokens": 0
+    },
+    "cost": 0.00019735,
+    "costBasis": "Published USD token rates, 2026-10-20; estimate, not an invoice",
+    "createdAt": "2026-10-20T12:19:24.324Z"
+  },
+  "provenance": {
+    "mode": "Previously recorded real advisory review of a fictional support draft",
+    "inputIncluded": false,
+    "freshProviderRequest": false,
+    "claim": "Advice only; not independent fact verification. Token cost is an estimate, not billed cost."
+  }
+}

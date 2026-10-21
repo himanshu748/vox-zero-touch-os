@@ -1,9 +1,11 @@
 import pg from "pg";
 import { z } from "zod";
 import { providerJSON } from "./provider-http.mjs";
+import { isLocalModelMode } from "./model-mode.mjs";
 
 export const EMBEDDING_MODEL = "gemini-embedding-2";
 export const knowledgeEnabled = () =>
+  !isLocalModelMode() &&
   Boolean(
     process.env.TIGER_DATABASE_URL &&
     process.env.TIGER_CA_PEM &&

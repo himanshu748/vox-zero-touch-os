@@ -1,0 +1,663 @@
+{
+  "schemaVersion": 1,
+  "startedAt": "2026-10-21T08:49:41.561Z",
+  "finishedAt": "2026-10-21T08:54:18.513Z",
+  "mode": "local text-to-plan and workflow; real Gemma, Temporal and Mastra",
+  "models": [
+    "gemma3:4b"
+  ],
+  "hardware": {
+    "description": "MacBook Air M4, 16 GB",
+    "cpu": "Apple M4",
+    "memoryBytes": 17179869184,
+    "machineIdentifier": "Mac16,12",
+    "platform": "darwin",
+    "arch": "arm64",
+    "osRelease": "25.5.0"
+  },
+  "samples": 10,
+  "completed": 10,
+  "method": "Nearest-rank percentiles; with n=10, p95 is the slowest observed sample. Sequential runs; no retry injection or cosmetic stage delays; startup measured separately. Model residency is recorded per run, not forced.",
+  "startup": {
+    "samples": 10,
+    "minimumMs": 1483.35,
+    "p50Ms": 1600.19,
+    "p95Ms": 4289.33,
+    "maximumMs": 4289.33
+  },
+  "textToPlan": {
+    "samples": 10,
+    "minimumMs": 8726.27,
+    "p50Ms": 9441.84,
+    "p95Ms": 23422.56,
+    "maximumMs": 23422.56
+  },
+  "preparationUntilTwoDecisions": {
+    "samples": 10,
+    "minimumMs": 15417.39,
+    "p50Ms": 17190.49,
+    "p95Ms": 31973.07,
+    "maximumMs": 31973.07
+  },
+  "applicationHttpHosts": [
+    "127.0.0.1"
+  ],
+  "externalHosts": [],
+  "runs": [
+    {
+      "file": "docs/evidence/performance-runs/run-01/lazy-payoff.json",
+      "modelLoadedAtStart": true,
+      "timing": {
+        "startupMs": 2990.92,
+        "planningAndNormalizationMs": 13457.42,
+        "preparationUntilTwoDecisionsMs": 30808.81,
+        "scriptedDecisionsAndCompletionMs": 413.65,
+        "stages": {
+          "inspect": {
+            "attempts": 1,
+            "wallClockMs": 5.35
+          },
+          "triage": {
+            "attempts": 1,
+            "wallClockMs": 4.48
+          },
+          "research": {
+            "attempts": 1,
+            "wallClockMs": 3.89
+          },
+          "tag": {
+            "attempts": 1,
+            "wallClockMs": 3.09
+          },
+          "draft": {
+            "attempts": 1,
+            "wallClockMs": 16958.07
+          },
+          "brief": {
+            "attempts": 1,
+            "wallClockMs": 7.88
+          }
+        }
+      },
+      "result": {
+        "tickets": 24,
+        "triaged": 24,
+        "labels": 7,
+        "drafts": 2,
+        "pending": 0,
+        "sent": 1,
+        "rejected": 1,
+        "urgent": 6,
+        "retries": 0,
+        "draftTicketIds": [
+          "VX-1044",
+          "VX-1050"
+        ],
+        "humanReplyDecisionsNeeded": 2,
+        "planApprovalNeeded": 1,
+        "totalHumanGates": 3
+      },
+      "orchestration": {
+        "mastra": "success",
+        "temporal": "COMPLETED",
+        "temporalEvents": 21,
+        "decisionSignals": 1
+      }
+    },
+    {
+      "file": "docs/evidence/performance-runs/run-02/lazy-payoff.json",
+      "modelLoadedAtStart": true,
+      "timing": {
+        "startupMs": 1638.99,
+        "planningAndNormalizationMs": 23422.56,
+        "preparationUntilTwoDecisionsMs": 31973.07,
+        "scriptedDecisionsAndCompletionMs": 359.74,
+        "stages": {
+          "inspect": {
+            "attempts": 1,
+            "wallClockMs": 2.66
+          },
+          "triage": {
+            "attempts": 1,
+            "wallClockMs": 4.3
+          },
+          "research": {
+            "attempts": 1,
+            "wallClockMs": 2.96
+          },
+          "tag": {
+            "attempts": 1,
+            "wallClockMs": 2.97
+          },
+          "draft": {
+            "attempts": 1,
+            "wallClockMs": 7646.07
+          },
+          "brief": {
+            "attempts": 1,
+            "wallClockMs": 18.33
+          }
+        }
+      },
+      "result": {
+        "tickets": 24,
+        "triaged": 24,
+        "labels": 7,
+        "drafts": 2,
+        "pending": 0,
+        "sent": 1,
+        "rejected": 1,
+        "urgent": 6,
+        "retries": 0,
+        "draftTicketIds": [
+          "VX-1044",
+          "VX-1050"
+        ],
+        "humanReplyDecisionsNeeded": 2,
+        "planApprovalNeeded": 1,
+        "totalHumanGates": 3
+      },
+      "orchestration": {
+        "mastra": "success",
+        "temporal": "COMPLETED",
+        "temporalEvents": 21,
+        "decisionSignals": 1
+      }
+    },
+    {
+      "file": "docs/evidence/performance-runs/run-03/lazy-payoff.json",
+      "modelLoadedAtStart": true,
+      "timing": {
+        "startupMs": 3305.15,
+        "planningAndNormalizationMs": 9780.68,
+        "preparationUntilTwoDecisionsMs": 25644.17,
+        "scriptedDecisionsAndCompletionMs": 1580.7,
+        "stages": {
+          "inspect": {
+            "attempts": 1,
+            "wallClockMs": 3.46
+          },
+          "triage": {
+            "attempts": 1,
+            "wallClockMs": 2.66
+          },
+          "research": {
+            "attempts": 1,
+            "wallClockMs": 3.17
+          },
+          "tag": {
+            "attempts": 1,
+            "wallClockMs": 1.31
+          },
+          "draft": {
+            "attempts": 1,
+            "wallClockMs": 15467.71
+          },
+          "brief": {
+            "attempts": 1,
+            "wallClockMs": 45.57
+          }
+        }
+      },
+      "result": {
+        "tickets": 24,
+        "triaged": 24,
+        "labels": 7,
+        "drafts": 2,
+        "pending": 0,
+        "sent": 1,
+        "rejected": 1,
+        "urgent": 6,
+        "retries": 0,
+        "draftTicketIds": [
+          "VX-1044",
+          "VX-1050"
+        ],
+        "humanReplyDecisionsNeeded": 2,
+        "planApprovalNeeded": 1,
+        "totalHumanGates": 3
+      },
+      "orchestration": {
+        "mastra": "success",
+        "temporal": "COMPLETED",
+        "temporalEvents": 21,
+        "decisionSignals": 1
+      }
+    },
+    {
+      "file": "docs/evidence/performance-runs/run-04/lazy-payoff.json",
+      "modelLoadedAtStart": true,
+      "timing": {
+        "startupMs": 4289.33,
+        "planningAndNormalizationMs": 14279.79,
+        "preparationUntilTwoDecisionsMs": 21107.31,
+        "scriptedDecisionsAndCompletionMs": 184.14,
+        "stages": {
+          "inspect": {
+            "attempts": 1,
+            "wallClockMs": 2.47
+          },
+          "triage": {
+            "attempts": 1,
+            "wallClockMs": 2.54
+          },
+          "research": {
+            "attempts": 1,
+            "wallClockMs": 1.73
+          },
+          "tag": {
+            "attempts": 1,
+            "wallClockMs": 2.69
+          },
+          "draft": {
+            "attempts": 1,
+            "wallClockMs": 6195.96
+          },
+          "brief": {
+            "attempts": 1,
+            "wallClockMs": 4.46
+          }
+        }
+      },
+      "result": {
+        "tickets": 24,
+        "triaged": 24,
+        "labels": 7,
+        "drafts": 2,
+        "pending": 0,
+        "sent": 1,
+        "rejected": 1,
+        "urgent": 6,
+        "retries": 0,
+        "draftTicketIds": [
+          "VX-1044",
+          "VX-1050"
+        ],
+        "humanReplyDecisionsNeeded": 2,
+        "planApprovalNeeded": 1,
+        "totalHumanGates": 3
+      },
+      "orchestration": {
+        "mastra": "success",
+        "temporal": "COMPLETED",
+        "temporalEvents": 21,
+        "decisionSignals": 1
+      }
+    },
+    {
+      "file": "docs/evidence/performance-runs/run-05/lazy-payoff.json",
+      "modelLoadedAtStart": true,
+      "timing": {
+        "startupMs": 3245.42,
+        "planningAndNormalizationMs": 12446.94,
+        "preparationUntilTwoDecisionsMs": 19421.46,
+        "scriptedDecisionsAndCompletionMs": 165.82,
+        "stages": {
+          "inspect": {
+            "attempts": 1,
+            "wallClockMs": 3.48
+          },
+          "triage": {
+            "attempts": 1,
+            "wallClockMs": 3.64
+          },
+          "research": {
+            "attempts": 1,
+            "wallClockMs": 2.58
+          },
+          "tag": {
+            "attempts": 1,
+            "wallClockMs": 2.69
+          },
+          "draft": {
+            "attempts": 1,
+            "wallClockMs": 6747.52
+          },
+          "brief": {
+            "attempts": 1,
+            "wallClockMs": 4.16
+          }
+        }
+      },
+      "result": {
+        "tickets": 24,
+        "triaged": 24,
+        "labels": 7,
+        "drafts": 2,
+        "pending": 0,
+        "sent": 1,
+        "rejected": 1,
+        "urgent": 6,
+        "retries": 0,
+        "draftTicketIds": [
+          "VX-1044",
+          "VX-1050"
+        ],
+        "humanReplyDecisionsNeeded": 2,
+        "planApprovalNeeded": 1,
+        "totalHumanGates": 3
+      },
+      "orchestration": {
+        "mastra": "success",
+        "temporal": "COMPLETED",
+        "temporalEvents": 21,
+        "decisionSignals": 1
+      }
+    },
+    {
+      "file": "docs/evidence/performance-runs/run-06/lazy-payoff.json",
+      "modelLoadedAtStart": true,
+      "timing": {
+        "startupMs": 1486.83,
+        "planningAndNormalizationMs": 9222.64,
+        "preparationUntilTwoDecisionsMs": 15417.39,
+        "scriptedDecisionsAndCompletionMs": 96.73,
+        "stages": {
+          "inspect": {
+            "attempts": 1,
+            "wallClockMs": 3.15
+          },
+          "triage": {
+            "attempts": 1,
+            "wallClockMs": 2.37
+          },
+          "research": {
+            "attempts": 1,
+            "wallClockMs": 2.59
+          },
+          "tag": {
+            "attempts": 1,
+            "wallClockMs": 2.53
+          },
+          "draft": {
+            "attempts": 1,
+            "wallClockMs": 5988.56
+          },
+          "brief": {
+            "attempts": 1,
+            "wallClockMs": 8.48
+          }
+        }
+      },
+      "result": {
+        "tickets": 24,
+        "triaged": 24,
+        "labels": 7,
+        "drafts": 2,
+        "pending": 0,
+        "sent": 1,
+        "rejected": 1,
+        "urgent": 6,
+        "retries": 0,
+        "draftTicketIds": [
+          "VX-1044",
+          "VX-1050"
+        ],
+        "humanReplyDecisionsNeeded": 2,
+        "planApprovalNeeded": 1,
+        "totalHumanGates": 3
+      },
+      "orchestration": {
+        "mastra": "success",
+        "temporal": "COMPLETED",
+        "temporalEvents": 21,
+        "decisionSignals": 1
+      }
+    },
+    {
+      "file": "docs/evidence/performance-runs/run-07/lazy-payoff.json",
+      "modelLoadedAtStart": true,
+      "timing": {
+        "startupMs": 1483.35,
+        "planningAndNormalizationMs": 8937.31,
+        "preparationUntilTwoDecisionsMs": 15425.05,
+        "scriptedDecisionsAndCompletionMs": 143.39,
+        "stages": {
+          "inspect": {
+            "attempts": 1,
+            "wallClockMs": 2.84
+          },
+          "triage": {
+            "attempts": 1,
+            "wallClockMs": 3.24
+          },
+          "research": {
+            "attempts": 1,
+            "wallClockMs": 2.31
+          },
+          "tag": {
+            "attempts": 1,
+            "wallClockMs": 2.39
+          },
+          "draft": {
+            "attempts": 1,
+            "wallClockMs": 6309.85
+          },
+          "brief": {
+            "attempts": 1,
+            "wallClockMs": 5.3
+          }
+        }
+      },
+      "result": {
+        "tickets": 24,
+        "triaged": 24,
+        "labels": 7,
+        "drafts": 2,
+        "pending": 0,
+        "sent": 1,
+        "rejected": 1,
+        "urgent": 6,
+        "retries": 0,
+        "draftTicketIds": [
+          "VX-1044",
+          "VX-1050"
+        ],
+        "humanReplyDecisionsNeeded": 2,
+        "planApprovalNeeded": 1,
+        "totalHumanGates": 3
+      },
+      "orchestration": {
+        "mastra": "success",
+        "temporal": "COMPLETED",
+        "temporalEvents": 21,
+        "decisionSignals": 1
+      }
+    },
+    {
+      "file": "docs/evidence/performance-runs/run-08/lazy-payoff.json",
+      "modelLoadedAtStart": true,
+      "timing": {
+        "startupMs": 1600.19,
+        "planningAndNormalizationMs": 9366.06,
+        "preparationUntilTwoDecisionsMs": 16330.61,
+        "scriptedDecisionsAndCompletionMs": 118.64,
+        "stages": {
+          "inspect": {
+            "attempts": 1,
+            "wallClockMs": 10.3
+          },
+          "triage": {
+            "attempts": 1,
+            "wallClockMs": 4.15
+          },
+          "research": {
+            "attempts": 1,
+            "wallClockMs": 3.4
+          },
+          "tag": {
+            "attempts": 1,
+            "wallClockMs": 4.06
+          },
+          "draft": {
+            "attempts": 1,
+            "wallClockMs": 6743.25
+          },
+          "brief": {
+            "attempts": 1,
+            "wallClockMs": 3.75
+          }
+        }
+      },
+      "result": {
+        "tickets": 24,
+        "triaged": 24,
+        "labels": 7,
+        "drafts": 2,
+        "pending": 0,
+        "sent": 1,
+        "rejected": 1,
+        "urgent": 6,
+        "retries": 0,
+        "draftTicketIds": [
+          "VX-1044",
+          "VX-1050"
+        ],
+        "humanReplyDecisionsNeeded": 2,
+        "planApprovalNeeded": 1,
+        "totalHumanGates": 3
+      },
+      "orchestration": {
+        "mastra": "success",
+        "temporal": "COMPLETED",
+        "temporalEvents": 21,
+        "decisionSignals": 1
+      }
+    },
+    {
+      "file": "docs/evidence/performance-runs/run-09/lazy-payoff.json",
+      "modelLoadedAtStart": true,
+      "timing": {
+        "startupMs": 1484.5,
+        "planningAndNormalizationMs": 9441.84,
+        "preparationUntilTwoDecisionsMs": 17190.49,
+        "scriptedDecisionsAndCompletionMs": 213.51,
+        "stages": {
+          "inspect": {
+            "attempts": 1,
+            "wallClockMs": 1.97
+          },
+          "triage": {
+            "attempts": 1,
+            "wallClockMs": 2.14
+          },
+          "research": {
+            "attempts": 1,
+            "wallClockMs": 1.57
+          },
+          "tag": {
+            "attempts": 1,
+            "wallClockMs": 2.3
+          },
+          "draft": {
+            "attempts": 1,
+            "wallClockMs": 7571.45
+          },
+          "brief": {
+            "attempts": 1,
+            "wallClockMs": 6.4
+          }
+        }
+      },
+      "result": {
+        "tickets": 24,
+        "triaged": 24,
+        "labels": 7,
+        "drafts": 2,
+        "pending": 0,
+        "sent": 1,
+        "rejected": 1,
+        "urgent": 6,
+        "retries": 0,
+        "draftTicketIds": [
+          "VX-1044",
+          "VX-1050"
+        ],
+        "humanReplyDecisionsNeeded": 2,
+        "planApprovalNeeded": 1,
+        "totalHumanGates": 3
+      },
+      "orchestration": {
+        "mastra": "success",
+        "temporal": "COMPLETED",
+        "temporalEvents": 21,
+        "decisionSignals": 1
+      }
+    },
+    {
+      "file": "docs/evidence/performance-runs/run-10/lazy-payoff.json",
+      "modelLoadedAtStart": true,
+      "timing": {
+        "startupMs": 1495.21,
+        "planningAndNormalizationMs": 8726.27,
+        "preparationUntilTwoDecisionsMs": 17011.65,
+        "scriptedDecisionsAndCompletionMs": 104.21,
+        "stages": {
+          "inspect": {
+            "attempts": 1,
+            "wallClockMs": 2.52
+          },
+          "triage": {
+            "attempts": 1,
+            "wallClockMs": 2.74
+          },
+          "research": {
+            "attempts": 1,
+            "wallClockMs": 3.06
+          },
+          "tag": {
+            "attempts": 1,
+            "wallClockMs": 2.51
+          },
+          "draft": {
+            "attempts": 1,
+            "wallClockMs": 8012.87
+          },
+          "brief": {
+            "attempts": 1,
+            "wallClockMs": 3.62
+          }
+        }
+      },
+      "result": {
+        "tickets": 24,
+        "triaged": 24,
+        "labels": 7,
+        "drafts": 2,
+        "pending": 0,
+        "sent": 1,
+        "rejected": 1,
+        "urgent": 6,
+        "retries": 0,
+        "draftTicketIds": [
+          "VX-1044",
+          "VX-1050"
+        ],
+        "humanReplyDecisionsNeeded": 2,
+        "planApprovalNeeded": 1,
+        "totalHumanGates": 3
+      },
+      "orchestration": {
+        "mastra": "success",
+        "temporal": "COMPLETED",
+        "temporalEvents": 21,
+        "decisionSignals": 1
+      }
+    }
+  ],
+  "voiceToPlan": {
+    "status": "not measured",
+    "reason": "Local mode intentionally disables cloud transcription and physical voice; no cloud credentials or quota were used."
+  },
+  "manualBaseline": {
+    "status": "not measured",
+    "manualMinutes": null,
+    "humanReviewMinutes": null,
+    "timeSavedMinutes": null
+  },
+  "limitations": [
+    "Synthetic local workload, not hosted latency or an uptime guarantee.",
+    "Scripted plan and draft decisions; elapsed human review time remains unmeasured.",
+    "Original single-run lazy-payoff.json and its manual timing sheet input are preserved."
+  ]
+}

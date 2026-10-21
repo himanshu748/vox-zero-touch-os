@@ -75,7 +75,10 @@ function DraftReview({ review }) {
       <p>{review.summary}</p>
       {review.issues.map((issue, index) => (
         <p key={index}>
-          <strong>{issue.concern}</strong>
+          <strong>
+            {issue.severity === "blocking" ? "Blocking concern: " : "Caution: "}
+            {issue.concern}
+          </strong>
           <br />
           {issue.suggestion}
         </p>
@@ -236,7 +239,7 @@ function Modal({ title, subtitle, children, onClose, wide = false }) {
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="modal-header">
+        <div className="modal-header">
           <div>
             <h2 id="modal-title">{title}</h2>
             {subtitle && <p>{subtitle}</p>}
@@ -248,7 +251,7 @@ function Modal({ title, subtitle, children, onClose, wide = false }) {
           >
             <X size={20} />
           </button>
-        </header>
+        </div>
         {children}
       </motion.section>
     </motion.div>
@@ -619,6 +622,8 @@ export default function App() {
     setTimeout(() => textarea.current?.focus(), 100);
   }
   async function voiceStart() {
+    if (state.capabilities.modelMode === "local")
+      return notify("Voice is skipped in local mode. Type your instruction.");
     if (recording) {
       recordRef.current?.stop();
       return;
@@ -770,6 +775,10 @@ export default function App() {
     }
   }
   async function playBriefing(run) {
+    if (state.capabilities.modelMode === "local")
+      return notify(
+        "Voice is skipped in local mode. Your text briefing is saved.",
+      );
     if (playing) {
       speechRequest.current?.abort();
       setSpeechLoading(false);
@@ -1189,6 +1198,27 @@ export default function App() {
           </div>
         </header>
         <main id="workspace-main" ref={mainRef} tabIndex={-1}>
+          {state.capabilities.modelMode === "local" && (
+            <section
+              className="judge-access"
+              aria-label="Local open-weight mode"
+            >
+              <div>
+                <div className="eyebrow">LOCAL OPEN-WEIGHT AI</div>
+                <h2>Give it the queue. Come back to two decisions.</h2>
+                <p>
+                  {state.capabilities.gemmaModel} runs planning, intent
+                  normalization and reply drafting on this machine. No cloud
+                  model, search, voice or browser calls. You approve the plan
+                  and each simulated send.
+                </p>
+                <small>
+                  Local SQLite persistence · Temporal + Mastra · External steps
+                  have skipped receipts
+                </small>
+              </div>
+            </section>
+          )}
           <JudgeAccess
             info={state.capabilities.judge}
             busy={busy}
@@ -1293,6 +1323,7 @@ export default function App() {
                             }
                             disabled={
                               busy ||
+                              state.capabilities.modelMode === "local" ||
                               (IS_JUDGE &&
                                 state.capabilities.judge?.mode !== "live")
                             }
@@ -1305,7 +1336,11 @@ export default function App() {
                             )}
                           </button>
                           <span className="orb-label">
-                            {recording ? "Listening…" : "Ready when you are"}
+                            {state.capabilities.modelMode === "local"
+                              ? "Voice skipped in local mode"
+                              : recording
+                                ? "Listening…"
+                                : "Ready when you are"}
                           </span>
                         </div>
                       </div>
@@ -1334,6 +1369,7 @@ export default function App() {
                             className="composer-mic"
                             disabled={
                               busy ||
+                              state.capabilities.modelMode === "local" ||
                               (IS_JUDGE &&
                                 state.capabilities.judge?.mode !== "live")
                             }
@@ -1344,7 +1380,9 @@ export default function App() {
                           </button>
                           <span className="composer-mode">
                             {state.capabilities.gemma
-                              ? "Gemma connected"
+                              ? state.capabilities.modelMode === "local"
+                                ? `${state.capabilities.gemmaModel} · local`
+                                : "Gemma connected"
                               : "Local planner"}
                           </span>
                           <select
@@ -1436,7 +1474,10 @@ export default function App() {
                         </button>
                       </div>
                     </div>
-                    <aside className="workflow-card">
+                    <section
+                      className="workflow-card"
+                      aria-label="How VOX works"
+                    >
                       <div className="section-eyebrow">
                         <Workflow size={16} /> THE WAY VOX WORKS
                       </div>
@@ -1483,7 +1524,7 @@ export default function App() {
                         <ShieldCheck size={15} />
                         <span>Nothing gets sent without your say.</span>
                       </div>
-                    </aside>
+                    </section>
                   </section>
                   <div className="metrics-row">
                     {[
@@ -1721,7 +1762,7 @@ export default function App() {
                       </h1>
                       <p>
                         {approvalItems.length
-                          ? `${approvalItems.length} replies ready for a thoughtful once-over.`
+                          ? `${approvalItems.length} ${approvalItems.length === 1 ? "reply" : "replies"} ready for a thoughtful once-over.`
                           : approvalFilter !== "all"
                             ? "This run has been reviewed. Your decisions are saved."
                             : "You’re all caught up. Nothing is waiting on you."}
@@ -1785,7 +1826,7 @@ export default function App() {
                               {d.provider} · {relative(d.createdAt)}
                             </span>
                           </div>
-                          <h3>{d.ticket.title}</h3>
+                          <h2>{d.ticket.title}</h2>
                           <div className="draft-to">
                             <span className="avatar av-2">
                               {initials(d.ticket.name)}
@@ -1799,7 +1840,17 @@ export default function App() {
                           </div>
                           <p className="draft-excerpt">{d.body}</p>
                           {d.review && (
-                            <Badge kind="local">Ultramarine reviewed</Badge>
+                            <Badge
+                              kind={
+                                d.review.verdict === "needs_revision"
+                                  ? "pending"
+                                  : "local"
+                              }
+                            >
+                              {d.review.verdict === "needs_revision"
+                                ? "Ultramarine: changes suggested"
+                                : "Ultramarine: ready for your review"}
+                            </Badge>
                           )}
                           <div className="draft-source">
                             <BookOpen size={13} />
@@ -2119,7 +2170,9 @@ export default function App() {
                           </div>
                           <button
                             className="button primary"
-                            disabled={busy}
+                            disabled={
+                              busy || state.capabilities.modelMode === "local"
+                            }
                             onClick={() => playBriefing(currentRun)}
                           >
                             {speechLoading ? (
@@ -2129,11 +2182,13 @@ export default function App() {
                             ) : (
                               <Volume2 size={16} />
                             )}{" "}
-                            {speechLoading
-                              ? "Cancel audio"
-                              : playing
-                                ? "Stop briefing"
-                                : "Play briefing"}
+                            {state.capabilities.modelMode === "local"
+                              ? "Voice skipped in local mode"
+                              : speechLoading
+                                ? "Cancel audio"
+                                : playing
+                                  ? "Stop briefing"
+                                  : "Play briefing"}
                           </button>
                         </div>
                       )}
@@ -2201,7 +2256,9 @@ export default function App() {
                         Structured outputs, streaming plan cards, and validation
                         before execution.{" "}
                         {state.capabilities.gemma
-                          ? "Gemma endpoint configured."
+                          ? state.capabilities.modelMode === "local"
+                            ? "Local Gemma endpoint configured; cloud calls disabled."
+                            : "Gemma endpoint configured."
                           : "No model endpoint is connected. The local planner is active."}
                       </p>
                     </div>
@@ -2213,7 +2270,7 @@ export default function App() {
                         <CheckCheck size={24} />
                       </span>
                       <div>
-                        <h3>Working in this workspace</h3>
+                        <h2>Working in this workspace</h2>
                         <p>
                           {state.capabilities.storage || "SQLite"} persistence,
                           bounded planning, ticket scoring, saved labels,
@@ -2227,12 +2284,11 @@ export default function App() {
                         <Layers size={24} />
                       </span>
                       <div>
-                        <h3>Connections and observed requests</h3>
+                        <h2>Connections and observed requests</h2>
                         <p>
-                          Mastra runs the approved plan. The receipts below show
-                          which external services this workspace called. A
-                          configured connection alone is not proof of a
-                          successful request or prize eligibility.
+                          {state.capabilities.modelMode === "local"
+                            ? "Mastra runs the approved plan. Local model requests and skipped external steps are recorded separately; skipped steps do not count as successful requests."
+                            : "Mastra runs the approved plan. The receipts below show which external services this workspace called. A configured connection alone is not proof of a successful request or prize eligibility."}
                         </p>
                         <Badge>Request evidence, not prize certification</Badge>
                       </div>
@@ -2246,7 +2302,13 @@ export default function App() {
                           Local features do not stand in for provider proof.
                         </p>
                       </div>
-                      <Badge>{state.receipts.length} provider receipts</Badge>
+                      <Badge>
+                        {
+                          state.receipts.filter((r) => r.status !== "skipped")
+                            .length
+                        }{" "}
+                        request receipts
+                      </Badge>
                     </div>
                     <div className="integration-grid">
                       {state.integrations.map((p) => (
@@ -2283,7 +2345,9 @@ export default function App() {
                                 ? "Running locally"
                                 : p.status === "configured"
                                   ? "Configured"
-                                  : "Not connected"}
+                                  : p.status === "skipped in local mode"
+                                    ? "Skipped in local mode"
+                                    : "Not connected"}
                             </Badge>
                             {p.proofCount > 0 && (
                               <small>{p.proofCount} request receipts</small>
@@ -2296,21 +2360,29 @@ export default function App() {
                   {state.receipts.length > 0 && (
                     <div className="panel receipt-panel">
                       <div className="panel-heading">
-                        <h2>Actual provider requests</h2>
+                        <h2>
+                          {state.capabilities.modelMode === "local"
+                            ? "Local requests and skipped steps"
+                            : "Actual provider requests"}
+                        </h2>
                       </div>
                       {state.receipts.map((r) => (
                         <div className="receipt" key={r.id}>
                           <strong>{r.provider}</strong>
                           <span>{r.model || r.operation}</span>
                           <span>
-                            {r.latencyMs == null
-                              ? "Latency unavailable"
-                              : `${r.latencyMs} ms`}
+                            {r.status === "skipped"
+                              ? "No request"
+                              : r.latencyMs == null
+                                ? "Latency unavailable"
+                                : `${r.latencyMs} ms`}
                           </span>
                           <span>
-                            {typeof r.cost === "number"
-                              ? `Est. $${r.cost.toFixed(5)}`
-                              : "Cost unavailable"}
+                            {r.status === "skipped"
+                              ? "Not called"
+                              : typeof r.cost === "number"
+                                ? `Est. $${r.cost.toFixed(5)}`
+                                : "Cost unavailable"}
                           </span>
                         </div>
                       ))}
@@ -2407,14 +2479,17 @@ export default function App() {
                     {plan.ticketIds.length} synthetic tickets
                   </Badge>
                   <Badge>
-                    {plan.provider === "local"
-                      ? "Local rules planner"
-                      : "Configured Gemma endpoint"}
+                    {plan.provider === "local-model"
+                      ? "Local open-weight Gemma"
+                      : plan.provider === "local"
+                        ? "Local rules planner"
+                        : "Configured Gemma endpoint"}
                   </Badge>
                   <Badge>{plan.estimatedCalls} estimated model calls</Badge>
                   {plan.normalization && (
                     <Badge>
-                      Tinker intent · {plan.normalization.drafts}{" "}
+                      {plan.normalization.provider} intent ·{" "}
+                      {plan.normalization.drafts}{" "}
                       {plan.normalization.drafts === 1 ? "draft" : "drafts"}
                     </Badge>
                   )}
@@ -2463,7 +2538,7 @@ export default function App() {
                     <p>{plan.boundaries.join(" · ")}</p>
                     <small>
                       {plan.injectFailure
-                        ? "Recovery demo enabled: one safe transient failure will be injected."
+                        ? "Recovery demo enabled: safe pre-write retry checks are active."
                         : "Recovery demo disabled."}{" "}
                       Gemma call ceiling: {plan.maxProviderCalls}. Additional
                       provider limits are shown above. Costs are estimates where
@@ -2854,7 +2929,7 @@ export default function App() {
                   </button>
                 </div>
                 <div className="reset-section">
-                  <h4>A fresh start</h4>
+                  <h3>A fresh start</h3>
                   <p>
                     Clear your transcript history, plans, runs, drafts,
                     decisions, and preferences. Recreate the 24 fictional

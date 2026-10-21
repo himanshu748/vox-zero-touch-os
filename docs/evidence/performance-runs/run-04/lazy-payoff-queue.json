@@ -1,0 +1,201 @@
+{
+  "referenceTime": "2026-10-21T08:51:42.440Z",
+  "provenance": "24 authored fictional VOX tickets; no customer data",
+  "tickets": [
+    {
+      "id": "VX-1042",
+      "title": "Production deploy fails with exit code 137",
+      "body": "Our production deploy started failing after we raised the worker count. The build log ends with exit code 137. Customers cannot access the new release.",
+      "category": "deployment",
+      "slaHoursAtStart": 1
+    },
+    {
+      "id": "VX-1043",
+      "title": "Locked out after enabling SSO",
+      "body": "We enabled SSO this morning and the entire team is now locked out. Our launch starts in two hours. Can you help restore access?",
+      "category": "access",
+      "slaHoursAtStart": 2
+    },
+    {
+      "id": "VX-1044",
+      "title": "Webhook deliveries returning 429",
+      "body": "Webhook retries are building up and some requests return 429. We have 2,400 pending events and our order processing is delayed.",
+      "category": "incident",
+      "slaHoursAtStart": 3
+    },
+    {
+      "id": "VX-1045",
+      "title": "Invoice has a duplicate line item",
+      "body": "The latest invoice shows the same seat adjustment twice. Could you explain the two line items before our finance team pays it?",
+      "category": "billing",
+      "slaHoursAtStart": 16
+    },
+    {
+      "id": "VX-1046",
+      "title": "How do I rotate an API key?",
+      "body": "We are updating our security practices. Where can I find the recommended process to rotate an API key without downtime?",
+      "category": "docs",
+      "slaHoursAtStart": 40
+    },
+    {
+      "id": "VX-1047",
+      "title": "Build hangs while installing dependencies",
+      "body": "Our preview build sits at installing dependencies for over 20 minutes. This started after updating the lockfile.",
+      "category": "deployment",
+      "slaHoursAtStart": 7
+    },
+    {
+      "id": "VX-1048",
+      "title": "Team invitations are not arriving",
+      "body": "Three new teammates have not received their invite emails. They checked spam. The invitations were sent about an hour ago.",
+      "category": "access",
+      "slaHoursAtStart": 23
+    },
+    {
+      "id": "VX-1049",
+      "title": "Need an export of last month’s invoices",
+      "body": "Could you point me to the monthly invoice download? I need PDF copies for our accounting records.",
+      "category": "billing",
+      "slaHoursAtStart": 38
+    },
+    {
+      "id": "VX-1050",
+      "title": "Database connection pool exhausted",
+      "body": "Our app reports too many connections during peak traffic. The production service is returning intermittent 500 responses.",
+      "category": "incident",
+      "slaHoursAtStart": 1
+    },
+    {
+      "id": "VX-1051",
+      "title": "Custom domain still shows pending",
+      "body": "We added the CNAME yesterday but the domain is still pending verification. Our DNS provider says it has propagated.",
+      "category": "deployment",
+      "slaHoursAtStart": 4
+    },
+    {
+      "id": "VX-1052",
+      "title": "Where can I change the billing contact?",
+      "body": "Our finance lead has changed. I would like future invoices to go to the new billing contact. What is the process?",
+      "category": "billing",
+      "slaHoursAtStart": 41
+    },
+    {
+      "id": "VX-1053",
+      "title": "Request for pagination example",
+      "body": "The list endpoint works well. Is there a TypeScript example of cursor pagination for a larger collection?",
+      "category": "docs",
+      "slaHoursAtStart": 36
+    },
+    {
+      "id": "VX-1054",
+      "title": "Password reset link has expired",
+      "body": "The reset link says expired even when opened immediately. I have tried requesting another email twice.",
+      "category": "access",
+      "slaHoursAtStart": 5
+    },
+    {
+      "id": "VX-1055",
+      "title": "Scheduled jobs missed their last run",
+      "body": "Two nightly jobs did not run and our reports have not updated. The schedule is configured for UTC.",
+      "category": "incident",
+      "slaHoursAtStart": 2
+    },
+    {
+      "id": "VX-1056",
+      "title": "Move a project to another team",
+      "body": "We are reorganizing our projects. Can I transfer a project to a different workspace without rebuilding it?",
+      "category": "docs",
+      "slaHoursAtStart": 33
+    },
+    {
+      "id": "VX-1057",
+      "title": "Unexpected increase in usage",
+      "body": "Usage rose after our release on Friday. Can you help us understand which resources are responsible?",
+      "category": "billing",
+      "slaHoursAtStart": 20
+    },
+    {
+      "id": "VX-1058",
+      "title": "Preview environment has stale variables",
+      "body": "The preview deployment is using the old environment variable even though I saved the new value.",
+      "category": "deployment",
+      "slaHoursAtStart": 18
+    },
+    {
+      "id": "VX-1059",
+      "title": "Add a read-only teammate",
+      "body": "I want to invite a contractor who can view logs but cannot make changes. Which role should I choose?",
+      "category": "access",
+      "slaHoursAtStart": 46
+    },
+    {
+      "id": "VX-1060",
+      "title": "Document the API rate limits",
+      "body": "Where are the per-minute API rate limits documented? We are planning a bulk import next week.",
+      "category": "docs",
+      "slaHoursAtStart": 30
+    },
+    {
+      "id": "VX-1061",
+      "title": "Intermittent SSL handshake errors",
+      "body": "Some users report an SSL handshake error on our custom domain. It started after changing DNS this morning.",
+      "category": "incident",
+      "slaHoursAtStart": 3
+    },
+    {
+      "id": "VX-1062",
+      "title": "Change the default deployment region",
+      "body": "Our customers are mostly in Europe. How do we move the service closer to them?",
+      "category": "deployment",
+      "slaHoursAtStart": 34
+    },
+    {
+      "id": "VX-1063",
+      "title": "Question about prorated seats",
+      "body": "We added two teammates mid-month. How are those seats prorated in the next billing period?",
+      "category": "billing",
+      "slaHoursAtStart": 32
+    },
+    {
+      "id": "VX-1064",
+      "title": "Trouble using the CLI on Windows",
+      "body": "The authentication command opens the browser but the CLI keeps waiting. I am using Windows and PowerShell.",
+      "category": "docs",
+      "slaHoursAtStart": 15
+    },
+    {
+      "id": "VX-1065",
+      "title": "Cannot remove an old team member",
+      "body": "A former team member still appears in the workspace. The remove button is disabled for my role.",
+      "category": "access",
+      "slaHoursAtStart": 21
+    }
+  ],
+  "playbooks": {
+    "deployment": {
+      "title": "Deployment troubleshooting",
+      "url": "https://render.com/docs/troubleshooting-deploys",
+      "content": "Review the deploy logs and the most recent configuration change. Exit code 137 commonly indicates a process was killed, often due to memory pressure. Check memory metrics before changing instance size. Rebuild after environment changes."
+    },
+    "access": {
+      "title": "Authentication troubleshooting",
+      "url": "https://auth0.com/docs/troubleshoot",
+      "content": "Check the configured connection, callback URL, role permissions and the identity provider logs. Ask a workspace administrator to review access. Never bypass SSO or change entitlements on the user’s behalf."
+    },
+    "incident": {
+      "title": "Service troubleshooting",
+      "url": "https://render.com/docs/troubleshooting-deploys",
+      "content": "Check service health, logs, error timestamps and resource metrics. For rate limits, inspect Retry-After and use exponential backoff. For database connections, review connection pool limits. Confirm the root cause before recommending a production change."
+    },
+    "billing": {
+      "title": "Billing and invoices",
+      "url": "https://render.com/docs/billing",
+      "content": "Check the billing dashboard and compare the service dates, seat count and prorated adjustments. A billing administrator can download invoices. Billing discrepancies need manual confirmation before any refund or account change."
+    },
+    "docs": {
+      "title": "Developer documentation",
+      "url": "https://render.com/docs",
+      "content": "Locate the relevant section of the official documentation and verify the project settings. Ask for the CLI version or a minimal reproducible example if the specific error is unclear. Never share API keys in a support thread."
+    }
+  }
+}

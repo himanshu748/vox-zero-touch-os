@@ -14,6 +14,8 @@ The [owner workspace](https://getvox.tech/app) keeps its verified Auth0 owner re
 
 ## Run
 
+**Local open-weight AI:** [setup and isolation](docs/LOCAL.md) · [measured lazy payoff and manual timing sheet](docs/LAZY_PAYOFF.md). `VOX_MODEL_MODE=local npm run dev` uses local Gemma for intent, planning and drafting, starts isolated local Temporal/SQLite persistence, and skips external providers. This is separate from the rules-only demo and does not change the hosted site. The proposed article revision is [a file-only draft](docs/DEV_POST_DRAFT.md).
+
 Requires Node.js 22.18 or newer. SQLite uses Node's built-in experimental `node:sqlite` API.
 
 ```bash
@@ -89,13 +91,15 @@ npm run build
 npm start
 ```
 
-41 automated checks pass. Type checking covers the AI SDK adapter. Browser verification exercised the real provider chain with a synthetic spoken file: live Scribe transcription → live Gemma plan → two live Gemma drafts → Mastra approval suspension/resume → live ElevenLabs briefing. Replay and process restart reused the saved audio. The expanded hosted pass produced 15 successful provider receipts, real Temporal history through completion, and a Mastra success state. A full service stop/resume preserved both approvals and every completed provider receipt. Two Google internal-error failures required explicit checkpoint resumes. Physical microphone testing was deferred by the user. [Hosted evidence](docs/evidence/hosted-expansion.json).
+54 automated checks pass. Type checking covers the AI SDK adapter. Browser verification exercised the real provider chain with a synthetic spoken file: live Scribe transcription → live Gemma plan → two live Gemma drafts → Mastra approval suspension/resume → live ElevenLabs briefing. Replay and process restart reused the saved audio. The expanded hosted pass produced 15 successful provider receipts, real Temporal history through completion, and a Mastra success state. A full service stop/resume preserved both approvals and every completed provider receipt. Two Google internal-error failures required explicit checkpoint resumes. Physical microphone testing was deferred by the user. [Hosted evidence](docs/evidence/hosted-expansion.json).
 
 The workspace and landing share Geist typography, soft white surfaces, near-black headings, cobalt accents and motion tokens. Mobile/tablet/desktop checks cover menus, dialogs, plan cards, approvals and evidence.
 
 The dependency audit currently reports one unpatched transitive formatter denial-of-service advisory through Mastra's frontmatter dependency chain (five affected package entries). VOX does not expose frontmatter parsing or user-controlled format strings. No unsafe forced dependency downgrade was applied.
 
 See [verification](docs/VERIFICATION.md), [live voice architecture](docs/VOICE-FLOW.md), [motion](docs/MOTION.md), [asset provenance](docs/ASSETS.md) and [remaining PRD requirements](docs/REMAINING.md).
+
+The [PRD completion checklist](docs/PRD_STATUS.md) distinguishes verified implementation, local measurements, intentional exclusions and remaining human checks. Local benchmarking uses no cloud services; Ultramarine remains active only in the hosted advisory-review path.
 
 ## References
 

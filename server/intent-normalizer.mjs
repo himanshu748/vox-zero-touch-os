@@ -1,6 +1,8 @@
 import { randomUUID, createHash } from "node:crypto";
 import { z } from "zod";
 import { providerJSON } from "./provider-http.mjs";
+import { generateStructured } from "./ai.mjs";
+import { isLocalModelMode, localModelConfig } from "./model-mode.mjs";
 
 export const normalizationSchema = z
   .object({
@@ -13,6 +15,7 @@ export const normalizationSchema = z
 export const normalizationPrompt =
   'Normalize a synthetic support command into JSON with exactly research (boolean), drafts (integer 0 to 6), tag (boolean). Triage is always implicit. Drafting needs research. Draft zero if no replies are requested; default to two if a count is not stated. "A reply" or "one reply" means one. Research means looking up fixes or sources. Do not interpret "no drafts" as a drafting request. Tags mean internal labels only. Sending is never authorized. Return only the JSON object, with no prose.';
 export const normalizationEnabled = () =>
+  isLocalModelMode() ||
   Boolean(
     process.env.TINKER_API_KEY &&
     /^tinker:\/\/[^\s]+\/sampler_weights\/[^\s]+$/.test(
@@ -41,6 +44,47 @@ export async function normalizeCommand(
   if (!normalizationEnabled()) return null;
   z.string().min(8).max(2000).parse(command);
   const start = Date.now();
+  if (isLocalModelMode()) {
+    const config = localModelConfig();
+    const messages = [
+      { role: "system", content: normalizationPrompt },
+      { role: "user", content: command },
+    ];
+    let result,
+      fallbackUsed = false;
+    try {
+      result = await generateStructured({
+        schema: normalizationSchema,
+        messages,
+        signal,
+      });
+    } catch (error) {
+      if (signal?.aborted || config.model === config.intentFallback)
+        throw error;
+      fallbackUsed = true;
+      result = await generateStructured({
+        schema: normalizationSchema,
+        messages,
+        localModel: config.intentFallback,
+        signal,
+      });
+    }
+    return {
+      value: normalizationSchema.parse(result.output),
+      receipt: {
+        provider: "Local intent model",
+        operation: "intent normalization",
+        execution: "local",
+        model: result.model,
+        fallbackUsed,
+        requestId: result.requestId,
+        latencyMs: Date.now() - start,
+        usage: result.usage,
+        cost: null,
+        createdAt: new Date().toISOString(),
+      },
+    };
+  }
   const { data } = await providerJSON(
     "https://tinker.thinkingmachines.dev/services/tinker-prod/oai/api/v1/chat/completions",
     {

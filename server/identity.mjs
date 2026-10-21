@@ -1,6 +1,8 @@
 import oidc from "express-openid-connect";
 import { createHash } from "node:crypto";
+import { isLocalModelMode } from "./model-mode.mjs";
 export function configureIdentity(app) {
+  if (isLocalModelMode()) return false;
   const configured = Boolean(
     process.env.AUTH0_ISSUER_BASE_URL &&
     process.env.AUTH0_CLIENT_ID &&
@@ -40,6 +42,7 @@ export function configureIdentity(app) {
   return true;
 }
 export function authenticatedOwner(req) {
+  if (isLocalModelMode()) return null;
   if (!req.oidc?.isAuthenticated()) return null;
   if (
     process.env.AUTH0_ALLOWED_EMAIL &&
@@ -50,6 +53,7 @@ export function authenticatedOwner(req) {
   return `auth0:${createHash("sha256").update(`${process.env.AUTH0_ISSUER_BASE_URL}:${req.oidc.user.sub}`).digest("hex")}`;
 }
 export function requireIdentity(req, res, next) {
+  if (isLocalModelMode()) return next();
   if (req.judgeAccess?.canDecide) return next();
   if (
     process.env.AUTH0_REQUIRE_APPROVAL_LOGIN === "true" &&

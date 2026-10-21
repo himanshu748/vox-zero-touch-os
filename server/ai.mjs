@@ -1,9 +1,16 @@
 // @ts-check
-import { generateText, streamText, Output } from "ai";
+import { generateText, streamText, Output, jsonSchema, zodSchema } from "ai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import {
+  isLocalModelMode,
+  localModelConfig,
+  loopbackFetch,
+} from "./model-mode.mjs";
 
 export function modelConnection() {
+  if (isLocalModelMode())
+    return { provider: "local", model: localModelConfig().model, ready: true };
   const provider =
     process.env.GEMMA_PROVIDER ||
     (process.env.GEMMA_BASE_URL ? "compatible" : "google");
@@ -19,9 +26,18 @@ export function modelConnection() {
         : Boolean(process.env.GEMMA_BASE_URL && process.env.GEMMA_MODEL),
   };
 }
-/** @returns {import('ai').LanguageModel} */
-export function configuredModel() {
+/** @param {string} [localModel] @returns {import('ai').LanguageModel} */
+export function configuredModel(localModel) {
   const config = modelConnection();
+  if (isLocalModelMode()) {
+    const local = localModelConfig();
+    return createOpenAICompatible({
+      name: "vox-local",
+      baseURL: local.baseURL,
+      supportsStructuredOutputs: true,
+      fetch: loopbackFetch(),
+    })(localModel || local.model);
+  }
   if (!config.ready)
     throw new Error(
       "Connect a Gemma endpoint or Google AI key to enable generation.",
@@ -64,28 +80,49 @@ function parseJSON(text, schema) {
   return schema.parse(JSON.parse(clean));
 }
 /**
+ * Ollama's grammar compiler rejects some large bounded-string grammars.
+ * Remove string-length hints only from inference; final Zod validation is unchanged.
+ * @template T @param {import('zod').ZodType<T>} schema
+ */
+function inferenceSchema(schema) {
+  if (!isLocalModelMode()) return schema;
+  return jsonSchema(
+    JSON.parse(JSON.stringify(zodSchema(schema).jsonSchema), (key, value) =>
+      key === "minLength" || key === "maxLength" ? undefined : value,
+    ),
+  );
+}
+/**
  * Google Gemma uses prompt-constrained JSON because not every Gemma deployment
  * supports Google's native response schema. Validation is mandatory in both modes.
  * @template T
- * @param {{schema:import('zod').ZodType<T>,messages:import('ai').ModelMessage[],model?:import('ai').LanguageModel,signal?:AbortSignal}} options
+ * @param {{schema:import('zod').ZodType<T>,messages:import('ai').ModelMessage[],model?:import('ai').LanguageModel,localModel?:string,signal?:AbortSignal}} options
  */
-export async function generateStructured({ schema, messages, model, signal }) {
+export async function generateStructured({
+  schema,
+  messages,
+  model,
+  localModel,
+  signal,
+}) {
   const promptJSON = !model && modelConnection().provider === "google";
   const result = await generateText({
-    model: model ?? configuredModel(),
+    model: model ?? configuredModel(localModel),
     ...modelPrompt(messages),
-    output: promptJSON ? Output.text() : Output.object({ schema }),
+    output: promptJSON
+      ? Output.text()
+      : Output.object({ schema: inferenceSchema(schema) }),
     temperature: 0.1,
     maxOutputTokens: 1200,
     maxRetries: 0,
     telemetry: {
-      isEnabled: Boolean(process.env.SENTRY_DSN),
+      isEnabled: !isLocalModelMode() && Boolean(process.env.SENTRY_DSN),
       functionId: "vox-gemma-structured",
       recordInputs: false,
       recordOutputs: false,
     },
     abortSignal: AbortSignal.any([
-      AbortSignal.timeout(60000),
+      AbortSignal.timeout(isLocalModelMode() ? 180000 : 60000),
       ...(signal ? [signal] : []),
     ]),
   });
@@ -109,26 +146,33 @@ export function streamStructured({ schema, messages, signal, model }) {
   const result = streamText({
     model: model ?? configuredModel(),
     ...modelPrompt(messages),
-    output: promptJSON ? Output.text() : Output.object({ schema }),
+    output: promptJSON
+      ? Output.text()
+      : Output.object({ schema: inferenceSchema(schema) }),
     temperature: 0.1,
     maxOutputTokens: 1200,
     maxRetries: 0,
     telemetry: {
-      isEnabled: Boolean(process.env.SENTRY_DSN),
+      isEnabled: !isLocalModelMode() && Boolean(process.env.SENTRY_DSN),
       functionId: "vox-gemma-plan",
       recordInputs: false,
       recordOutputs: false,
     },
-    abortSignal: AbortSignal.any([signal, AbortSignal.timeout(60000)]),
+    abortSignal: AbortSignal.any([
+      signal,
+      AbortSignal.timeout(isLocalModelMode() ? 180000 : 60000),
+    ]),
   });
   // The route exposes only raw JSON text. Partial data never becomes an executable plan.
-  return promptJSON
+  return promptJSON || isLocalModelMode()
     ? {
         ...result,
         stream: result.stream,
         usage: result.usage,
         response: result.response,
-        output: result.text.then((text) => parseJSON(text, schema)),
+        output: promptJSON
+          ? result.text.then((text) => parseJSON(text, schema))
+          : result.output.then((value) => schema.parse(value)),
       }
     : result;
 }

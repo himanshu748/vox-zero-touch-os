@@ -1,8 +1,10 @@
 import { MongoClient } from "mongodb";
+import { isLocalModelMode } from "./model-mode.mjs";
 
 // SQLite is the local transaction cache; Atlas is the acknowledged operational snapshot.
 // A revision comparison rejects concurrent writers rather than silently losing updates.
 export async function connectAtlas(store, { client } = {}) {
+  if (isLocalModelMode()) return null;
   if (!process.env.MONGODB_URI && !client) return null;
   const mongo =
     client ||

@@ -1,0 +1,103 @@
+{
+  "checkedAt": "2026-10-21T09:36:26.154Z",
+  "mode": "real local Gemma browser journey; fictional queue and simulated sends",
+  "runId": "9cc755e0-e826-45c8-b03d-e5aa2b413812",
+  "status": "completed",
+  "mastraStatus": "success",
+  "receipts": [
+    {
+      "provider": "Local intent model",
+      "model": "gemma3:4b",
+      "latencyMs": 3487,
+      "operation": "intent normalization",
+      "execution": "local"
+    },
+    {
+      "provider": "Gemma endpoint",
+      "model": "gemma3:4b",
+      "latencyMs": 6524,
+      "execution": "local"
+    },
+    {
+      "provider": "SerpApi",
+      "status": "skipped",
+      "operation": "skipped in local mode"
+    },
+    {
+      "provider": "ElevenLabs",
+      "status": "skipped",
+      "operation": "skipped in local mode"
+    },
+    {
+      "provider": "Browserbase",
+      "status": "skipped",
+      "operation": "skipped in local mode"
+    },
+    {
+      "provider": "Backboard",
+      "status": "skipped",
+      "operation": "skipped in local mode"
+    },
+    {
+      "provider": "TabPFN",
+      "status": "skipped",
+      "operation": "skipped in local mode"
+    },
+    {
+      "provider": "Tiger Data",
+      "status": "skipped",
+      "operation": "skipped in local mode"
+    },
+    {
+      "provider": "Ultramarine",
+      "status": "skipped",
+      "operation": "skipped in local mode"
+    },
+    {
+      "provider": "Tinker",
+      "status": "skipped",
+      "operation": "skipped in local mode"
+    },
+    {
+      "provider": "Gemma endpoint",
+      "model": "gemma3:4b",
+      "latencyMs": 2299,
+      "execution": "local"
+    },
+    {
+      "provider": "Gemma endpoint",
+      "model": "gemma3:4b",
+      "latencyMs": 2714,
+      "execution": "local"
+    }
+  ],
+  "ledgerRows": 35,
+  "keyboard": {
+    "approvalShiftTabWrap": true,
+    "approvalTabWrap": true,
+    "escapeDismissal": true,
+    "mobileEscapeRestoredNavigation": true
+  },
+  "reducedMotionObserved": true,
+  "physicalVoiceUsed": false,
+  "productionAccess": false,
+  "video": "Edited real UI captures of this run; timing is not a benchmark",
+  "result": {
+    "triaged": 24,
+    "labels": 7,
+    "drafts": 2,
+    "sent": 1,
+    "rejected": 1,
+    "urgent": 6,
+    "retries": 2,
+    "pending": 0
+  },
+  "temporal": {
+    "workflowId": "vox-9cc755e0-e826-45c8-b03d-e5aa2b413812",
+    "runId": "01a15dae-8320-79b4-85fd-d62cfe207539",
+    "namespace": "vox-local",
+    "status": "COMPLETED",
+    "historyEvents": 21
+  },
+  "initialBriefing": "I triaged 24 tickets, added 7 internal labels and prepared 2 replies. 6 tickets are urgent. 2 replies await your approval. 0 replies were sent inside the synthetic sandbox. No external messages were sent."
+}

@@ -6,6 +6,7 @@ import PlanCards from "./PlanCards";
 import JudgeAccess from "./JudgeAccess";
 import { WorkflowLauncher, RunHandoff } from "./ProductOverview";
 import { workflowFromSearch } from "../shared/workflow-presets.mjs";
+import { voiceAvailability } from "../shared/voice-access.mjs";
 import { recordingWave } from "./voice-audio";
 import { VOX_MOTION } from "./motion-system";
 import {
@@ -334,6 +335,7 @@ export default function App() {
     [voiceConsent, setVoiceConsent] = useState(false),
     [transcript, setTranscript] = useState(null),
     [voicePhase, setVoicePhase] = useState(null),
+    [voiceError, setVoiceError] = useState(null),
     [speechLoading, setSpeechLoading] = useState(false),
     [prefs, setPrefs] = useState(null),
     [confirmReset, setConfirmReset] = useState(false),
@@ -550,6 +552,17 @@ export default function App() {
     ? state.runs.find((r) => r.id === selectedRun)
     : state.runs[0];
   const active = state.runs.find((r) => r.status === "running");
+  const voiceAccess = voiceAvailability(state.capabilities, IS_JUDGE);
+  const judgePass = state.capabilities.judge;
+  const canPlan =
+    !IS_JUDGE ||
+    (judgePass?.canDecide &&
+      judgePass.mode !== "expired" &&
+      !(
+        judgePass.mode === "live" &&
+        Number.isFinite(judgePass.limits?.plan) &&
+        judgePass.used.plan >= judgePass.limits.plan
+      ));
   const urgent = state.tickets.filter((t) =>
     ["urgent", "high"].includes(t.priority),
   );
@@ -590,6 +603,11 @@ export default function App() {
   }
   async function preview() {
     if (busy || active) return;
+    if (!canPlan)
+      return notify(
+        "This pass cannot start another plan. Review your saved work or choose the rules-only demo.",
+        "error",
+      );
     if (!command.trim()) {
       textarea.current?.focus();
       notify("Type a command or use a suggested workflow.", "error");
@@ -632,18 +650,23 @@ export default function App() {
     setTimeout(() => textarea.current?.focus(), 100);
   }
   async function voiceStart() {
-    if (state.capabilities.modelMode === "local")
-      return notify("Voice is skipped in local mode. Type your instruction.");
     if (recording) {
       recordRef.current?.stop();
       return;
     }
+    if (!voiceAccess.allowed) return notify(voiceAccess.message, "error");
     setModal({ type: "voice" });
     setVoiceConsent(false);
+    setVoiceError(null);
   }
   async function transcribeBlob(blob, controller = new AbortController()) {
+    if (!voiceAccess.allowed) {
+      setVoiceError(voiceAccess.message);
+      return;
+    }
     voiceRequest.current = controller;
     setBusy(true);
+    setVoiceError(null);
     setVoicePhase("transcribing");
     try {
       const response = await fetch(endpoint("transcribe"), {
@@ -663,14 +686,17 @@ export default function App() {
         "ElevenLabs transcript ready. Review it, then create your Gemma plan.",
       );
       setTimeout(() => textarea.current?.focus(), 100);
-      await sync();
     } catch (error) {
-      if (!controller.signal.aborted) notify(readableError(error), "error");
+      if (!controller.signal.aborted) {
+        setVoiceError(readableError(error));
+        notify(readableError(error), "error");
+      }
     } finally {
       if (voiceRequest.current === controller) {
         setBusy(false);
         setVoicePhase(null);
         voiceRequest.current = null;
+        await sync();
       }
     }
   }
@@ -689,6 +715,10 @@ export default function App() {
   }
   async function record() {
     if (!voiceConsent || busy || recording) return;
+    if (!voiceAccess.allowed) {
+      setVoiceError(voiceAccess.message);
+      return;
+    }
     const controller = new AbortController();
     voiceRequest.current = controller;
     setVoicePhase("requesting");
@@ -745,7 +775,10 @@ export default function App() {
           if (!controller.signal.aborted)
             await transcribeBlob(wave, controller);
         } catch (error) {
-          if (!controller.signal.aborted) notify(readableError(error), "error");
+          if (!controller.signal.aborted) {
+            setVoiceError(readableError(error));
+            notify(readableError(error), "error");
+          }
           setVoicePhase(null);
           setBusy(false);
         }
@@ -754,10 +787,10 @@ export default function App() {
         cleanup();
         setRecording(false);
         setVoicePhase(null);
-        notify(
-          "Recording was interrupted. Try uploading an audio file.",
-          "error",
-        );
+        const message =
+          "Recording was interrupted. Try uploading an audio file.";
+        setVoiceError(message);
+        notify(message, "error");
       };
       recorder.start();
       timer = setTimeout(() => {
@@ -775,13 +808,14 @@ export default function App() {
       cleanup();
       setRecording(false);
       setVoicePhase(null);
-      if (!controller.signal.aborted)
-        notify(
+      if (!controller.signal.aborted) {
+        const message =
           error.name === "NotAllowedError"
             ? "Microphone access was denied. Upload audio or type your command instead."
-            : readableError(error),
-          "error",
-        );
+            : readableError(error);
+        setVoiceError(message);
+        notify(message, "error");
+      }
     }
   }
   async function playBriefing(run) {
@@ -1349,11 +1383,9 @@ export default function App() {
                                 : "Record a voice command"
                             }
                             disabled={
-                              busy ||
-                              state.capabilities.modelMode === "local" ||
-                              (IS_JUDGE &&
-                                state.capabilities.judge?.mode !== "live")
+                              busy || (!recording && !voiceAccess.allowed)
                             }
+                            aria-describedby="voice-access-status"
                             onClick={voiceStart}
                           >
                             {recording ? (
@@ -1363,11 +1395,7 @@ export default function App() {
                             )}
                           </button>
                           <span className="orb-label">
-                            {state.capabilities.modelMode === "local"
-                              ? "Voice skipped in local mode"
-                              : recording
-                                ? "Listening…"
-                                : "Ready when you are"}
+                            {recording ? "Listening…" : voiceAccess.label}
                           </span>
                         </div>
                       </div>
@@ -1395,11 +1423,9 @@ export default function App() {
                           <button
                             className="composer-mic"
                             disabled={
-                              busy ||
-                              state.capabilities.modelMode === "local" ||
-                              (IS_JUDGE &&
-                                state.capabilities.judge?.mode !== "live")
+                              busy || (!recording && !voiceAccess.allowed)
                             }
+                            aria-describedby="voice-access-status"
                             onClick={voiceStart}
                             aria-label="Record a command"
                           >
@@ -1424,16 +1450,7 @@ export default function App() {
                           </select>
                           <button
                             className="button primary"
-                            disabled={
-                              busy ||
-                              !!active ||
-                              (IS_JUDGE &&
-                                (!state.capabilities.judge?.canDecide ||
-                                  state.capabilities.judge?.mode ===
-                                    "expired" ||
-                                  (state.capabilities.judge?.mode === "live" &&
-                                    state.capabilities.judge.used.plan >= 1)))
-                            }
+                            disabled={busy || !!active || !canPlan}
                             onClick={preview}
                           >
                             {busy ? (
@@ -1445,6 +1462,36 @@ export default function App() {
                             <ArrowRight size={15} />
                           </button>
                         </div>
+                      </div>
+                      <div
+                        id="voice-access-status"
+                        className="voice-access-status"
+                      >
+                        {voiceError && modal?.type !== "voice" ? (
+                          <p className="voice-error" role="alert">
+                            {voiceError} No plan was started by this recording.
+                          </p>
+                        ) : voiceAccess.message ? (
+                          <p role="status">{voiceAccess.message}</p>
+                        ) : null}
+                        {voiceError && modal?.type !== "voice" && (
+                          <button
+                            className="text-button"
+                            onClick={() => setVoiceError(null)}
+                          >
+                            Dismiss voice error
+                          </button>
+                        )}
+                        {!voiceAccess.allowed &&
+                          IS_JUDGE &&
+                          state.runs.length > 0 && (
+                            <button
+                              className="text-button"
+                              onClick={() => goto("history")}
+                            >
+                              Open saved runs <ArrowRight size={14} />
+                            </button>
+                          )}
                       </div>
                       {transcript && (
                         <div className="voice-provenance">
@@ -2802,6 +2849,14 @@ export default function App() {
                       ? `Record up to ${VOICE_SECONDS} seconds. Your audio is sent to ElevenLabs for transcription. VOX does not save the recording. Provider retention follows your account terms.`
                       : "ElevenLabs is not connected in this workspace. Add the server credentials to enable recording and transcription. Text commands work now."}
                 </p>
+                {voiceError && (
+                  <p className="voice-error" role="alert">
+                    {voiceError} No plan was started by this recording.
+                  </p>
+                )}
+                {!voiceAccess.allowed && (
+                  <p role="status">{voiceAccess.message}</p>
+                )}
                 {recording ? (
                   <>
                     <Waveform recording levels={levelNodes} />
@@ -2820,7 +2875,7 @@ export default function App() {
                         type="checkbox"
                         checked={voiceConsent}
                         onChange={(e) => setVoiceConsent(e.target.checked)}
-                        disabled={!state.capabilities.elevenlabs}
+                        disabled={!voiceAccess.allowed}
                       />
                       I agree to send this recording to ElevenLabs.
                     </label>
@@ -2829,6 +2884,7 @@ export default function App() {
                       disabled={
                         !voiceConsent ||
                         !state.capabilities.elevenlabs ||
+                        !voiceAccess.allowed ||
                         busy ||
                         voicePhase === "requesting"
                       }
@@ -2850,7 +2906,10 @@ export default function App() {
                           accept="audio/*,.wav,.mp3,.m4a,.ogg,.webm"
                           aria-label="Upload a voice command"
                           disabled={
-                            !voiceConsent || busy || voicePhase === "requesting"
+                            !voiceConsent ||
+                            !voiceAccess.allowed ||
+                            busy ||
+                            voicePhase === "requesting"
                           }
                           onChange={uploadVoice}
                         />

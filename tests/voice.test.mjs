@@ -129,6 +129,69 @@ test("provider failures are actionable and do not fall back silently", async (t)
     /credit cap and account quota/,
   );
 });
+test("an active judge session can transcribe another upload with usage retained", async (t) => {
+  voiceEnv(t);
+  const names = ["GOOGLE_GENERATIVE_AI_API_KEY", "VOX_JUDGE_LIVE_SESSIONS"];
+  const previous = names.map((name) => process.env[name]);
+  process.env.GOOGLE_GENERATIVE_AI_API_KEY = "test-only";
+  process.env.VOX_JUDGE_LIVE_SESSIONS = "8";
+  t.after(() =>
+    names.forEach((name, i) => {
+      if (previous[i] === undefined) delete process.env[name];
+      else process.env[name] = previous[i];
+    }),
+  );
+  const store = createStore(":memory:");
+  let providerCalls = 0;
+  const { app, engine } = createApp(store, {
+    delay: 0,
+    voice: {
+      transcribe: async () => {
+        providerCalls++;
+        return {
+          text: "Triage the queue.",
+          language: "eng",
+          receipt: {
+            provider: "ElevenLabs",
+            operation: "transcription",
+            model: "injected-test-only",
+          },
+        };
+      },
+    },
+  });
+  const server = app.listen(0, "127.0.0.1");
+  await once(server, "listening");
+  t.after(async () => {
+    await engine.close();
+    await new Promise((resolve) => server.close(resolve));
+    store.close();
+  });
+  const base = `http://127.0.0.1:${server.address().port}/api/`;
+  const initial = await fetch(base + "state?workspace=judge");
+  const cookie = initial.headers.get("set-cookie").split(";")[0];
+  const activated = await fetch(base + "judge/activate?workspace=judge", {
+    method: "POST",
+    headers: { cookie, "content-type": "application/json" },
+    body: JSON.stringify({ mode: "live" }),
+  });
+  assert.equal(activated.status, 200);
+  const upload = () =>
+    fetch(base + "transcribe?workspace=judge", {
+      method: "POST",
+      headers: { cookie, "content-type": "audio/wav" },
+      body: wave(1),
+    });
+  assert.equal((await upload()).status, 200);
+  const duplicate = await upload();
+  assert.equal(duplicate.status, 200);
+  assert.equal(providerCalls, 2);
+  const saved = await (
+    await fetch(base + "state?workspace=judge", { headers: { cookie } })
+  ).json();
+  assert.equal(saved.capabilities.judge.used.transcribe, 2);
+  assert.equal(saved.transcripts.length, 2);
+});
 test("voice transcripts are linked to plans and cannot cross session boundaries", async (t) => {
   voiceEnv(t);
   const store = createStore(":memory:");

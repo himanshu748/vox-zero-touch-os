@@ -19,7 +19,7 @@ Open [getvox.tech/judge](https://getvox.tech/judge). Choose a live evaluation pa
 3. Read each draft, its sources and the advisory review. Approve one simulated send and reject the other.
 4. Open the briefing and export the saved evidence.
 
-Live judge access uses a shared allowance of eight sessions. **Three remained after the October 21 verification**; the page shows current availability. Each pass permits one plan attempt, one voice upload, two drafts and two briefing generations. It expires after 24 hours, and failed attempts consume allowance. The rules-only demo remains available after live passes run out. Only the originating session can approve its drafts. [Judge guide](docs/JUDGES.md).
+Live judge access uses a shared allowance of eight sessions. **Three remained after the October 21 verification**; the page shows current availability. Each pass lasts 24 hours and permits repeat plans, voice uploads and briefings, subject to provider quotas and workspace storage bounds. Each run still prepares at most two drafts. Request counters persist, including failed attempts; the owner explicitly removed the former one-plan/one-upload/two-briefing ceilings. The rules-only demo remains available after live passes run out. Only the originating session can approve its drafts. [Judge guide](docs/JUDGES.md).
 
 ## Choose how to run it
 

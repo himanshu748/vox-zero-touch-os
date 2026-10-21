@@ -40,14 +40,14 @@ export default function JudgeAccess({
         {starting ? (
           <small>
             {info.available
-              ? `${info.remainingSessions} live passes available. One plan, two drafts, one voice upload and two briefing generations per pass. Failed requests count. Please use fictional inputs only.`
+              ? `${info.remainingSessions} live passes available. Repeat plans, voice uploads and briefings within an active pass. Each run prepares at most two drafts. Provider quotas apply. Please use fictional inputs only.`
               : "Live passes are currently reserved or unavailable. The rules-only demo still lets you try planning, ticket updates and reply approvals."}
           </small>
         ) : info.mode === "live" ? (
-          <div className="judge-usage" aria-label="Live allowance used">
-            <span>Plan {info.used.plan}/1</span>
-            <span>Voice {info.used.transcribe}/1</span>
-            <span>Briefings {info.used.speech}/2</span>
+          <div className="judge-usage" aria-label="Live requests used">
+            <span>Plans {info.used.plan}</span>
+            <span>Voice uploads {info.used.transcribe}</span>
+            <span>Briefings {info.used.speech}</span>
           </div>
         ) : null}
       </div>

@@ -50,7 +50,7 @@ I timed preparation on my MacBook Air M4 with 16 GB of memory, not my review. On
 
 | Preparation for the same 24-ticket queue | Result |
 | --- | --- |
-| Manual work | About 30 minutes, [my estimate rather than a timed run](https://github.com/himanshu748/vox-zero-touch-os/blob/main/docs/evidence/manual-baseline-status.json) |
+| Manual work | About 30 minutes, [my estimate rather than a timed run](https://github.com/himanshu748/vox-zero-touch-os/blob/495961c3e0a93dee6517dda7e97bd7778af66b50/docs/evidence/manual-baseline-status.json) |
 | Local Gemma, cold | 25.09 s |
 | Local Gemma, warm | 17.19 s median across 10 runs |
 | Recorded output | 24 tickets triaged, 7 labels saved, 2 replies drafted |
@@ -87,7 +87,7 @@ If no passes remain, choose **Try rules-only demo**. It uses fixed rules and tem
 
 The latest hosted check ran against deployed commit [`22fcfa4`](https://github.com/himanshu748/vox-zero-touch-os/commit/22fcfa46d715c14a7c808b06fdfc56880de157ce) on October 21. A recorded voice file went through real transcription, planning, preparation, individual decisions and a spoken briefing. It finished with **24 tickets triaged, 7 labels, 2 drafts, 1 simulated send and 1 rejection**, plus 16 successful provider receipts. Mastra succeeded; Temporal completed after 21 events. Replaying the briefing returned identical cached audio without another generation.
 
-That check used an isolated anonymous judge session through the public HTTP API, with scripted approvals. Browser interaction was checked separately. It does not prove physical microphone or speaker performance. Three of the original eight live passes remained afterward; the judge page shows the current count. [Saved hosted verification](https://github.com/himanshu748/vox-zero-touch-os/blob/main/docs/evidence/hosted-ultramarine-verification.json).
+That check used an isolated anonymous judge session through the public HTTP API, with scripted approvals. Browser interaction was checked separately. It does not prove physical microphone or speaker performance. Three of the original eight live passes remained afterward; the judge page shows the current count. [Saved hosted verification](https://github.com/himanshu748/vox-zero-touch-os/blob/495961c3e0a93dee6517dda7e97bd7778af66b50/docs/evidence/hosted-ultramarine-verification.json).
 
 ## How I Built It
 
@@ -140,7 +140,7 @@ The first SDK attempt returned JSON that failed VOX’s review contract. Executi
 
 For the successful pair, Paper Instruments’ settled promotional balance fell by **$0.00034095**. The usage counters increased by exactly two requests, 1,313 input tokens and 288 output tokens, matching the saved SDK receipts. The earlier rejected review consumed a separate **$0.00020585**; total testing debit across those attempts was **$0.00054680**. No purchase or top-up was made.
 
-This is measured promotional-credit consumption for Ultramarine, not a full workflow price or a card invoice. The UI’s per-request estimates are labelled separately. [Actual cost reconciliation](https://github.com/himanshu748/vox-zero-touch-os/blob/main/docs/evidence/ultramarine-hosted-cost.json) · [Rejected-attempt record](https://github.com/himanshu748/vox-zero-touch-os/blob/main/docs/evidence/ultramarine-rejected-review.json).
+This is measured promotional-credit consumption for Ultramarine, not a full workflow price or a card invoice. The UI’s per-request estimates are labelled separately. [Actual cost reconciliation](https://github.com/himanshu748/vox-zero-touch-os/blob/495961c3e0a93dee6517dda7e97bd7778af66b50/docs/evidence/ultramarine-hosted-cost.json) · [Rejected-attempt record](https://github.com/himanshu748/vox-zero-touch-os/blob/main/docs/evidence/ultramarine-rejected-review.json).
 
 The deployed build passed **58 tests, typecheck and the production build**. [CI run](https://github.com/himanshu748/vox-zero-touch-os/actions/runs/39640659579). Local-mode transport tests also verify that configured cloud providers receive no requests.
 
@@ -201,7 +201,7 @@ The evidence index covers those entries and the supporting integrations.
 | Best Use of GitHub Copilot | [CLI code review](https://github.com/himanshu748/vox-zero-touch-os/blob/main/docs/evidence/copilot-research-review.txt) |
 | Best Use of Entire | [Captured development session](https://github.com/himanshu748/vox-zero-touch-os/blob/main/docs/evidence/entire-review-session.jsonl) |
 | Best Use of a .tech Domain | [getvox.tech](https://getvox.tech/) |
-| Best Use of Ultramarine | [Two hosted reviews through the official OpenAI SDK, reconciled to $0.00034095 of actual credit consumption](https://github.com/himanshu748/vox-zero-touch-os/blob/main/docs/evidence/ultramarine-hosted-cost.json) |
+| Best Use of Ultramarine | [Two hosted reviews through the official OpenAI SDK, reconciled to $0.00034095 of actual credit consumption](https://github.com/himanshu748/vox-zero-touch-os/blob/495961c3e0a93dee6517dda7e97bd7778af66b50/docs/evidence/ultramarine-hosted-cost.json) |
 
 DigitalOcean and Arduino are excluded. The [integration ledger](https://github.com/himanshu748/vox-zero-touch-os/blob/main/docs/SPONSORS.md) records the scope of each integration.
 

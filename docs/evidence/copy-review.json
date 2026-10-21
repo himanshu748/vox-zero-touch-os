@@ -1,0 +1,23 @@
+{
+  "checkedAt": "2026-10-21",
+  "scope": ["Landing page", "Workspace introduction", "Search description", "README", "Published DEV post and repository copies"],
+  "writingDecisions": [
+    "Lead with queue preparation and two reply decisions after a separate plan approval.",
+    "Present support as the first working operations workflow, with fictional tickets and simulated sends explicit.",
+    "Move local open-weight inference and the measured Tinker tradeoff ahead of the benchmark.",
+    "Separate measured preparation from the author's unmeasured manual estimate.",
+    "Separate settled Ultramarine credit consumption from UI estimates and full workflow cost.",
+    "Preserve the author's restart story and failure disclosures."
+  ],
+  "localBrowser": {
+    "landingDesktopWidth": 1280,
+    "landingMobileWidth": 390,
+    "landingMobileDocumentWidth": 390,
+    "workspaceMobileWidth": 390,
+    "workspaceMobileDocumentWidth": 390,
+    "changedHeadingsVisible": true,
+    "scope": "Copy and responsive layout checks. Earlier rules-only functional journey is in product-polish.json."
+  },
+  "checks": {"testsPassed": 58, "typecheck": "passed", "productionBuild": "passed", "stagedSecretFindings": 0},
+  "limits": ["No new model benchmark or physical hardware test was run for this writing change.", "The website copy is prepared on a review branch; deployment needs the specific PR merge approval."]
+}

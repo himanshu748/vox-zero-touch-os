@@ -1423,10 +1423,14 @@ export default function App() {
                         <span>
                           {state.capabilities.gemma
                             ? "Connected model, bounded by your approved plan."
-                            : "Local rules are active. Connect Gemma to enable model generation."}
+                            : IS_JUDGE
+                              ? state.capabilities.judge?.mode === "unclaimed"
+                                ? "Choose your evaluation mode above to begin."
+                                : "Provider-free rules and templates are active."
+                              : "Local rules are active. Connect Gemma to enable model generation."}
                         </span>
                         <button onClick={() => goto("evidence")}>
-                          View setup
+                          {IS_JUDGE ? "View evidence" : "View setup"}
                           <ArrowUpRight size={12} />
                         </button>
                       </div>

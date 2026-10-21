@@ -190,6 +190,7 @@ test("anonymous judges can execute and decide their own bounded live run; normal
   const local = (await b("plans", { command: "Triage and draft one reply" }))
     .data;
   assert.equal(local.provider, "local");
+  assert.equal(local.draftCount, 2);
   assert.equal(modelCalls, 3);
   await a("reset", {});
   assert.equal((await a("plans", { command: "Triage the queue" })).status, 429);

@@ -116,7 +116,7 @@ const EXAMPLES = [
 const FAQ = [
   [
     "What can I actually try right now?",
-    "Explore 24 fictional tickets. Sign in to use connected AI, create a bounded plan, run triage, save labels and reply drafts, and approve or reject simulated sends. The work is persisted in your isolated workspace.",
+    "Explore 24 fictional tickets without an account. Reserve an available live judge pass or use the provider-free sandbox, review a plan, run triage, save labels and drafts, then approve or reject simulated sends. Your work stays in your isolated browser session.",
   ],
   [
     "Is an AI model already connected?",
@@ -311,7 +311,7 @@ export default function Landing() {
                 className="hero-caption"
               >
                 <ShieldCheck size={13} />
-                Explore the sandbox. Sign in for live AI.
+                No account needed. Limited live passes. Always a sandbox.
               </motion.div>
             </div>
             <motion.div

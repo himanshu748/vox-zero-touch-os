@@ -1,0 +1,82 @@
+{
+  "observedAt": "2026-10-21T05:18:56.747653+00:00",
+  "url": "https://getvox.tech/judge",
+  "executingCommit": "626740356df86c84a767c5f51cda501e45eeaf8d",
+  "runId": "b4cdece0-3c0c-4d17-a595-f6e84c056f25",
+  "identity": {
+    "authenticated": false,
+    "kind": "private judge session",
+    "ownerWorkspaceExposed": false
+  },
+  "allowance": {
+    "mode": "live",
+    "canDecide": true,
+    "remainingSessions": 7,
+    "limits": {
+      "plan": 1,
+      "transcribe": 1,
+      "speech": 2
+    },
+    "used": {
+      "plan": 1,
+      "transcribe": 1,
+      "speech": 1
+    },
+    "expiresAt": "2026-10-22T05:07:41.728Z",
+    "available": false
+  },
+  "voice": {
+    "source": "existing synthetic WAV",
+    "durationSeconds": 7.791,
+    "transcriptLinked": true,
+    "physicalMicrophoneVerified": false
+  },
+  "result": {
+    "tickets": 24,
+    "triaged": 24,
+    "labels": 7,
+    "drafts": 2,
+    "pending": 0,
+    "sent": 1,
+    "rejected": 1,
+    "urgent": 6,
+    "retries": 2
+  },
+  "status": "completed",
+  "mastraStatus": "success",
+  "temporal": {
+    "status": "COMPLETED",
+    "events": 21,
+    "decisionSignals": 1
+  },
+  "providerReceipts": {
+    "ElevenLabs": 2,
+    "Backboard": 2,
+    "Tinker": 1,
+    "Gemma endpoint": 3,
+    "TabPFN": 1,
+    "Tiger Data": 2,
+    "SerpApi": 2,
+    "Browserbase": 1,
+    "Ultramarine": 2
+  },
+  "successfulReceipts": 16,
+  "gemmaAttempts": 3,
+  "speech": {
+    "bytes": 257505,
+    "httpStatus": 200,
+    "model": "eleven_multilingual_v2",
+    "cachedReplayRequested": true,
+    "playbackCompleted": true,
+    "cachedReplayObserved": true,
+    "browserConsoleErrors": 0,
+    "physicalAudioOutputAssessed": false
+  },
+  "limitations": [
+    "Only recorded audio tested; physical microphone remains deferred.",
+    "Search references can be irrelevant; human review remains required.",
+    "Provider-free mode still uses persistence and telemetry.",
+    "Free Render may sleep; no uptime SLA.",
+    "Tinker checkpoint expires October 27, 2026."
+  ]
+}

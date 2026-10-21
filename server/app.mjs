@@ -134,7 +134,7 @@ export function createApp(
     const result = buildPlan(
       command,
       scope,
-      req.isJudge && provider === "gemma"
+      req.isJudge
         ? { ...intent, draftLimit: Math.min(intent.draftLimit || 2, 2) }
         : intent,
       tickets,

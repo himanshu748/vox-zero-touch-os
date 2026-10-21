@@ -15,6 +15,6 @@ Each live pass lasts 24 hours, with one planning attempt, one voice upload, two 
 
 Use fictional inputs only. Audio is processed by ElevenLabs and is not retained by VOX; transcripts, plans, receipts, decisions and generated briefing audio persist. Owner authentication stays separate. Do not share your browser session. Public mode cannot send customer messages, change account permissions or access the owner's records.
 
-The provider-free sandbox uses rules, checked-in playbooks and reply templates, with labelled browser speech when supported. It makes no model, research, browser-automation or voice-provider calls. Atlas/Temporal persistence and Sentry telemetry still operate. Live provider failures are explicit and never silently relabelled as successful live output.
+The provider-free sandbox is also limited to two draft outputs per plan and uses rules, checked-in playbooks and reply templates, with labelled browser speech when supported. It makes no model, research, browser-automation or voice-provider calls. Atlas/Temporal persistence and Sentry telemetry still operate. Live provider failures are explicit and never silently relabelled as successful live output.
 
 Free Render may need time to wake. Physical microphone hardware remains unverified; the recorded-file path is tested separately. Tinker's approved checkpoint expires October 27, 2026; no automatic paid extension is enabled.

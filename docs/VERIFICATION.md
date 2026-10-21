@@ -1,5 +1,21 @@
 # Verification receipt
 
+## Current verification snapshot: October 21, 2026
+
+The latest functional hosted proof belongs to deployed commit `22fcfa46d715c14a7c808b06fdfc56880de157ce`. A recorded voice file and scripted public-API decisions produced 24 triages, 7 labels, two drafts, one simulated send and one rejection. Mastra succeeded, Temporal completed with 21 events, and the run saved 16 successful provider receipts. [Hosted receipt](evidence/hosted-ultramarine-verification.json).
+
+Two Ultramarine reviews used the official OpenAI Node SDK. Their exact settled promotional-credit debit was **$0.00034095**; an earlier rejected review cost a separate $0.00020585. [Actual cost reconciliation](evidence/ultramarine-hosted-cost.json). This does not establish total multi-provider cost.
+
+PR #5 changes website copy and documentation, and publishes those receipts. Its [CI](https://github.com/himanshu748/vox-zero-touch-os/actions/runs/39644647091) passed 58 tests, typecheck and the production build. Local desktop and 390px browser checks found no horizontal overflow in the revised landing/workspace copy. These layout checks are separate from the earlier provider journey. [Copy review](evidence/copy-review.json).
+
+The [existing DEV article](https://dev.to/himanshu_748/vox-i-asked-for-two-support-replies-then-i-turned-the-server-off-54l0) now lists **18 categories**, including Ultramarine, with the YouTube embed and actual-cost proof. Its public body matches the repository copy. [Publication receipt](evidence/dev-publication-ultramarine.json). DigitalOcean and Arduino remain excluded.
+
+Three of the original eight live judge passes remained after functional verification. Physical microphone/speaker output, a second live Auth0 account, the real local Qwen fallback and llama.cpp remain unverified. Manual task time and review/correction time remain unmeasured. The 30-minute value in the article is the author's estimate, explicitly labelled as such.
+
+## Historical verification records
+
+The sections below retain earlier observations, test counts and rollout states. Use the current snapshot above and the dated receipts when assessing this release.
+
 Date: October 21, 2026 (India time).
 
 ## Automated
@@ -81,7 +97,7 @@ Earlier dark/copper screenshots show superseded designs. Current workspace and v
 
 ## Sponsor expansion verification
 
-The fresh hosted run `089a5cae-9d54-46ca-814a-7adcbf1317ca` at https://getvox.tech/app exercised the 15 runtime integrations together. Copilot and Entire retain separate development evidence; getvox.tech is the eighteenth integration. The current prize-entry list has 17 categories because Ultramarine is excluded; DigitalOcean and Arduino are also excluded. [Curated receipt](evidence/hosted-expansion.json).
+The fresh hosted run `089a5cae-9d54-46ca-814a-7adcbf1317ca` at https://getvox.tech/app exercised the 15 runtime integrations together. Copilot and Entire retain separate development evidence; getvox.tech is the eighteenth integration. At that earlier observation the prize-entry list had 17 categories because Ultramarine was excluded. The current snapshot above supersedes that category status; DigitalOcean and Arduino remain excluded. [Curated receipt](evidence/hosted-expansion.json).
 
 - Existing 7.791-second synthetic WAV → real ElevenLabs transcript → Tinker intent normalization → Gemma streamed plan. The transcript was not edited.
 - TabPFN scored all 24 tickets. Tiger performed two live hybrid retrievals. SerpApi performed two searches returning six references. Browserbase saved one internal note through the hosted form.
@@ -110,4 +126,4 @@ On October 21, the owner approved raising only the existing VOX ElevenLabs key c
 
 ## Submission clarity and retention update
 
-On October 21, the owner excluded Ultramarine from the prize-entry list. VOX retains 18 working/development/domain integrations while the submission identifies 17 candidate prize categories. Landing, judge entry and workspace instructions now describe the concrete support-ticket journey and distinguish the rules-only demo from live AI. The same private Tinker checkpoint was extended through November 5 at 23:59 UTC within the original promotional budget; see [retention metadata](evidence/tinker-retention.json). Physical microphone testing remains deferred.
+At an earlier October 21 checkpoint, the owner excluded Ultramarine from the prize-entry list. That historical submission identified 17 candidate categories. The later official-SDK/cost verification and 18-category publication are recorded in the current snapshot above. Landing, judge entry and workspace instructions now describe the concrete support-ticket journey and distinguish the rules-only demo from live AI. The same private Tinker checkpoint was extended through November 5 at 23:59 UTC within the original promotional budget; see [retention metadata](evidence/tinker-retention.json). Physical microphone testing remains deferred.

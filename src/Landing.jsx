@@ -24,6 +24,7 @@ import {
   X,
 } from "lucide-react";
 import PlanCards from "./PlanCards";
+import { OperationsPreview, ProductWorkflows } from "./ProductOverview";
 import { VOX_MOTION } from "./motion-system";
 import { useWorkflowPreview } from "./useWorkflowPreview";
 import "./landing.css";
@@ -150,7 +151,7 @@ function Brand({ footer = false }) {
   );
 }
 function OpenLink({
-  children = "Try the support assistant",
+  children = "Open workspace",
   secondary = false,
   className = "",
 }) {
@@ -186,7 +187,7 @@ export default function Landing() {
   const reduced = useReducedMotion();
   const preview = useWorkflowPreview(example, reduced);
   useEffect(() => {
-    document.title = "VOX · Your voice-controlled support assistant";
+    document.title = "VOX · Your operations co-worker";
     document
       .querySelector("meta[name=theme-color]")
       ?.setAttribute("content", "#f7f8fb");
@@ -240,7 +241,7 @@ export default function Landing() {
             <div className="hero-copy">
               <motion.a {...enter} className="release-note" href="#inside-vox">
                 <span className="release-dot" />
-                YOUR VOICE-CONTROLLED SUPPORT ASSISTANT
+                YOUR OPERATIONS CO-WORKER
                 <ArrowUpRight size={13} />
               </motion.a>
               <h1>
@@ -254,7 +255,7 @@ export default function Landing() {
                       ease: VOX_MOTION.ease,
                     }}
                   >
-                    Your support
+                    Say the work.
                   </motion.span>
                 </span>
                 <span className="hero-line">
@@ -267,7 +268,7 @@ export default function Landing() {
                       ease: VOX_MOTION.ease,
                     }}
                   >
-                    queue,
+                    Step away.
                   </motion.span>
                 </span>
                 <span className="hero-line hero-accent">
@@ -280,7 +281,7 @@ export default function Landing() {
                       ease: VOX_MOTION.ease,
                     }}
                   >
-                    handled.
+                    Stay in control.
                   </motion.span>
                 </span>
               </h1>
@@ -288,9 +289,9 @@ export default function Landing() {
                 {...enter}
                 transition={{ ...enter.transition, delay: 0.14 }}
               >
-                Tell VOX what needs doing. It prioritizes support tickets, finds
-                guidance, and drafts replies. You review the plan and approve
-                each reply before it can be sent.
+                One instruction becomes a plan, researched answers, saved
+                updates and a clear handoff. Start with support operations: VOX
+                handles the preparation. You keep the decisions.
               </motion.p>
               <motion.div
                 className="hero-ctas"
@@ -298,11 +299,16 @@ export default function Landing() {
                 transition={{ ...enter.transition, delay: 0.21 }}
               >
                 <OpenLink>Try it on 24 sample tickets</OpenLink>
-                <a href="#how-it-works" className="hero-tour">
+                <a
+                  href="https://www.youtube.com/watch?v=K9MYbrX1T74"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="hero-tour"
+                >
                   <span>
                     <ArrowDown size={16} />
                   </span>
-                  See how it works
+                  See the walkthrough
                 </a>
               </motion.div>
               <motion.div
@@ -315,72 +321,22 @@ export default function Landing() {
               </motion.div>
             </div>
             <motion.div
-              className="hero-art"
-              initial={reduced ? false : { opacity: 0, y: 24 }}
+              className="hero-art product-hero-art"
+              initial={reduced ? false : { opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{
-                duration: 0.65,
+                duration: 0.45,
                 delay: 0.12,
                 ease: VOX_MOTION.ease,
               }}
             >
-              <img
-                src="/images/voice-sculpture-v2.jpg"
-                alt="A sculptural voice waveform in brushed silver and cobalt blue"
-                width="1536"
-                height="1024"
-                fetchpriority="high"
-              />
-              <div className="art-coordinate top">01 / VOICE TO ACTION</div>
-              <div className="art-coordinate bottom">
-                SPEAK → PLAN → DRAFT → APPROVE
-              </div>
-              <motion.div
-                className="floating-voice-card"
-                initial={
-                  reduced ? false : { opacity: 0, y: 16, x: -8, rotate: -4 }
-                }
-                animate={{ opacity: 1, y: 0, x: 0, rotate: reduced ? 0 : -2 }}
-                transition={{
-                  duration: 0.58,
-                  delay: 0.38,
-                  ease: VOX_MOTION.ease,
-                }}
-              >
-                <div className="floating-voice-icon">
-                  <AudioLines size={22} />
-                </div>
-                <div>
-                  <span>ONE SIMPLE INSTRUCTION</span>
-                  <p>“Triage my tickets and draft two replies.”</p>
-                </div>
-                <span className="floating-sound">
-                  <i />
-                  <i />
-                  <i />
-                  <i />
-                  <i />
-                </span>
-              </motion.div>
-              <motion.div
-                className="floating-boundary"
-                initial={reduced ? false : { opacity: 0, y: 10, rotate: 5 }}
-                animate={{ opacity: 1, y: 0, rotate: reduced ? 0 : 3 }}
-                transition={{
-                  duration: 0.45,
-                  delay: 0.48,
-                  ease: VOX_MOTION.ease,
-                }}
-              >
-                <ShieldCheck size={14} />
-                <span>A clear plan. Your final say.</span>
-              </motion.div>
+              <OperationsPreview workspace={workspace} />
             </motion.div>
           </div>
           <div className="landing-container hero-bottom">
             <span>
-              Made for support teams with a queue to clear and replies to
-              review.
+              For makers and small teams who need the work done, with the
+              important decisions still theirs.
             </span>
             <a href="#how-it-works">
               SEE THE TICKET WORKFLOW
@@ -407,6 +363,7 @@ export default function Landing() {
             <span>Approvals and a saved history</span>
           </div>
         </div>
+        <ProductWorkflows />
         <section id="how-it-works" className="landing-section workflow-section">
           <div className="landing-container">
             <Reveal className="section-intro">
@@ -855,9 +812,9 @@ export default function Landing() {
                 </h2>
               </div>
               <p>
-                Good automation earns your trust one verifiable action
+                The model is replaceable. The workflow is inspectable.
                 <br />
-                at a time. You should be able to look under the hood.
+                Your control over the outcome stays the same.
               </p>
             </Reveal>
             <div className="open-grid">
@@ -891,9 +848,9 @@ export default function Landing() {
                   <br />A portable workflow.
                 </h3>
                 <p>
-                  A replaceable Gemma adapter keeps open-weight inference in
-                  reach. The evidence console identifies the configured model
-                  and its actual request receipts.
+                  Run Gemma on your own laptop through Ollama, or use the hosted
+                  workflow with connected research and voice tools. Both paths
+                  keep the same approval boundary.
                 </p>
                 <a href="/judge#evidence" className="landing-text-link">
                   See what’s connected
@@ -912,8 +869,8 @@ export default function Landing() {
                 </h3>
                 <p>
                   Inspect saved actions, request receipts, sources and
-                  decisions. Configured services and completed integrations are
-                  reported separately.
+                  decisions. Read the actual request receipts alongside the work
+                  they produced.
                 </p>
                 <a href="/judge#evidence" className="landing-text-link">
                   Open the evidence console
@@ -924,9 +881,9 @@ export default function Landing() {
             <div className="build-honesty">
               <span className="build-dot" />
               <p>
-                A hosted synthetic helpdesk with real provider requests. Every
-                simulated send requires approval. Integration evidence stays
-                separate from contest qualification.
+                Available today: a working support-operations preview with
+                fictional tickets, live AI and simulated sends. Customer
+                helpdesk connections are not available in this release.
               </p>
             </div>
           </div>

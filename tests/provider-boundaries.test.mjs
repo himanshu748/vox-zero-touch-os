@@ -87,6 +87,15 @@ test("Ultramarine review bounds cost, validates advice and never echoes provider
   const result = await reviewDraft(input, {
     fetchImpl: async (url, options) => {
       assert.equal(url, "https://api.paperinstruments.com/v1/chat/completions");
+      assert.match(
+        new Headers(options.headers).get("user-agent"),
+        /^OpenAI\/JS /,
+      );
+      assert.equal(
+        new Headers(options.headers).get("x-stainless-retry-count"),
+        "0",
+      );
+      assert.equal(options.redirect, "error");
       const body = JSON.parse(options.body);
       assert.equal(body.max_completion_tokens, 3072);
       assert.equal(body.tools, undefined);
@@ -95,6 +104,8 @@ test("Ultramarine review bounds cost, validates advice and never echoes provider
   });
   assert.equal(result.review.verdict, "needs_revision");
   assert.equal(result.receipt.cost, 0.0004);
+  assert.equal(result.receipt.sdk, "OpenAI Node SDK");
+  assert.equal(result.receipt.costIsEstimate, true);
   await assert.rejects(
     reviewDraft(input, {
       fetchImpl: async () =>
@@ -106,6 +117,72 @@ test("Ultramarine review bounds cost, validates advice and never echoes provider
   await assert.rejects(
     reviewDraft(input, { fetchImpl: async () => Response.json(payload) }),
   );
+});
+
+test("Ultramarine SDK never retries billable failures and preserves cancellation and size limits", async (t) => {
+  const before = process.env.PAPERINSTRUMENTS_API_KEY;
+  process.env.PAPERINSTRUMENTS_API_KEY = "test-only";
+  t.after(() => {
+    if (before === undefined) delete process.env.PAPERINSTRUMENTS_API_KEY;
+    else process.env.PAPERINSTRUMENTS_API_KEY = before;
+  });
+  for (const status of [429, 500]) {
+    let calls = 0;
+    await assert.rejects(
+      reviewDraft(input, {
+        fetchImpl: async () => {
+          calls++;
+          return new Response("private upstream message", { status });
+        },
+      }),
+      /No automatic retry/,
+    );
+    assert.equal(calls, 1);
+  }
+  const controller = new AbortController();
+  let calls = 0;
+  await assert.rejects(
+    reviewDraft(input, {
+      signal: controller.signal,
+      fetchImpl: async (_, options) => {
+        calls++;
+        controller.abort();
+        assert.equal(options.signal.aborted, true);
+        throw new Error("private transport failure");
+      },
+    }),
+    /No automatic retry/,
+  );
+  assert.equal(calls, 1);
+  await assert.rejects(
+    reviewDraft(input, {
+      fetchImpl: async () => new Response("x".repeat(1048577)),
+    }),
+    /No automatic retry/,
+  );
+});
+
+test("Ultramarine SDK cannot escape local mode even when its key remains configured", async (t) => {
+  const keys = ["PAPERINSTRUMENTS_API_KEY", "VOX_MODEL_MODE"];
+  const before = Object.fromEntries(keys.map((key) => [key, process.env[key]]));
+  process.env.PAPERINSTRUMENTS_API_KEY = "test-only";
+  process.env.VOX_MODEL_MODE = "local";
+  t.after(() => {
+    for (const key of keys) {
+      if (before[key] === undefined) delete process.env[key];
+      else process.env[key] = before[key];
+    }
+  });
+  const hosts = [];
+  await assert.rejects(
+    reviewDraft(input, {
+      fetchImpl: async (url) => {
+        hosts.push(new URL(url).hostname);
+        throw new Error("must not reach transport");
+      },
+    }),
+  );
+  assert.deepEqual(hosts, []);
 });
 
 test("TabPFN refuses unaffordable requests before uploading and strips credentials from uploads", async (t) => {

@@ -4,6 +4,8 @@ import { useObject } from "@ai-sdk/react";
 import { intentSchema } from "../shared/contracts.mjs";
 import PlanCards from "./PlanCards";
 import JudgeAccess from "./JudgeAccess";
+import { WorkflowLauncher, RunHandoff } from "./ProductOverview";
+import { workflowFromSearch } from "../shared/workflow-presets.mjs";
 import { recordingWave } from "./voice-audio";
 import { VOX_MOTION } from "./motion-system";
 import {
@@ -310,8 +312,12 @@ export default function App() {
       location.hash === "#help" ? { type: "docs" } : null,
     ),
     [menuOpen, setMenuOpen] = useState(false),
-    [command, setCommand] = useState(""),
-    [scope, setScope] = useState("all"),
+    [command, setCommand] = useState(
+      () => workflowFromSearch(location.search)?.command || "",
+    ),
+    [scope, setScope] = useState(
+      () => workflowFromSearch(location.search)?.scope || "all",
+    ),
     [plan, setPlan] = useState(null),
     [busy, setBusy] = useState(false),
     [toast, setToast] = useState(null),
@@ -357,7 +363,11 @@ export default function App() {
       setState(s);
       setLoadError(null);
       if (!initialized.current) {
-        setScope(s.preferences.scope || "all");
+        setScope(
+          workflowFromSearch(location.search)?.scope ||
+            s.preferences.scope ||
+            "all",
+        );
         const used = new Set(
           s.runs.map((run) => run.plan.input?.transcriptId).filter(Boolean),
         );
@@ -368,7 +378,7 @@ export default function App() {
               !used.has(item.id) &&
               Date.now() - Date.parse(item.createdAt) < 3600000,
           );
-        if (pending) {
+        if (pending && !workflowFromSearch(location.search)) {
           setTranscript({ id: pending.id, text: pending.text });
           setCommand(pending.text);
         }
@@ -380,7 +390,7 @@ export default function App() {
     }
   };
   useEffect(() => {
-    document.title = "VOX · Support ticket assistant";
+    document.title = "VOX · Operations workspace";
     document
       .querySelector("meta[name=theme-color]")
       ?.setAttribute("content", "#f7f8fb");
@@ -1275,14 +1285,14 @@ export default function App() {
                   <div className="page-heading">
                     <div>
                       <div className="eyebrow">
-                        <span className="tiny-line" /> YOUR SUPPORT QUEUE
+                        <span className="tiny-line" /> YOUR OPERATIONS WORKSPACE
                       </div>
                       <h1>
-                        Turn tickets into reviewed replies<span>.</span>
+                        A little direction. A lot less busywork<span>.</span>
                       </h1>
                       <p>
-                        VOX prioritizes tickets, finds guidance and drafts
-                        answers. You approve the plan and each simulated send.
+                        Give VOX an outcome. It plans, researches and prepares
+                        the safe work. You review what needs your judgment.
                       </p>
                     </div>
                     <button
@@ -1296,11 +1306,28 @@ export default function App() {
                       How it works
                     </button>
                   </div>
+                  {state.runs[0] && (
+                    <RunHandoff
+                      run={state.runs[0]}
+                      onReview={() => goto("approvals", state.runs[0].id)}
+                      onOpen={() => goto("operations", state.runs[0].id)}
+                    />
+                  )}
+                  <WorkflowLauncher
+                    command={command}
+                    disabled={busy || !!active}
+                    onSelect={(preset) => {
+                      setCommand(preset.command);
+                      setScope(preset.scope);
+                      setTranscript(null);
+                      textarea.current?.focus();
+                    }}
+                  />
                   <section className="hero-grid">
                     <div className="voice-card">
                       <div className="voice-card-top">
                         <span className="console-label">
-                          <span /> TELL VOX WHAT TO DO WITH YOUR TICKETS
+                          <span /> ONE INSTRUCTION. SAFE WORK, TAKEN CARE OF.
                         </span>
                         <Badge>
                           <LockKeyhole size={11} />
@@ -1309,9 +1336,9 @@ export default function App() {
                       </div>
                       <div className="voice-intro">
                         <h2>
-                          Triage. Draft.
+                          What can we take
                           <br />
-                          <span>You review.</span>
+                          <span>off your plate?</span>
                         </h2>
                         <div className="voice-orb-wrap">
                           <button
@@ -2057,6 +2084,12 @@ export default function App() {
                               ))}
                           </div>
                         )}
+                      <RunHandoff
+                        run={currentRun}
+                        onReview={() => goto("approvals", currentRun.id)}
+                        onOpen={() => goto("evidence")}
+                        openLabel="Inspect receipts"
+                      />
                       <div className="run-command">
                         <span>
                           <Mic size={16} />

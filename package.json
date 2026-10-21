@@ -39,6 +39,7 @@
     "mongodb": "7.7.0",
     "motion": "^12.23.24",
     "music-metadata": "12.2.3",
+    "openai": "7.41.0",
     "pg": "8.16.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

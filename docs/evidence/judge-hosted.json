@@ -91,5 +91,11 @@
     "purchaseOrTopUp": false,
     "postChangeHostedVerification": "completed session and cached briefing playback; no additional billable voice request",
     "remainingLivePassesAtCheck": 7
+  },
+  "retentionUpdate": {
+    "verifiedAt": "2026-10-21T05:57:16.350547+00:00",
+    "expiresAt": "2026-11-05T23:59:00.787968+00:00",
+    "evidence": "tinker-retention.json",
+    "note": "The October 27 expiry in the original observation was extended on the same private checkpoint; no retraining."
   }
 }

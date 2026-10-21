@@ -23,3 +23,7 @@ The first copper artwork is retained as a superseded iteration in `public/images
 ## UI reference
 
 The current VOX preview was scraped locally through the browser for its layout, typography, palette and controls. A scratch receipt is saved in `work/vox-ui-scrape.json` outside the application. The subsequent light/cobalt direction follows the user's feedback on the earlier typography and palette.
+
+## Public provider proof
+
+- `docs/evidence/sentry-judge-trace.png` is an unedited browser screenshot captured October 21 from Sentry Agent Activity for the completed anonymous hosted judge run. It shows actual model/tool spans, token usage and latency. Prompt/output capture is disabled. The selected tool-root view omits client IP and authentication information. Sentry cost is estimated, not billed. This image is provider evidence, separate from generated brand artwork.

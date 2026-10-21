@@ -1,5 +1,6 @@
 VOX: Zero-Touch OS — Product Requirements Document
 Tagline: Say it once. Let your AI workforce handle the rest.
+> Original planning document. The October 21 submission targets 17 prize categories; Ultramarine is explicitly excluded. Current implementation and eligibility boundaries are in [SPONSORS.md](SPONSORS.md).
 Project: VOX: Zero-Touch OS (new Hacktoberfest Week 3 entry)
 Primary URL: https://vox.tech (subject to domain control and DNS configuration)
 Challenge: DEV Hacktoberfest 2026, Week 3, “Slow and Steady”

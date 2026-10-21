@@ -376,7 +376,7 @@ export default function App() {
     }
   };
   useEffect(() => {
-    document.title = "VOX · Your operations, handled.";
+    document.title = "VOX · Support ticket assistant";
     document
       .querySelector("meta[name=theme-color]")
       ?.setAttribute("content", "#f7f8fb");
@@ -1208,7 +1208,7 @@ export default function App() {
                 notify(
                   mode === "live"
                     ? "Your live pass is reserved. Review your instruction to begin."
-                    : "Provider-free sandbox ready. No external model calls.",
+                    : "Rules-only demo ready. Fixed priorities and reply templates are active.",
                 );
               })
             }
@@ -1244,14 +1244,14 @@ export default function App() {
                   <div className="page-heading">
                     <div>
                       <div className="eyebrow">
-                        <span className="tiny-line" /> LESS INPUT. MORE OUTPUT.
+                        <span className="tiny-line" /> YOUR SUPPORT QUEUE
                       </div>
                       <h1>
-                        A little less busywork<span>.</span>
+                        Turn tickets into reviewed replies<span>.</span>
                       </h1>
                       <p>
-                        One instruction. A clear plan. A little more room to
-                        focus.
+                        VOX prioritizes tickets, finds guidance and drafts
+                        answers. You approve the plan and each simulated send.
                       </p>
                     </div>
                     <button
@@ -1269,7 +1269,7 @@ export default function App() {
                     <div className="voice-card">
                       <div className="voice-card-top">
                         <span className="console-label">
-                          <span /> YOUR VOICE, PUT TO WORK
+                          <span /> TELL VOX WHAT TO DO WITH YOUR TICKETS
                         </span>
                         <Badge>
                           <LockKeyhole size={11} />
@@ -1278,9 +1278,9 @@ export default function App() {
                       </div>
                       <div className="voice-intro">
                         <h2>
-                          Your next break
+                          Triage. Draft.
                           <br />
-                          <span>starts with a sentence.</span>
+                          <span>You review.</span>
                         </h2>
                         <div className="voice-orb-wrap">
                           <button
@@ -1426,7 +1426,7 @@ export default function App() {
                             : IS_JUDGE
                               ? state.capabilities.judge?.mode === "unclaimed"
                                 ? "Choose your evaluation mode above to begin."
-                                : "Provider-free rules and templates are active."
+                                : "Rules-only demo: fixed priorities and reply templates."
                               : "Local rules are active. Connect Gemma to enable model generation."}
                         </span>
                         <button onClick={() => goto("evidence")}>
@@ -1440,30 +1440,31 @@ export default function App() {
                         <Workflow size={16} /> THE WAY VOX WORKS
                       </div>
                       <h3>
-                        A small ask.
-                        <br />A clear way forward.
+                        From instruction
+                        <br />
+                        to reviewed replies.
                       </h3>
                       <div className="workflow-steps">
                         {[
                           [
                             Mic,
-                            "You say the word",
-                            "A goal in your own words.",
+                            "Ask for ticket work",
+                            "Say or type: triage tickets and draft two replies.",
                           ],
                           [
                             FileText,
                             "Review the plan",
-                            "Clear actions. Clear boundaries.",
+                            "Check which tickets and actions VOX will handle.",
                           ],
                           [
                             Zap,
-                            "Let VOX get to work",
-                            "Safe tasks, tracked step by step.",
+                            "VOX prepares the queue",
+                            "Priorities, labels, guidance and draft replies are saved.",
                           ],
                           [
                             Headphones,
-                            "Come back to a briefing",
-                            "The results and what needs you.",
+                            "Decide on each reply",
+                            "Approve or reject drafts, then hear the saved results.",
                           ],
                         ].map(([Icon, title, desc], i) => (
                           <div key={title} className="workflow-step">
@@ -1960,7 +1961,9 @@ export default function App() {
                                 ? "Let’s pick up where we left off"
                                 : currentRun.status === "cancelled"
                                   ? "Ready when you are again"
-                                  : "A little more off your plate"}
+                                  : currentRun.status === "completed"
+                                    ? "Your support run is complete"
+                                    : "Review your draft replies"}
                             <span>.</span>
                           </h1>
                           <p>
@@ -2170,7 +2173,7 @@ export default function App() {
                     <div>
                       <div className="eyebrow">PROOF BEFORE PROMISES</div>
                       <h1>
-                        Nothing behind the curtain<span>.</span>
+                        See what VOX actually did<span>.</span>
                       </h1>
                       <p>
                         A clear account of what is running, what is connected,
@@ -2223,14 +2226,14 @@ export default function App() {
                         <Layers size={24} />
                       </span>
                       <div>
-                        <h3>Honest about the missing pieces</h3>
+                        <h3>Connections and observed requests</h3>
                         <p>
-                          Mastra executes the validated workflow; provider usage
-                          is shown below. Configuring an API key is only the
-                          first step. Live usage and independent evidence are
-                          still required.
+                          Mastra runs the approved plan. The receipts below show
+                          which external services this workspace called. A
+                          configured connection alone is not proof of a
+                          successful request or prize eligibility.
                         </p>
-                        <Badge>0 categories claimed</Badge>
+                        <Badge>Request evidence, not prize certification</Badge>
                       </div>
                     </div>
                   </div>
@@ -2945,14 +2948,15 @@ export default function App() {
                 <div className="docs-intro">
                   <Logo />
                   <h3>
-                    Say it once.
+                    A support assistant
                     <br />
-                    See what happens next.
+                    you can direct by voice.
                   </h3>
                   <p>
-                    VOX turns a support goal into a bounded, reviewable
-                    workflow. This build runs on a fictional helpdesk with real
-                    saved changes.
+                    VOX reads support tickets, prioritizes urgent work, looks up
+                    guidance and drafts replies. You check the plan before it
+                    runs and decide on each reply. Try it here with 24 fictional
+                    tickets and simulated sends.
                   </p>
                 </div>
                 <div className="docs-grid">
@@ -2960,7 +2964,7 @@ export default function App() {
                     [
                       "01",
                       "Give it a goal",
-                      "Type an instruction or connect ElevenLabs to record one. Your transcript stays editable.",
+                      "Choose a live pass for AI and voice, or the rules-only demo for templates. Ask to triage tickets and draft two replies.",
                     ],
                     [
                       "02",
@@ -2970,7 +2974,7 @@ export default function App() {
                     [
                       "03",
                       "Follow the saved work",
-                      "Watch priorities, internal labels and drafts update. Local checkpoints survive a server restart.",
+                      "Watch priorities, internal labels and drafts update. Saved checkpoints let interrupted work resume.",
                     ],
                     [
                       "04",

@@ -1,12 +1,14 @@
 # VOX
 
-Say it once. Get your day back.
+Your voice-controlled support ticket assistant.
 
-VOX is a support-operations workspace with live Gemma planning/drafting, ElevenLabs transcription/speech and Mastra workflow orchestration. The helpdesk contains 24 fictional tickets. Its writes, plans, approvals and evidence are persisted; external customer delivery is disabled. The expanded hosted adapters and their verification boundaries are listed in [SPONSORS.md](docs/SPONSORS.md).
+Tell VOX: “Triage my support tickets, find guidance and draft two replies.” It reads the queue, prioritizes urgent tickets, looks up guidance and saves draft answers. You review the generated plan before it runs and approve or reject each reply. A spoken briefing reports the saved results.
+
+Try it with 24 fictional tickets at **https://getvox.tech/judge**. The AI calls, saved ticket updates, approvals and workflow history are real; customer sends are simulated. This build does not connect to your Gmail, Zendesk or other customer inbox. Gemma plans and drafts, ElevenLabs handles voice, and Mastra and Temporal execute and preserve the workflow. [Integration evidence and boundaries](docs/SPONSORS.md).
 
 ## Hosted workspace
 
-[Try VOX as a judge](https://getvox.tech/judge). No account is required. Eight explicitly approved live passes are available across all browsers; each has one plan, two drafts, one voice upload (20 seconds / 2 MB), and two briefing generations. A pass lasts 24 hours; failed attempts count. The provider-free sandbox remains available when live passes are exhausted. Only the originating session can decide its drafts, and every send is simulated. [Judge guide](docs/JUDGES.md).
+[Try VOX as a judge](https://getvox.tech/judge). No account is required. Eight explicitly approved live passes were enabled across all browsers; seven remained after the recorded verification run. The page shows current availability. Each pass has one plan, two drafts, one voice upload (20 seconds / 2 MB), and two briefing generations. A pass lasts 24 hours; failed attempts count. The rules-only demo remains available when live passes are exhausted: it uses fixed priorities and reply templates, with the same review workflow. Only the originating session can decide its drafts, and every send is simulated. [Judge guide](docs/JUDGES.md).
 
 The [owner workspace](https://getvox.tech/app) keeps its verified Auth0 owner requirement for live calls and approvals. DigitalOcean remains disconnected by owner choice. The sponsor-only expansion uses self-hosted Temporal with Tiger; the hosted voice journey now runs on free Render in Virginia beside Tiger. [Integration evidence and limits](docs/SPONSORS.md).
 
@@ -39,6 +41,8 @@ Without provider credentials, the app explicitly uses local rules and templates.
 7. Export the saved evidence. No external message is sent.
 
 The expansion adds bounded TabPFN escalation estimates, Tiger hybrid retrieval and Ultramarine advisory draft review. Their combined hosted voice journey passed, including a full service restart while approvals were pending. [Implementation and evaluation limits](docs/ADVANCED-INTEGRATIONS.md).
+
+The submission targets **17 partner categories**. Ultramarine is a working advisory tool but is explicitly excluded from the prize claims, alongside DigitalOcean and Arduino. Tinker's existing private checkpoint was extended through **November 5, 2026 at 23:59 UTC** within the approved promotional budget; no retraining or top-up was used. [Retention evidence](docs/evidence/tinker-retention.json).
 
 A requested draft count is limited to six. The deliberate label interruption retries once before its write. Model requests have no automatic SDK retries. Provider access, rate-limit, availability and validation failures receive safe checkpoint explanations without exposing upstream bodies. Completed model responses are cached before the draft step commits, so resuming a failed step reuses them.
 

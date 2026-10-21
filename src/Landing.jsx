@@ -116,11 +116,11 @@ const EXAMPLES = [
 const FAQ = [
   [
     "What can I actually try right now?",
-    "Explore 24 fictional tickets without an account. Reserve an available live judge pass or use the provider-free sandbox, review a plan, run triage, save labels and drafts, then approve or reject simulated sends. Your work stays in your isolated browser session.",
+    "Explore 24 fictional tickets without an account. Choose a live AI pass or the rules-only demo, review a plan, run triage, save labels and drafts, then approve or reject simulated sends. Your work stays in your isolated browser session.",
   ],
   [
     "Is an AI model already connected?",
-    "The hosted workspace connects Gemma through Vercel AI SDK for streamed plans and reply drafts. Live provider use requires an authorized account. The evidence console shows configuration and saved request receipts. A local installation without credentials uses labeled rules and templates.",
+    "Yes. Choose a live judge pass to use Gemma for plans and drafts, ElevenLabs for voice, and the connected research tools. No signup is needed. The rules-only demo uses fixed rules and reply templates instead. Each mode is labelled, and Evidence shows the actual request receipts.",
   ],
   [
     "Does VOX send messages to real customers?",
@@ -150,7 +150,7 @@ function Brand({ footer = false }) {
   );
 }
 function OpenLink({
-  children = "Open workspace",
+  children = "Try the support assistant",
   secondary = false,
   className = "",
 }) {
@@ -186,7 +186,7 @@ export default function Landing() {
   const reduced = useReducedMotion();
   const preview = useWorkflowPreview(example, reduced);
   useEffect(() => {
-    document.title = "VOX · Say it once. Get your day back.";
+    document.title = "VOX · Your voice-controlled support assistant";
     document
       .querySelector("meta[name=theme-color]")
       ?.setAttribute("content", "#f7f8fb");
@@ -240,7 +240,7 @@ export default function Landing() {
             <div className="hero-copy">
               <motion.a {...enter} className="release-note" href="#inside-vox">
                 <span className="release-dot" />
-                MEET YOUR QUIETER WORKDAY
+                YOUR VOICE-CONTROLLED SUPPORT ASSISTANT
                 <ArrowUpRight size={13} />
               </motion.a>
               <h1>
@@ -254,7 +254,7 @@ export default function Landing() {
                       ease: VOX_MOTION.ease,
                     }}
                   >
-                    Say it once.
+                    Your support
                   </motion.span>
                 </span>
                 <span className="hero-line">
@@ -267,7 +267,7 @@ export default function Landing() {
                       ease: VOX_MOTION.ease,
                     }}
                   >
-                    Get your
+                    queue,
                   </motion.span>
                 </span>
                 <span className="hero-line hero-accent">
@@ -280,7 +280,7 @@ export default function Landing() {
                       ease: VOX_MOTION.ease,
                     }}
                   >
-                    day back.<span className="headline-period">*</span>
+                    handled.
                   </motion.span>
                 </span>
               </h1>
@@ -288,16 +288,16 @@ export default function Landing() {
                 {...enter}
                 transition={{ ...enter.transition, delay: 0.14 }}
               >
-                Turn a busy queue into a clear plan, safe actions,
-                <br className="desktop-break" /> and a briefing worth coming
-                back to.
+                Tell VOX what needs doing. It prioritizes support tickets, finds
+                guidance, and drafts replies. You review the plan and approve
+                each reply before it can be sent.
               </motion.p>
               <motion.div
                 className="hero-ctas"
                 {...enter}
                 transition={{ ...enter.transition, delay: 0.21 }}
               >
-                <OpenLink>Take a little off your plate</OpenLink>
+                <OpenLink>Try it on 24 sample tickets</OpenLink>
                 <a href="#how-it-works" className="hero-tour">
                   <span>
                     <ArrowDown size={16} />
@@ -311,7 +311,7 @@ export default function Landing() {
                 className="hero-caption"
               >
                 <ShieldCheck size={13} />
-                No account needed. Limited live passes. Always a sandbox.
+                No signup. Fictional tickets. Simulated sends.
               </motion.div>
             </div>
             <motion.div
@@ -333,7 +333,7 @@ export default function Landing() {
               />
               <div className="art-coordinate top">01 / VOICE TO ACTION</div>
               <div className="art-coordinate bottom">
-                A LITTLE INPUT. A LOT OF POSSIBILITY.
+                SPEAK → PLAN → DRAFT → APPROVE
               </div>
               <motion.div
                 className="floating-voice-card"
@@ -352,7 +352,7 @@ export default function Landing() {
                 </div>
                 <div>
                   <span>ONE SIMPLE INSTRUCTION</span>
-                  <p>“Get my queue ready for the afternoon.”</p>
+                  <p>“Triage my tickets and draft two replies.”</p>
                 </div>
                 <span className="floating-sound">
                   <i />
@@ -379,32 +379,32 @@ export default function Landing() {
           </div>
           <div className="landing-container hero-bottom">
             <span>
-              <span className="asterisk">*</span> More headspace starts with
-              less busywork.
+              Made for support teams with a queue to clear and replies to
+              review.
             </span>
             <a href="#how-it-works">
-              SCROLL TO UNWIND
+              SEE THE TICKET WORKFLOW
               <ArrowDown size={12} />
             </a>
           </div>
         </section>
         <div className="principle-strip landing-container">
           <span>
-            Small input.
+            One instruction.
             <br />
-            <strong>Thoughtful execution.</strong>
+            <strong>Four concrete outcomes.</strong>
           </span>
           <div>
             <Workflow size={19} />
-            <span>Plans before actions</span>
+            <span>Prioritized tickets</span>
           </div>
           <div>
             <ShieldCheck size={19} />
-            <span>People before permissions</span>
+            <span>Researched reply drafts</span>
           </div>
           <div>
             <Code2 size={19} />
-            <span>Proof before promises</span>
+            <span>Approvals and a saved history</span>
           </div>
         </div>
         <section id="how-it-works" className="landing-section workflow-section">
@@ -416,21 +416,21 @@ export default function Landing() {
                   01 / FROM INTENTION TO ACTION
                 </div>
                 <h2>
-                  A simple ask.
-                  <br />A clear way forward.
+                  From a full queue
+                  <br />
+                  to replies ready for review.
                 </h2>
               </div>
               <p>
-                You shouldn’t have to manage the work of managing work.
-                <br />
-                Give VOX the goal. Review the plan. Leave the safe parts to it.
+                Ask VOX to triage tickets and draft answers. Check the plan,
+                follow the work, then approve or reject each proposed reply.
               </p>
             </Reveal>
             <Reveal className="workflow-demo">
               <div className="demo-topbar">
                 <div>
                   <span className="demo-light" />
-                  <span>THE ANATOMY OF A LITTLE LESS WORK</span>
+                  <span>ONE SUPPORT REQUEST, STEP BY STEP</span>
                 </div>
                 <span>Interactive workflow illustration</span>
               </div>
@@ -573,15 +573,14 @@ export default function Landing() {
                   02 / A WORKSPACE THAT WORKS BACK
                 </div>
                 <h2>
-                  Room to focus.
+                  Your tickets, drafts,
                   <br />
-                  Receipts to trust.
+                  and decisions in one place.
                 </h2>
               </div>
               <p>
-                The quiet kind of capable. Your queue, plans, approvals,
-                <br />
-                and history stay together in one considered workspace.
+                See which tickets need attention, read the suggested answers and
+                their sources, and check what VOX changed.
               </p>
             </Reveal>
             <Reveal className="product-window">

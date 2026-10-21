@@ -9,7 +9,10 @@
     "developmentIntegrations": 2,
     "domain": 1,
     "totalCategories": 18,
-    "excluded": ["DigitalOcean", "Arduino"]
+    "excluded": [
+      "DigitalOcean",
+      "Arduino"
+    ]
   },
   "voice": {
     "input": "existing synthetic spoken WAV",
@@ -78,7 +81,10 @@
     "region": "Virginia",
     "plan": "free",
     "oldSingaporeService": "suspended",
-    "atlasActiveRanges": ["74.220.49.0/24", "74.220.57.0/24"],
+    "atlasActiveRanges": [
+      "74.220.49.0/24",
+      "74.220.57.0/24"
+    ],
     "publicTemporalRPC": false,
     "ownerLogin": "verified Auth0 owner; previous workspace restored",
     "guestProviders": "HTTP 401"
@@ -103,5 +109,11 @@
     "cachedSpeechReplayAfterDeployment": true,
     "healthHttpStatus": 200,
     "guestPlanHttpStatus": 401
+  },
+  "retentionUpdate": {
+    "verifiedAt": "2026-10-21T05:57:16.350547+00:00",
+    "expiresAt": "2026-11-05T23:59:00.787968+00:00",
+    "evidence": "tinker-retention.json",
+    "note": "The October 27 expiry in the original observation was extended on the same private checkpoint; no retraining."
   }
 }

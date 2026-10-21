@@ -1,8 +1,10 @@
 # Try VOX
 
-Open **https://getvox.tech/judge**. No signup, account credentials or installation are needed. Use the same browser for the full journey. The workspace contains 24 fictional tickets, separate from the owner and every other judge.
+**VOX is a support ticket assistant you can direct by voice or text.** It prioritizes a queue, finds guidance, labels urgent tickets and drafts replies. You approve its plan and decide on each proposed reply. A spoken briefing reports the saved result.
 
-1. Choose **Start live evaluation** while a pass is available. Eight passes total are enabled, using existing free/promotional balances. Choosing provider-free sandbox does not reserve one.
+Open **https://getvox.tech/judge**. No signup, account credentials or installation are needed. Use the same browser for the full journey. The workspace contains 24 fictional tickets, separate from the owner and every other judge. Sends are simulated; this build does not contact real customers.
+
+1. Choose **Start live evaluation** while a pass is available. Eight passes total were enabled, using existing free/promotional balances; seven remained after verification. The page shows current availability. **Try rules-only demo** uses fixed rules and reply templates without reserving a live pass.
 2. Record or upload one fictional spoken instruction (20 seconds / 2 MB), consent to ElevenLabs processing, then review/edit the transcript. A text command also works. For the full flow, ask: “Triage all tickets, research fixes, tag urgent ones, and draft two replies. Ask before sending anything.”
 3. Create your one streamed plan. Review its fixed React action cards, boundaries and provider limits. Close/reload safely: **Review saved plan** recovers an unexecuted plan for 15 minutes.
 4. Approve the plan. Follow Temporal/Mastra execution and provider receipts. The deliberate label interruption retries before its write. A provider error leaves a checkpoint; an explicit resume remains subject to the original request ceilings.
@@ -17,4 +19,4 @@ Use fictional inputs only. Audio is processed by ElevenLabs and is not retained 
 
 The provider-free sandbox is also limited to two draft outputs per plan and uses rules, checked-in playbooks and reply templates, with labelled browser speech when supported. It makes no model, research, browser-automation or voice-provider calls. Atlas/Temporal persistence and Sentry telemetry still operate. Live provider failures are explicit and never silently relabelled as successful live output.
 
-Free Render may need time to wake. Physical microphone hardware remains unverified; the recorded-file path is tested separately. Tinker's approved checkpoint expires October 27, 2026; no automatic paid extension is enabled.
+Free Render may need time to wake. Physical microphone hardware remains unverified; the recorded-file path is tested separately. Tinker's existing private checkpoint is retained through November 5, 2026 at 23:59 UTC within the approved promotional budget. No automatic paid extension is enabled. Ultramarine's advisory reviews remain visible as actual work, but it is excluded from the 17 prize categories.

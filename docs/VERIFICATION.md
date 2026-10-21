@@ -4,11 +4,22 @@ Date: October 21, 2026 (India time).
 
 ## Automated
 
-- `npm test`: 44 tests passed.
+- Latest branch verification: `npm test` passed **52 tests**, including the local-mode transport and benchmark-statistics checks. Earlier sections below describe earlier hosted observations and their original counts.
 - `npm run typecheck`: passed; covers the AI SDK adapter against installed package types.
 - `npm run build`: passed; landing and workspace load in separate JS chunks.
 - SQLite persistence, worker restart/resume, read-only previews, bounded scopes, retries, idempotency, ownership, single-use decisions, expired plans/approvals, saved preferences, reset, route parsing and useful error messages are covered.
 - SDK tests use `MockLanguageModelV4` from `ai/test`. They exercise SDK generation, streaming and validation. They are not live provider receipts.
+
+## Local PRD completion checks
+
+- [Thirty-command real local Gemma evaluation](evidence/planning-evaluation.json): 30/30 valid schemas, 19/30 exact intent matches. The shared prompt removes the old all-actions JSON example; [baseline](evidence/planning-evaluation-baseline.json) had 11/30 exact matches. This is a disclosed regression set, not a held-out generalization result. The trained hosted Tinker normalization is a separate path and evaluation.
+- [Ten real local workflows](evidence/local-performance.json): 10/10 completed, each with 24 triages and two model drafts; preparation p50 17.19 s, p95 31.97 s. All models were already resident. Startup and scripted decisions are separate. No external application HTTP hosts were attempted. Cloud/physical voice latency and manual attention remain unmeasured.
+- [Recorded TabPFN output replay](evidence/tabpfn-ranking-replay.json): real earlier held-out probabilities drove the actual engine, changing 11 ranking positions with zero score-floor violations. Rule labels matched 14/16 and recorded TabPFN labels 15/16. No new provider request was made; these are authored scenarios.
+- Ultramarine is already used for hosted draft advice and rendered in reply review. [Preserved review](evidence/ultramarine-review.json). It cannot approve sending; local mode skips it.
+- Current completion boundaries and the original FR-01–FR-20 checklist are in [PRD_STATUS.md](PRD_STATUS.md). The live article and hosted runtime are unchanged by these branch checks.
+- Nine [axe-core development audits](evidence/accessibility-summary.json) reported zero automated violations at the recorded desktop/mobile views with real OS reduced motion enabled. The raw incomplete checks remain available. The OS preference and viewport were restored. A new local demo was then captured with ordinary motion, one simulated approval and one rejection; [captioned walkthrough receipt](evidence/local-demo.json).
+- A signal-handling smoke test found that Temporal's own SIGINT handling could already be draining the worker before VOX called shutdown. The close path now checks the SDK worker state and releases connections in `finally`; the subsequent real SIGINT exited successfully. Vite now shares VOX's HTTP server for its socket. A fresh browser tab after restart reopened the completed run, logged `[vite] connected.`, and had no warning/error entries.
+- A pinned, read-only GitHub Actions workflow now runs the suite, typecheck, recorded prediction replay and production build without provider secrets. Its current run result must be checked separately from these local results.
 
 ## Browser walkthrough
 

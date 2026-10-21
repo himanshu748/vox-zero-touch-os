@@ -1,0 +1,1093 @@
+{
+  "schemaVersion": 1,
+  "startedAt": "2026-10-21T08:45:38.427Z",
+  "finishedAt": "2026-10-21T08:48:27.285Z",
+  "mode": "real local Gemma inference; no mocks or fallback model",
+  "fixture": "vox-planning-30-v1",
+  "fixtureFile": "scripts/planning-fixture.json",
+  "fixtureSha256": "a529febfefb22b6dbb6795ac1f4c44dd9f72a6dbbd8eef5de96554c2437443bc",
+  "provenance": "Thirty authored synthetic support commands, fixed before inference. Schema validity and exact requested actions are separate measurements.",
+  "model": "gemma3:4b",
+  "endpoint": "http://127.0.0.1:11434/v1",
+  "planningPromptVersion": "shared-bounded-v1",
+  "hardware": {
+    "cpu": "Apple M4",
+    "memoryBytes": 17179869184,
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "total": 30,
+  "schemaValid": 30,
+  "schemaValidRate": 1,
+  "exactIntentMatches": 19,
+  "acceptance": {
+    "minimumCommands": 30,
+    "minimumSchemaValidRate": 0.9,
+    "passed": true
+  },
+  "latency": {
+    "samples": 30,
+    "minimumMs": 2841.97,
+    "p50Ms": 5546.94,
+    "p95Ms": 8849.67,
+    "maximumMs": 10492.92
+  },
+  "network": {
+    "applicationHttpHosts": [
+      "127.0.0.1"
+    ],
+    "externalHosts": [],
+    "scope": "Application fetch guard; not OS packet capture"
+  },
+  "rows": [
+    {
+      "id": "p01",
+      "command": "Triage the support queue.",
+      "actions": [
+        "triage"
+      ],
+      "schemaValid": true,
+      "exactIntentMatch": true,
+      "output": {
+        "actions": [
+          "triage"
+        ],
+        "objective": "Assess and categorize incoming support requests based on priority and impact."
+      },
+      "receipt": {
+        "provider": "Gemma endpoint",
+        "execution": "local",
+        "model": "gemma3:4b",
+        "sdk": "Vercel AI SDK",
+        "requestId": "chatcmpl-638",
+        "latencyMs": 6154,
+        "usage": {
+          "inputTokens": 110,
+          "outputTokens": 37,
+          "totalTokens": 147
+        },
+        "cost": null,
+        "createdAt": "2026-10-21T08:45:44.584Z"
+      },
+      "wallClockMs": 6154.67
+    },
+    {
+      "id": "p02",
+      "command": "Prioritize all pending tickets by urgency.",
+      "actions": [
+        "triage"
+      ],
+      "schemaValid": true,
+      "exactIntentMatch": true,
+      "output": {
+        "actions": [
+          "triage"
+        ],
+        "objective": "Prioritize all pending tickets by urgency"
+      },
+      "receipt": {
+        "provider": "Gemma endpoint",
+        "execution": "local",
+        "model": "gemma3:4b",
+        "sdk": "Vercel AI SDK",
+        "requestId": "chatcmpl-738",
+        "latencyMs": 3588,
+        "usage": {
+          "inputTokens": 112,
+          "outputTokens": 20,
+          "totalTokens": 132
+        },
+        "cost": null,
+        "createdAt": "2026-10-21T08:45:48.173Z"
+      },
+      "wallClockMs": 3588.04
+    },
+    {
+      "id": "p03",
+      "command": "Rank the backlog by SLA risk. Do not draft replies.",
+      "actions": [
+        "triage"
+      ],
+      "schemaValid": true,
+      "exactIntentMatch": true,
+      "output": {
+        "actions": [
+          "triage"
+        ],
+        "objective": "Rank the backlog by SLA risk"
+      },
+      "receipt": {
+        "provider": "Gemma endpoint",
+        "execution": "local",
+        "model": "gemma3:4b",
+        "sdk": "Vercel AI SDK",
+        "requestId": "chatcmpl-970",
+        "latencyMs": 3306,
+        "usage": {
+          "inputTokens": 116,
+          "outputTokens": 19,
+          "totalTokens": 135
+        },
+        "cost": null,
+        "createdAt": "2026-10-21T08:45:51.479Z"
+      },
+      "wallClockMs": 3306
+    },
+    {
+      "id": "p04",
+      "command": "Inspect urgent support tickets and triage them.",
+      "actions": [
+        "triage"
+      ],
+      "schemaValid": true,
+      "exactIntentMatch": true,
+      "output": {
+        "actions": [
+          "triage"
+        ],
+        "objective": "Inspect urgent support tickets and triage them."
+      },
+      "receipt": {
+        "provider": "Gemma endpoint",
+        "execution": "local",
+        "model": "gemma3:4b",
+        "sdk": "Vercel AI SDK",
+        "requestId": "chatcmpl-217",
+        "latencyMs": 4778,
+        "usage": {
+          "inputTokens": 112,
+          "outputTokens": 33,
+          "totalTokens": 145
+        },
+        "cost": null,
+        "createdAt": "2026-10-21T08:45:56.258Z"
+      },
+      "wallClockMs": 4778.18
+    },
+    {
+      "id": "p05",
+      "command": "Go through untriaged tickets and identify the most urgent ones.",
+      "actions": [
+        "triage"
+      ],
+      "schemaValid": true,
+      "exactIntentMatch": true,
+      "output": {
+        "actions": [
+          "triage"
+        ],
+        "objective": "Identify the most urgent untriaged tickets."
+      },
+      "receipt": {
+        "provider": "Gemma endpoint",
+        "execution": "local",
+        "model": "gemma3:4b",
+        "sdk": "Vercel AI SDK",
+        "requestId": "chatcmpl-721",
+        "latencyMs": 4477,
+        "usage": {
+          "inputTokens": 117,
+          "outputTokens": 34,
+          "totalTokens": 151
+        },
+        "cost": null,
+        "createdAt": "2026-10-21T08:46:00.735Z"
+      },
+      "wallClockMs": 4477.36
+    },
+    {
+      "id": "p06",
+      "command": "Triage tickets, then research likely fixes.",
+      "actions": [
+        "triage",
+        "research"
+      ],
+      "schemaValid": true,
+      "exactIntentMatch": true,
+      "output": {
+        "actions": [
+          "triage",
+          "research"
+        ],
+        "objective": "Assess ticket and identify potential solutions"
+      },
+      "receipt": {
+        "provider": "Gemma endpoint",
+        "execution": "local",
+        "model": "gemma3:4b",
+        "sdk": "Vercel AI SDK",
+        "requestId": "chatcmpl-757",
+        "latencyMs": 2842,
+        "usage": {
+          "inputTokens": 113,
+          "outputTokens": 22,
+          "totalTokens": 135
+        },
+        "cost": null,
+        "createdAt": "2026-10-21T08:46:03.578Z"
+      },
+      "wallClockMs": 2841.97
+    },
+    {
+      "id": "p07",
+      "command": "Find documented answers for the support backlog after prioritizing it.",
+      "actions": [
+        "triage",
+        "research"
+      ],
+      "schemaValid": true,
+      "exactIntentMatch": true,
+      "output": {
+        "actions": [
+          "triage",
+          "research"
+        ],
+        "objective": "Gather documented answers for prioritized support backlog items."
+      },
+      "receipt": {
+        "provider": "Gemma endpoint",
+        "execution": "local",
+        "model": "gemma3:4b",
+        "sdk": "Vercel AI SDK",
+        "requestId": "chatcmpl-162",
+        "latencyMs": 4237,
+        "usage": {
+          "inputTokens": 115,
+          "outputTokens": 39,
+          "totalTokens": 154
+        },
+        "cost": null,
+        "createdAt": "2026-10-21T08:46:07.815Z"
+      },
+      "wallClockMs": 4237.15
+    },
+    {
+      "id": "p08",
+      "command": "Research solutions for pending tickets; rank them first.",
+      "actions": [
+        "triage",
+        "research"
+      ],
+      "schemaValid": true,
+      "exactIntentMatch": true,
+      "output": {
+        "actions": [
+          "research",
+          "triage"
+        ],
+        "objective": "Research solutions for pending tickets and rank them based on their potential effectiveness."
+      },
+      "receipt": {
+        "provider": "Gemma endpoint",
+        "execution": "local",
+        "model": "gemma3:4b",
+        "sdk": "Vercel AI SDK",
+        "requestId": "chatcmpl-583",
+        "latencyMs": 4701,
+        "usage": {
+          "inputTokens": 114,
+          "outputTokens": 45,
+          "totalTokens": 159
+        },
+        "cost": null,
+        "createdAt": "2026-10-21T08:46:12.516Z"
+      },
+      "wallClockMs": 4700.64
+    },
+    {
+      "id": "p09",
+      "command": "Triage the queue and tag urgent tickets internally.",
+      "actions": [
+        "triage",
+        "tag"
+      ],
+      "schemaValid": true,
+      "exactIntentMatch": true,
+      "output": {
+        "actions": [
+          "triage",
+          "tag"
+        ],
+        "objective": "Triage the queue and tag urgent tickets internally."
+      },
+      "receipt": {
+        "provider": "Gemma endpoint",
+        "execution": "local",
+        "model": "gemma3:4b",
+        "sdk": "Vercel AI SDK",
+        "requestId": "chatcmpl-187",
+        "latencyMs": 4422,
+        "usage": {
+          "inputTokens": 114,
+          "outputTokens": 40,
+          "totalTokens": 154
+        },
+        "cost": null,
+        "createdAt": "2026-10-21T08:46:16.938Z"
+      },
+      "wallClockMs": 4422.08
+    },
+    {
+      "id": "p10",
+      "command": "Prioritize the backlog and apply safe internal labels.",
+      "actions": [
+        "triage",
+        "tag"
+      ],
+      "schemaValid": true,
+      "exactIntentMatch": true,
+      "output": {
+        "actions": [
+          "triage",
+          "tag"
+        ],
+        "objective": "Prioritize the backlog and apply safe internal labels."
+      },
+      "receipt": {
+        "provider": "Gemma endpoint",
+        "execution": "local",
+        "model": "gemma3:4b",
+        "sdk": "Vercel AI SDK",
+        "requestId": "chatcmpl-163",
+        "latencyMs": 4790,
+        "usage": {
+          "inputTokens": 114,
+          "outputTokens": 40,
+          "totalTokens": 154
+        },
+        "cost": null,
+        "createdAt": "2026-10-21T08:46:21.729Z"
+      },
+      "wallClockMs": 4789.95
+    },
+    {
+      "id": "p11",
+      "command": "Triage tickets, research fixes and tag cases needing attention.",
+      "actions": [
+        "triage",
+        "research",
+        "tag"
+      ],
+      "schemaValid": true,
+      "exactIntentMatch": true,
+      "output": {
+        "actions": [
+          "triage",
+          "research",
+          "tag"
+        ],
+        "objective": "Assess ticket priority, investigate potential solutions, and categorize issues for focused attention."
+      },
+      "receipt": {
+        "provider": "Gemma endpoint",
+        "execution": "local",
+        "model": "gemma3:4b",
+        "sdk": "Vercel AI SDK",
+        "requestId": "chatcmpl-62",
+        "latencyMs": 5109,
+        "usage": {
+          "inputTokens": 116,
+          "outputTokens": 50,
+          "totalTokens": 166
+        },
+        "cost": null,
+        "createdAt": "2026-10-21T08:46:26.839Z"
+      },
+      "wallClockMs": 5109.25
+    },
+    {
+      "id": "p12",
+      "command": "Tag urgent support cases after ranking and researching them.",
+      "actions": [
+        "triage",
+        "research",
+        "tag"
+      ],
+      "schemaValid": true,
+      "exactIntentMatch": true,
+      "output": {
+        "actions": [
+          "triage",
+          "research",
+          "tag"
+        ],
+        "objective": "Tag urgent support cases after ranking and researching them."
+      },
+      "receipt": {
+        "provider": "Gemma endpoint",
+        "execution": "local",
+        "model": "gemma3:4b",
+        "sdk": "Vercel AI SDK",
+        "requestId": "chatcmpl-596",
+        "latencyMs": 5547,
+        "usage": {
+          "inputTokens": 114,
+          "outputTokens": 45,
+          "totalTokens": 159
+        },
+        "cost": null,
+        "createdAt": "2026-10-21T08:46:32.387Z"
+      },
+      "wallClockMs": 5546.94
+    },
+    {
+      "id": "p13",
+      "command": "Triage tickets and draft 1 reply.",
+      "actions": [
+        "triage",
+        "draft"
+      ],
+      "draftLimit": 1,
+      "schemaValid": true,
+      "exactIntentMatch": false,
+      "output": {
+        "actions": [
+          "triage",
+          "draft"
+        ],
+        "objective": "Triage a ticket and draft a single reply."
+      },
+      "receipt": {
+        "provider": "Gemma endpoint",
+        "execution": "local",
+        "model": "gemma3:4b",
+        "sdk": "Vercel AI SDK",
+        "requestId": "chatcmpl-734",
+        "latencyMs": 4236,
+        "usage": {
+          "inputTokens": 113,
+          "outputTokens": 40,
+          "totalTokens": 153
+        },
+        "cost": null,
+        "createdAt": "2026-10-21T08:46:36.624Z"
+      },
+      "wallClockMs": 4236.44
+    },
+    {
+      "id": "p14",
+      "command": "Triage the backlog and draft 2 replies.",
+      "actions": [
+        "triage",
+        "draft"
+      ],
+      "draftLimit": 2,
+      "schemaValid": true,
+      "exactIntentMatch": false,
+      "output": {
+        "actions": [
+          "triage",
+          "draft",
+          "draft"
+        ],
+        "objective": "Triage the backlog and draft 2 replies."
+      },
+      "receipt": {
+        "provider": "Gemma endpoint",
+        "execution": "local",
+        "model": "gemma3:4b",
+        "sdk": "Vercel AI SDK",
+        "requestId": "chatcmpl-893",
+        "latencyMs": 4746,
+        "usage": {
+          "inputTokens": 114,
+          "outputTokens": 45,
+          "totalTokens": 159
+        },
+        "cost": null,
+        "createdAt": "2026-10-21T08:46:41.370Z"
+      },
+      "wallClockMs": 4746.24
+    },
+    {
+      "id": "p15",
+      "command": "Prepare three support reply drafts after triage.",
+      "actions": [
+        "triage",
+        "draft"
+      ],
+      "draftLimit": 3,
+      "schemaValid": true,
+      "exactIntentMatch": false,
+      "output": {
+        "actions": [
+          "triage",
+          "draft",
+          "tag"
+        ],
+        "objective": "Create three draft replies to a support ticket following triage.",
+        "draftLimit": 3
+      },
+      "receipt": {
+        "provider": "Gemma endpoint",
+        "execution": "local",
+        "model": "gemma3:4b",
+        "sdk": "Vercel AI SDK",
+        "requestId": "chatcmpl-320",
+        "latencyMs": 6273,
+        "usage": {
+          "inputTokens": 112,
+          "outputTokens": 54,
+          "totalTokens": 166
+        },
+        "cost": null,
+        "createdAt": "2026-10-21T08:46:47.644Z"
+      },
+      "wallClockMs": 6273.48
+    },
+    {
+      "id": "p16",
+      "command": "Triage tickets. Draft four replies, but never send them.",
+      "actions": [
+        "triage",
+        "draft"
+      ],
+      "draftLimit": 4,
+      "schemaValid": true,
+      "exactIntentMatch": true,
+      "output": {
+        "actions": [
+          "triage",
+          "draft"
+        ],
+        "objective": "Triage tickets and draft four reply drafts.",
+        "draftLimit": 4
+      },
+      "receipt": {
+        "provider": "Gemma endpoint",
+        "execution": "local",
+        "model": "gemma3:4b",
+        "sdk": "Vercel AI SDK",
+        "requestId": "chatcmpl-266",
+        "latencyMs": 3515,
+        "usage": {
+          "inputTokens": 117,
+          "outputTokens": 31,
+          "totalTokens": 148
+        },
+        "cost": null,
+        "createdAt": "2026-10-21T08:46:51.160Z"
+      },
+      "wallClockMs": 3514.96
+    },
+    {
+      "id": "p17",
+      "command": "Prioritize tickets and prepare five reply drafts for my review.",
+      "actions": [
+        "triage",
+        "draft"
+      ],
+      "draftLimit": 5,
+      "schemaValid": true,
+      "exactIntentMatch": false,
+      "output": {
+        "actions": [
+          "triage",
+          "draft",
+          "tag"
+        ],
+        "objective": "Prioritize existing tickets and generate five draft replies for review.",
+        "draftLimit": 5
+      },
+      "receipt": {
+        "provider": "Gemma endpoint",
+        "execution": "local",
+        "model": "gemma3:4b",
+        "sdk": "Vercel AI SDK",
+        "requestId": "chatcmpl-179",
+        "latencyMs": 6085,
+        "usage": {
+          "inputTokens": 116,
+          "outputTokens": 55,
+          "totalTokens": 171
+        },
+        "cost": null,
+        "createdAt": "2026-10-21T08:46:57.245Z"
+      },
+      "wallClockMs": 6085.54
+    },
+    {
+      "id": "p18",
+      "command": "Triage the queue and draft 6 replies; ask before sending.",
+      "actions": [
+        "triage",
+        "draft"
+      ],
+      "draftLimit": 6,
+      "schemaValid": true,
+      "exactIntentMatch": false,
+      "output": {
+        "actions": [
+          "triage",
+          "draft",
+          "tag"
+        ],
+        "objective": "Triage the queue and draft 6 replies.",
+        "draftLimit": 6
+      },
+      "receipt": {
+        "provider": "Gemma endpoint",
+        "execution": "local",
+        "model": "gemma3:4b",
+        "sdk": "Vercel AI SDK",
+        "requestId": "chatcmpl-900",
+        "latencyMs": 6087,
+        "usage": {
+          "inputTokens": 118,
+          "outputTokens": 53,
+          "totalTokens": 171
+        },
+        "cost": null,
+        "createdAt": "2026-10-21T08:47:03.334Z"
+      },
+      "wallClockMs": 6088.27
+    },
+    {
+      "id": "p19",
+      "command": "Research fixes and draft two replies for the triaged queue.",
+      "actions": [
+        "triage",
+        "research",
+        "draft"
+      ],
+      "draftLimit": 2,
+      "schemaValid": true,
+      "exactIntentMatch": false,
+      "output": {
+        "actions": [
+          "triage",
+          "research",
+          "draft",
+          "draft"
+        ],
+        "objective": "Investigate reported issues and create two drafts of responses for the triage queue."
+      },
+      "receipt": {
+        "provider": "Gemma endpoint",
+        "execution": "local",
+        "model": "gemma3:4b",
+        "sdk": "Vercel AI SDK",
+        "requestId": "chatcmpl-902",
+        "latencyMs": 6462,
+        "usage": {
+          "inputTokens": 116,
+          "outputTokens": 55,
+          "totalTokens": 171
+        },
+        "cost": null,
+        "createdAt": "2026-10-21T08:47:09.796Z"
+      },
+      "wallClockMs": 6461.73
+    },
+    {
+      "id": "p20",
+      "command": "Triage tickets, find relevant documentation, and draft one reply.",
+      "actions": [
+        "triage",
+        "research",
+        "draft"
+      ],
+      "draftLimit": 1,
+      "schemaValid": true,
+      "exactIntentMatch": false,
+      "output": {
+        "actions": [
+          "triage",
+          "research",
+          "draft"
+        ],
+        "objective": "Review the ticket, locate pertinent documentation, and create a single draft response."
+      },
+      "receipt": {
+        "provider": "Gemma endpoint",
+        "execution": "local",
+        "model": "gemma3:4b",
+        "sdk": "Vercel AI SDK",
+        "requestId": "chatcmpl-877",
+        "latencyMs": 7152,
+        "usage": {
+          "inputTokens": 117,
+          "outputTokens": 50,
+          "totalTokens": 167
+        },
+        "cost": null,
+        "createdAt": "2026-10-21T08:47:16.948Z"
+      },
+      "wallClockMs": 7151.33
+    },
+    {
+      "id": "p21",
+      "command": "Triage, research fixes, tag urgent cases, and draft two replies. Ask me before sending anything.",
+      "actions": [
+        "triage",
+        "research",
+        "tag",
+        "draft"
+      ],
+      "draftLimit": 2,
+      "schemaValid": true,
+      "exactIntentMatch": true,
+      "output": {
+        "actions": [
+          "triage",
+          "research",
+          "tag",
+          "draft"
+        ],
+        "objective": "Assess, investigate, categorize, and prepare responses for urgent cases.",
+        "draftLimit": 2
+      },
+      "receipt": {
+        "provider": "Gemma endpoint",
+        "execution": "local",
+        "model": "gemma3:4b",
+        "sdk": "Vercel AI SDK",
+        "requestId": "chatcmpl-356",
+        "latencyMs": 7809,
+        "usage": {
+          "inputTokens": 125,
+          "outputTokens": 61,
+          "totalTokens": 186
+        },
+        "cost": null,
+        "createdAt": "2026-10-21T08:47:24.757Z"
+      },
+      "wallClockMs": 7808.6
+    },
+    {
+      "id": "p22",
+      "command": "I'm taking the afternoon off. Triage the tickets, research fixes, add internal labels and draft 2 replies.",
+      "actions": [
+        "triage",
+        "research",
+        "tag",
+        "draft"
+      ],
+      "draftLimit": 2,
+      "schemaValid": true,
+      "exactIntentMatch": false,
+      "output": {
+        "actions": [
+          "triage",
+          "research",
+          "draft",
+          "tag"
+        ],
+        "objective": "Triage incoming tickets, research potential fixes, add relevant internal labels, and draft two reply messages."
+      },
+      "receipt": {
+        "provider": "Gemma endpoint",
+        "execution": "local",
+        "model": "gemma3:4b",
+        "sdk": "Vercel AI SDK",
+        "requestId": "chatcmpl-477",
+        "latencyMs": 5930,
+        "usage": {
+          "inputTokens": 129,
+          "outputTokens": 60,
+          "totalTokens": 189
+        },
+        "cost": null,
+        "createdAt": "2026-10-21T08:47:30.687Z"
+      },
+      "wallClockMs": 5929.67
+    },
+    {
+      "id": "p23",
+      "command": "Please triage the queue, tag urgent items and prepare one reply draft.",
+      "actions": [
+        "triage",
+        "tag",
+        "draft"
+      ],
+      "draftLimit": 1,
+      "schemaValid": true,
+      "exactIntentMatch": false,
+      "output": {
+        "actions": [
+          "triage",
+          "tag",
+          "draft"
+        ],
+        "objective": "Triage the queue, identify and tag urgent items, and create a single draft reply."
+      },
+      "receipt": {
+        "provider": "Gemma endpoint",
+        "execution": "local",
+        "model": "gemma3:4b",
+        "sdk": "Vercel AI SDK",
+        "requestId": "chatcmpl-472",
+        "latencyMs": 5840,
+        "usage": {
+          "inputTokens": 118,
+          "outputTokens": 53,
+          "totalTokens": 171
+        },
+        "cost": null,
+        "createdAt": "2026-10-21T08:47:36.527Z"
+      },
+      "wallClockMs": 5840.01
+    },
+    {
+      "id": "p24",
+      "command": "Draft three replies after prioritizing tickets and adding safe internal labels.",
+      "actions": [
+        "triage",
+        "tag",
+        "draft"
+      ],
+      "draftLimit": 3,
+      "schemaValid": true,
+      "exactIntentMatch": true,
+      "output": {
+        "actions": [
+          "triage",
+          "draft",
+          "tag"
+        ],
+        "objective": "Create three draft replies to prioritized tickets, incorporating safe internal labels.",
+        "draftLimit": 3
+      },
+      "receipt": {
+        "provider": "Gemma endpoint",
+        "execution": "local",
+        "model": "gemma3:4b",
+        "sdk": "Vercel AI SDK",
+        "requestId": "chatcmpl-558",
+        "latencyMs": 5997,
+        "usage": {
+          "inputTokens": 116,
+          "outputTokens": 56,
+          "totalTokens": 172
+        },
+        "cost": null,
+        "createdAt": "2026-10-21T08:47:42.524Z"
+      },
+      "wallClockMs": 5996.65
+    },
+    {
+      "id": "p25",
+      "command": "TRIAGE THE SUPPORT QUEUE. RESEARCH FIXES. DRAFT TWO REPLIES. DO NOT SEND.",
+      "actions": [
+        "triage",
+        "research",
+        "draft"
+      ],
+      "draftLimit": 2,
+      "schemaValid": true,
+      "exactIntentMatch": false,
+      "output": {
+        "actions": [
+          "triage",
+          "research",
+          "draft",
+          "draft"
+        ],
+        "objective": "Triage the support queue and research potential fixes for identified issues. Draft two replies to address common support requests."
+      },
+      "receipt": {
+        "provider": "Gemma endpoint",
+        "execution": "local",
+        "model": "gemma3:4b",
+        "sdk": "Vercel AI SDK",
+        "requestId": "chatcmpl-807",
+        "latencyMs": 6353,
+        "usage": {
+          "inputTokens": 126,
+          "outputTokens": 62,
+          "totalTokens": 188
+        },
+        "cost": null,
+        "createdAt": "2026-10-21T08:47:48.877Z"
+      },
+      "wallClockMs": 6353
+    },
+    {
+      "id": "p26",
+      "command": "Could you triage the support backlog? Research likely solutions, then draft 2 replies for approval.",
+      "actions": [
+        "triage",
+        "research",
+        "draft"
+      ],
+      "draftLimit": 2,
+      "schemaValid": true,
+      "exactIntentMatch": false,
+      "output": {
+        "actions": [
+          "triage",
+          "research",
+          "draft",
+          "tag"
+        ],
+        "objective": "Triage the support backlog, research potential solutions, and draft two replies for approval.",
+        "draftLimit": 2
+      },
+      "receipt": {
+        "provider": "Gemma endpoint",
+        "execution": "local",
+        "model": "gemma3:4b",
+        "sdk": "Vercel AI SDK",
+        "requestId": "chatcmpl-13",
+        "latencyMs": 6246,
+        "usage": {
+          "inputTokens": 123,
+          "outputTokens": 65,
+          "totalTokens": 188
+        },
+        "cost": null,
+        "createdAt": "2026-10-21T08:47:55.123Z"
+      },
+      "wallClockMs": 6246.02
+    },
+    {
+      "id": "p27",
+      "command": "Triage pending tickets; research their fixes; tag urgent ones; draft four replies for review.",
+      "actions": [
+        "triage",
+        "research",
+        "tag",
+        "draft"
+      ],
+      "draftLimit": 4,
+      "schemaValid": true,
+      "exactIntentMatch": true,
+      "output": {
+        "actions": [
+          "triage",
+          "research",
+          "tag",
+          "draft"
+        ],
+        "objective": "Review and prepare four drafts of responses for urgent tickets after researching their fixes.",
+        "draftLimit": 4
+      },
+      "receipt": {
+        "provider": "Gemma endpoint",
+        "execution": "local",
+        "model": "gemma3:4b",
+        "sdk": "Vercel AI SDK",
+        "requestId": "chatcmpl-497",
+        "latencyMs": 7824,
+        "usage": {
+          "inputTokens": 123,
+          "outputTokens": 63,
+          "totalTokens": 186
+        },
+        "cost": null,
+        "createdAt": "2026-10-21T08:48:02.947Z"
+      },
+      "wallClockMs": 7823.68
+    },
+    {
+      "id": "p28",
+      "command": "Triage the backlog and tag urgent issues. Skip research and drafting.",
+      "actions": [
+        "triage",
+        "tag"
+      ],
+      "schemaValid": true,
+      "exactIntentMatch": true,
+      "output": {
+        "actions": [
+          "triage",
+          "tag"
+        ],
+        "objective": "Prioritize urgent issues in the backlog."
+      },
+      "receipt": {
+        "provider": "Gemma endpoint",
+        "execution": "local",
+        "model": "gemma3:4b",
+        "sdk": "Vercel AI SDK",
+        "requestId": "chatcmpl-362",
+        "latencyMs": 4992,
+        "usage": {
+          "inputTokens": 118,
+          "outputTokens": 24,
+          "totalTokens": 142
+        },
+        "cost": null,
+        "createdAt": "2026-10-21T08:48:07.940Z"
+      },
+      "wallClockMs": 4992.85
+    },
+    {
+      "id": "p29",
+      "command": "First triage support tickets. Then research solutions. No labels or drafts this time.",
+      "actions": [
+        "triage",
+        "research"
+      ],
+      "schemaValid": true,
+      "exactIntentMatch": true,
+      "output": {
+        "actions": [
+          "triage",
+          "research"
+        ],
+        "objective": "Initial support ticket assessment and solution investigation"
+      },
+      "receipt": {
+        "provider": "Gemma endpoint",
+        "execution": "local",
+        "model": "gemma3:4b",
+        "sdk": "Vercel AI SDK",
+        "requestId": "chatcmpl-796",
+        "latencyMs": 8849,
+        "usage": {
+          "inputTokens": 120,
+          "outputTokens": 23,
+          "totalTokens": 143
+        },
+        "cost": null,
+        "createdAt": "2026-10-21T08:48:16.790Z"
+      },
+      "wallClockMs": 8849.67
+    },
+    {
+      "id": "p30",
+      "command": "Triage all 24 tickets, research fixes, tag urgent ones and draft two replies. Leave both drafts waiting for me.",
+      "actions": [
+        "triage",
+        "research",
+        "tag",
+        "draft"
+      ],
+      "draftLimit": 2,
+      "schemaValid": true,
+      "exactIntentMatch": true,
+      "output": {
+        "actions": [
+          "triage",
+          "research",
+          "tag",
+          "draft"
+        ],
+        "objective": "Triage all 24 tickets, research fixes for identified issues, tag urgent tickets, and draft two replies.",
+        "draftLimit": 2
+      },
+      "receipt": {
+        "provider": "Gemma endpoint",
+        "execution": "local",
+        "model": "gemma3:4b",
+        "sdk": "Vercel AI SDK",
+        "requestId": "chatcmpl-150",
+        "latencyMs": 10493,
+        "usage": {
+          "inputTokens": 130,
+          "outputTokens": 71,
+          "totalTokens": 201
+        },
+        "cost": null,
+        "createdAt": "2026-10-21T08:48:27.284Z"
+      },
+      "wallClockMs": 10492.92
+    }
+  ],
+  "limitations": [
+    "Local Gemma 3 4B, not the hosted Gemma model or voice-to-plan endpoint.",
+    "Schema validity does not establish action accuracy, reply quality or production reliability.",
+    "Fixed synthetic regression set, not a held-out generalization claim. The shared planner prompt was corrected after observing the baseline failures; both results are retained."
+  ]
+}

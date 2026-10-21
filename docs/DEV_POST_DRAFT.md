@@ -8,9 +8,11 @@ tags: devchallenge, hf26challenge
 
 ## What I Built
 
-Give VOX the queue, walk away, and come back to **two reply decisions**. That is the sloth payoff I wanted: let the machine do the preparation, then spend my attention on the answers that need judgment.
+I wanted an afternoon off, not another chatbot. Give VOX the queue, approve its plan, and come back to **two reply decisions**. That is the sloth payoff I wanted: let the machine do the preparation, then spend my attention on the answers that need judgment.
 
 VOX is a support ticket assistant. Ask it to prioritize tickets, find guidance and draft two replies. First you approve its plan. After that, it prepares the work and waits for you to approve or reject each reply. Those are **three human gates altogether**, including the initial plan approval.
+
+The hosted workflow runs on the server, so my browser and laptop do not have to stay open while it prepares the queue. Temporal preserves the run across interruption; free hosting can still sleep, so I claim recoverability rather than uninterrupted service. The separate local mode keeps model requests on my own machine and needs that machine running. [Hosted restart evidence](https://github.com/himanshu748/vox-zero-touch-os/blob/main/docs/evidence/hosted-expansion.json).
 
 I now have a measured local run: **24 fictional tickets triaged, seven labels saved and two Gemma drafts ready in 25.09 seconds** on a MacBook Air M4 with 16 GB. That is machine preparation time, not a claim about minutes saved. The model was not already loaded, and local server/worker startup took another 1.42 seconds. The [receipt includes stage timings, actual draft text and the frozen input](https://github.com/himanshu748/vox-zero-touch-os/blob/week3-local-lazy-payoff/docs/evidence/lazy-payoff.json).
 
@@ -27,6 +29,8 @@ Open weights also made the separate hosted Tinker experiment possible. I trained
 The paths are distinct: **local mode uses Gemma, with local Qwen3-8B as the intent fallback; hosted mode uses the private Tinker adapter**. No Tinker call occurs in the local benchmark. The Qwen fallback is transport-tested but real fallback inference is **unverified**; the recorded run used Gemma throughout. [Verification boundaries](https://github.com/himanshu748/vox-zero-touch-os/blob/week3-local-lazy-payoff/docs/evidence/local-mode-verification.json).
 
 ## The Lazy Payoff
+
+I also ran ten complete local workflows with the model already resident. All ten prepared 24 tickets and two drafts, then completed after scripted approval/rejection. Preparation measured **17.19 seconds p50 and 31.97 seconds p95**; local text-to-plan was **9.44/23.42 seconds p50/p95**. Startup was measured separately. At ten samples, nearest-rank p95 is simply the slowest observation. These are local text-mode measurements, not cloud voice performance or human time saved. [All ten receipts](https://github.com/himanshu748/vox-zero-touch-os/blob/week3-local-lazy-payoff/docs/evidence/local-performance.json).
 
 The reproducible instruction was:
 
@@ -58,6 +62,8 @@ I have a [frozen-queue protocol and empty timing sheet](https://github.com/himan
 
 ## Demo
 
+[Watch the captioned 1:50 local walkthrough](https://github.com/himanshu748/vox-zero-touch-os/raw/refs/heads/week3-local-lazy-payoff/docs/evidence/local-demo.mp4). It uses actual screenshots from one completed local run, assembled with edited timing and pointer overlays; it is not a continuous recording or a latency benchmark. It shows the plan, safe work, individual approval/rejection, and explicit cloud skips. [Run and media receipt](https://github.com/himanshu748/vox-zero-touch-os/blob/week3-local-lazy-payoff/docs/evidence/local-demo.json).
+
 **Local open-weight mode:** follow [LOCAL.md](https://github.com/himanshu748/vox-zero-touch-os/blob/week3-local-lazy-payoff/docs/LOCAL.md). After installing Node dependencies, Ollama and Temporal CLI:
 
 ```sh
@@ -83,6 +89,8 @@ Vercel AI SDK sends structured requests to local Gemma. The server validates the
 
 The first local attempt found a real compatibility problem: Ollama rejected the long bounded-string grammar used for a reply. I removed string-length hints from the inference schema, while retaining the original final Zod validation and output-token ceiling. The added regression test checks that an oversized draft is still rejected. This changed the adapter, not the approval boundary. [Recorded checks](https://github.com/himanshu748/vox-zero-touch-os/blob/week3-local-lazy-payoff/docs/evidence/local-mode-verification.json).
 
+The broader local planner check was more sobering: **30/30 schema-valid responses, but 19/30 exact requested-action matches**. Sharing the bounded prompt improved the latter from 11/30 under the old example prompt, but valid JSON still did not mean the model understood every command. These are regression cases inspected during the correction, not unseen test data. The separate intent-normalization stage and visible plan approval matter. [Outputs and limitations](https://github.com/himanshu748/vox-zero-touch-os/blob/week3-local-lazy-payoff/docs/evidence/planning-evaluation.json).
+
 ### Leave work behind a durable gate
 
 Mastra owns the named activity graph and reply suspension. Temporal owns durable scheduling and the decision signal. In the earlier hosted restart experiment, stopping the server at two pending approvals preserved the same Temporal execution and completed provider receipts. The later anonymous voice run is a separate test; I do not combine their counts. [Hosted restart evidence](https://github.com/himanshu748/vox-zero-touch-os/blob/main/docs/evidence/hosted-expansion.json).
@@ -92,6 +100,8 @@ The local benchmark keeps those same workflows and request reservations, using i
 ### Keep failures and sources visible
 
 The hosted version combines authored guidance with retrieval, search and advisory tools; those services are skipped in local mode. Sources do not make an answer automatically safe. An earlier hosted search returned irrelevant references, and the draft was rejected. The published trace evidence also separates a real Gemma failure from an injected retry test. [Hosted evidence](https://github.com/himanshu748/vox-zero-touch-os/blob/main/docs/evidence/hosted-expansion.json) · [actual Sentry screenshot](https://github.com/himanshu748/vox-zero-touch-os/blob/main/docs/evidence/sentry-judge-trace.png).
+
+Ultramarine already supplies a second opinion on hosted drafts. A separate recorded review returned `needs_revision` with three concerns, including a potentially invented completed action. The inbox now distinguishes suggested changes from readiness for human review and labels blocking concerns. The review remains advice; it cannot authorize sending. Its token cost is estimated, not an invoice. [Actual review response](https://github.com/himanshu748/vox-zero-touch-os/blob/week3-local-lazy-payoff/docs/evidence/ultramarine-review.json).
 
 ## Prize Categories
 

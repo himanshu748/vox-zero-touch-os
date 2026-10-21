@@ -1,4 +1,5 @@
 import { resolve } from "node:path";
+import { createServer as createHttpServer } from "node:http";
 import express from "express";
 import { createStore } from "./store.mjs";
 import { createApp } from "./app.mjs";
@@ -13,6 +14,7 @@ const store = createStore(
 const atlas = await connectAtlas(store);
 const { app, engine } = createApp(store);
 await engine.ready;
+const server = createHttpServer(app);
 let vite;
 if (process.env.NODE_ENV === "production") {
   app.use(express.static("dist"));
@@ -20,13 +22,14 @@ if (process.env.NODE_ENV === "production") {
 } else {
   const { createServer } = await import("vite");
   vite = await createServer({
-    server: { middlewareMode: true },
+    // Share VOX's HTTP listener instead of competing for Vite's default socket port.
+    server: { middlewareMode: true, hmr: { server } },
     appType: "spa",
   });
   app.use(vite.middlewares);
 }
 const port = Number(process.env.PORT || 4310);
-const server = app.listen(port, process.env.HOST || "127.0.0.1", () => {
+server.listen(port, process.env.HOST || "127.0.0.1", () => {
   console.log(`VOX is ready at http://localhost:${port}`);
   engine.resumeAll();
 });

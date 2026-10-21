@@ -44,6 +44,6 @@ The owner-approved cleanup backed up and deleted only the suspended Murf-ai-2 we
 
 The ElevenLabs benefit was already claimed. Existing Backboard $5, Render $50 and Tinker $10 offers were reused; the Paper Instruments $5 and .tech offers were claimed with approval. No duplicate promotion, paid plan or card was added. Browserbase uses its free plan; the card-required offer was not redeemed.
 
-Ultramarine is excluded from the prize-entry list by owner choice. DigitalOcean remains disconnected and Arduino has no hardware proof. All automatic eligibility claims remain disabled. No final competition entry has been submitted.
+Ultramarine remains in the hosted reply-review path, with [an actual advisory response and estimated token cost](evidence/ultramarine-review.json). Its category is excluded from the published entry. DigitalOcean remains disconnected and Arduino has no hardware proof. All automatic eligibility claims remain disabled. The existing 17-category article was published on October 21; [historical publication receipt](evidence/dev-publication.json). The local-mode revision has not been published.
 
 The October 21 judge entry at https://getvox.tech/judge needs no Auth0 login. One of eight approved passes completed recorded voice, the expanded provider pipeline and private approve/reject decisions. Its 16 successful provider receipts and completed Temporal/Mastra state are recorded in [judge evidence](evidence/judge-hosted.json). Public allowance is independent of the protected owner workspace.

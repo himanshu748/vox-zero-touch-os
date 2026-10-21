@@ -1,0 +1,61 @@
+{
+  "probabilities": [
+    0.003006455022841692,
+    0.0010094752069562674,
+    0.9560843706130981,
+    0.9967833757400513,
+    0.9940490126609802,
+    0.0024428940378129482,
+    0.9986515045166016,
+    0.1597650647163391,
+    0.015188290737569332,
+    0.9825739860534668,
+    0.021761607378721237,
+    0.9626340866088867,
+    0.9939307570457458,
+    0.002017826773226261,
+    0.4867263734340668,
+    0.18591323494911194
+  ],
+  "dataset": {
+    "version": "vox-synthetic-escalation-v1",
+    "sha256": "4d6c3697403b49e7ff6f48e9dc8f979fea1ea907fc94569c90ca8ad8655d9413",
+    "trainRows": 48,
+    "provenance": "Authored synthetic support scenarios; estimates are illustrative and require human review."
+  },
+  "receipt": {
+    "provider": "TabPFN",
+    "operation": "escalation prediction",
+    "model": "TabPFN-3.5-Plus",
+    "requestId": "01a1593d-d67c-7962-8eaa-031113271532",
+    "latencyMs": 14917,
+    "usage": {
+      "estimatedTokens": 10000,
+      "rows": 16
+    },
+    "cost": null,
+    "createdAt": "2026-10-20T12:16:34.842Z"
+  },
+  "heldOutRows": 16,
+  "correct": 15,
+  "accuracy": 0.9375,
+  "labels": [
+    0,
+    0,
+    1,
+    1,
+    1,
+    0,
+    1,
+    0,
+    0,
+    1,
+    0,
+    1,
+    1,
+    0,
+    1,
+    0
+  ],
+  "observedAt": "2026-10-20T12:16:34.855Z"
+}

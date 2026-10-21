@@ -5,6 +5,8 @@ import { once } from "node:events";
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { performance } from "node:perf_hooks";
+import { parseArgs } from "node:util";
+import { relative } from "node:path";
 
 // No dotenv, account credential, cloud database or hosted endpoint is read.
 process.env.VOX_MODEL_MODE = "local";
@@ -33,7 +35,8 @@ const config = localModelConfig(),
   stageTimings = {};
 let temporal, store, engine, server;
 const launchedAt = performance.now();
-const evidenceDirectory = resolve("docs/evidence");
+const { values } = parseArgs({ options: { "output-dir": { type: "string" } } });
+const evidenceDirectory = resolve(values["output-dir"] || "docs/evidence");
 await mkdir(evidenceDirectory, { recursive: true });
 try {
   temporal = await startLocalTemporal({
@@ -198,7 +201,10 @@ try {
     dataset: {
       tickets: 24,
       sha256: datasetSha256,
-      file: "docs/evidence/lazy-payoff-queue.json",
+      file: relative(
+        resolve(),
+        join(evidenceDirectory, "lazy-payoff-queue.json"),
+      ),
     },
     command,
     timing: {

@@ -59,3 +59,7 @@ node scripts/lazy-payoff.mjs
 ```
 
 The script starts an isolated loopback Temporal server on 17333, creates a fresh synthetic database, runs the real Gemma/Temporal/Mastra pipeline, verifies two pending drafts, then scripts one approval and one rejection. It cleans up only its temporary data and owned processes. It overwrites `docs/evidence/lazy-payoff.json` and `lazy-payoff-queue.json` with that run's measurements and frozen input. Human timing remains empty. See [the comparison protocol](LAZY_PAYOFF.md).
+
+Run the fixed 30-command schema/action evaluation with `npm run evaluate:planning`. Run ten isolated 24-ticket workflows with `npm run benchmark:local`. The latter preserves the original single-run/manual-baseline input and writes each run under `docs/evidence/performance-runs/`, plus [aggregate percentiles](evidence/local-performance.json). These sequential real local calls consume compute time, not cloud credits. Do not simultaneously run other model workloads when reproducing latency.
+
+For development accessibility checks, open `/app?qa`; the opt-in audit control runs axe-core locally and includes the current reduced-motion preference and viewport. It is excluded from production bundles. [PRD status and limits](PRD_STATUS.md).

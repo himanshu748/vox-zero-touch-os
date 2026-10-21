@@ -128,10 +128,14 @@ export async function createTemporalRuntime({ store, execute, event }) {
       };
     },
     async close() {
-      worker.shutdown();
-      await running;
-      await native.close();
-      await connection.close();
+      // The SDK may already be draining after the same SIGINT/SIGTERM.
+      if (worker.getState() === "RUNNING") worker.shutdown();
+      try {
+        await running;
+      } finally {
+        await native.close();
+        await connection.close();
+      }
     },
   };
 }

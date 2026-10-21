@@ -600,7 +600,10 @@ export default function Landing() {
                 </a>
               </div>
               <div className="product-window-body">
-                <aside className="mini-sidebar">
+                <section
+                  className="mini-sidebar"
+                  aria-label="Illustrative workspace navigation"
+                >
                   <Brand />
                   <div className="mini-workspace">
                     <span>H</span>
@@ -628,7 +631,7 @@ export default function Landing() {
                       Real saved work.
                     </p>
                   </div>
-                </aside>
+                </section>
                 <div className="mini-content">
                   <div className="mini-content-top">
                     <span>YOUR SYNTHETIC WORKSPACE</span>

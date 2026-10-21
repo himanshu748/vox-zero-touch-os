@@ -75,7 +75,10 @@ function DraftReview({ review }) {
       <p>{review.summary}</p>
       {review.issues.map((issue, index) => (
         <p key={index}>
-          <strong>{issue.concern}</strong>
+          <strong>
+            {issue.severity === "blocking" ? "Blocking concern: " : "Caution: "}
+            {issue.concern}
+          </strong>
           <br />
           {issue.suggestion}
         </p>
@@ -236,7 +239,7 @@ function Modal({ title, subtitle, children, onClose, wide = false }) {
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="modal-header">
+        <div className="modal-header">
           <div>
             <h2 id="modal-title">{title}</h2>
             {subtitle && <p>{subtitle}</p>}
@@ -248,7 +251,7 @@ function Modal({ title, subtitle, children, onClose, wide = false }) {
           >
             <X size={20} />
           </button>
-        </header>
+        </div>
         {children}
       </motion.section>
     </motion.div>
@@ -1471,7 +1474,10 @@ export default function App() {
                         </button>
                       </div>
                     </div>
-                    <aside className="workflow-card">
+                    <section
+                      className="workflow-card"
+                      aria-label="How VOX works"
+                    >
                       <div className="section-eyebrow">
                         <Workflow size={16} /> THE WAY VOX WORKS
                       </div>
@@ -1518,7 +1524,7 @@ export default function App() {
                         <ShieldCheck size={15} />
                         <span>Nothing gets sent without your say.</span>
                       </div>
-                    </aside>
+                    </section>
                   </section>
                   <div className="metrics-row">
                     {[
@@ -1756,7 +1762,7 @@ export default function App() {
                       </h1>
                       <p>
                         {approvalItems.length
-                          ? `${approvalItems.length} replies ready for a thoughtful once-over.`
+                          ? `${approvalItems.length} ${approvalItems.length === 1 ? "reply" : "replies"} ready for a thoughtful once-over.`
                           : approvalFilter !== "all"
                             ? "This run has been reviewed. Your decisions are saved."
                             : "You’re all caught up. Nothing is waiting on you."}
@@ -1820,7 +1826,7 @@ export default function App() {
                               {d.provider} · {relative(d.createdAt)}
                             </span>
                           </div>
-                          <h3>{d.ticket.title}</h3>
+                          <h2>{d.ticket.title}</h2>
                           <div className="draft-to">
                             <span className="avatar av-2">
                               {initials(d.ticket.name)}
@@ -1834,7 +1840,17 @@ export default function App() {
                           </div>
                           <p className="draft-excerpt">{d.body}</p>
                           {d.review && (
-                            <Badge kind="local">Ultramarine reviewed</Badge>
+                            <Badge
+                              kind={
+                                d.review.verdict === "needs_revision"
+                                  ? "pending"
+                                  : "local"
+                              }
+                            >
+                              {d.review.verdict === "needs_revision"
+                                ? "Ultramarine: changes suggested"
+                                : "Ultramarine: ready for your review"}
+                            </Badge>
                           )}
                           <div className="draft-source">
                             <BookOpen size={13} />
@@ -2254,7 +2270,7 @@ export default function App() {
                         <CheckCheck size={24} />
                       </span>
                       <div>
-                        <h3>Working in this workspace</h3>
+                        <h2>Working in this workspace</h2>
                         <p>
                           {state.capabilities.storage || "SQLite"} persistence,
                           bounded planning, ticket scoring, saved labels,
@@ -2268,7 +2284,7 @@ export default function App() {
                         <Layers size={24} />
                       </span>
                       <div>
-                        <h3>Connections and observed requests</h3>
+                        <h2>Connections and observed requests</h2>
                         <p>
                           {state.capabilities.modelMode === "local"
                             ? "Mastra runs the approved plan. Local model requests and skipped external steps are recorded separately; skipped steps do not count as successful requests."
@@ -2522,7 +2538,7 @@ export default function App() {
                     <p>{plan.boundaries.join(" · ")}</p>
                     <small>
                       {plan.injectFailure
-                        ? "Recovery demo enabled: one safe transient failure will be injected."
+                        ? "Recovery demo enabled: safe pre-write retry checks are active."
                         : "Recovery demo disabled."}{" "}
                       Gemma call ceiling: {plan.maxProviderCalls}. Additional
                       provider limits are shown above. Costs are estimates where
@@ -2913,7 +2929,7 @@ export default function App() {
                   </button>
                 </div>
                 <div className="reset-section">
-                  <h4>A fresh start</h4>
+                  <h3>A fresh start</h3>
                   <p>
                     Clear your transcript history, plans, runs, drafts,
                     decisions, and preferences. Recreate the 24 fictional

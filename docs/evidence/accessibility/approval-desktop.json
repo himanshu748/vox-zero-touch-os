@@ -1,0 +1,58 @@
+{
+  "checkedAt": "2026-10-21T09:01:43.505Z",
+  "tool": "axe-core 4.11.0",
+  "url": "http://127.0.0.1:4320/app?qa#approvals?run=9cc755e0-e826-45c8-b03d-e5aa2b413812",
+  "viewport": {
+    "width": 1280,
+    "height": 960,
+    "documentWidth": 1280
+  },
+  "reducedMotion": true,
+  "rulesPassed": 40,
+  "violations": [],
+  "incomplete": [
+    {
+      "id": "color-contrast",
+      "impact": "serious",
+      "targets": [
+        [
+          ".orange"
+        ],
+        [
+          ".new-run > span"
+        ],
+        [
+          ".sandbox-note > strong"
+        ],
+        [
+          ".sandbox-note > p"
+        ],
+        [
+          ".sandbox-note > button"
+        ],
+        [
+          ".judge-access > div > .eyebrow"
+        ],
+        [
+          ".judge-access > div > h2"
+        ],
+        [
+          ".judge-access > div > p"
+        ],
+        [
+          "div > small"
+        ],
+        [
+          ".message-body"
+        ],
+        [
+          ".small-muted"
+        ],
+        [
+          ".modal > .info-strip > p"
+        ]
+      ]
+    }
+  ],
+  "motion": []
+}

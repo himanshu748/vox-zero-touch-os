@@ -1,0 +1,36 @@
+name: Verify VOX
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --include=dev
+      - run: npm test
+      - run: npm run typecheck
+      - run: npm run verify:recorded-predictions
+      - run: npm run build
+        env:
+          VOX_MODEL_MODE: local
+      # Actual model benchmarks are separately recorded on M4 hardware.
+      # This job needs no provider credentials, cloud database or model download.

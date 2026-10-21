@@ -31,6 +31,10 @@ The machine-side receipt is [evidence/lazy-payoff.json](evidence/lazy-payoff.jso
 
 These are wall-clock measurements from one run, not averages. Stage totals need not equal elapsed preparation: planning, queue scheduling, persistence and polling contribute overhead. Deliberate fault injection and cosmetic per-step delays are disabled in the benchmark. Model loading and local Temporal/worker startup are reported separately. The preparation timer begins immediately before the planning request and ends when Mastra is suspended with two pending replies.
 
+## Ten-run local follow-up
+
+The subsequent [ten-run local benchmark](evidence/local-performance.json) completed 10/10 workflows with a resident model: preparation p50 **17.19 s**, p95 **31.97 s**; text-to-plan p50 **9.44 s**, p95 **23.42 s**. Startup is separate. Each raw receipt includes its own frozen queue. These results neither replace the original cold-run input above nor measure hosted voice latency or human review. At n=10, nearest-rank p95 is the slowest observed run.
+
 ## Manual baseline: do this yourself
 
 1. Open only the frozen queue JSON and its included playbooks. Do not read VOX's resulting drafts before doing the manual attempt. Use the supplied `slaHoursAtStart`, not today's clock; the cases must remain identical across attempts.

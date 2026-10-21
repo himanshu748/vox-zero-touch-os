@@ -1,0 +1,137 @@
+{
+  "tool": "axe-core 4.11.0",
+  "views": [
+    {
+      "file": "docs/evidence/accessibility/approval-desktop.json",
+      "checkedAt": "2026-10-21T09:01:43.505Z",
+      "viewport": {
+        "width": 1280,
+        "height": 960,
+        "documentWidth": 1280
+      },
+      "violations": 0,
+      "incompleteChecks": 1,
+      "reducedMotion": true,
+      "visibleCssAnimations": 0
+    },
+    {
+      "file": "docs/evidence/accessibility/approval-mobile.json",
+      "checkedAt": "2026-10-21T09:02:22.242Z",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "documentWidth": 390
+      },
+      "violations": 0,
+      "incompleteChecks": 1,
+      "reducedMotion": true,
+      "visibleCssAnimations": 0
+    },
+    {
+      "file": "docs/evidence/accessibility/evidence-desktop.json",
+      "checkedAt": "2026-10-21T08:53:26.362Z",
+      "viewport": {
+        "width": 1280,
+        "height": 720,
+        "documentWidth": 1280
+      },
+      "violations": 0,
+      "incompleteChecks": 1,
+      "reducedMotion": true,
+      "visibleCssAnimations": 0
+    },
+    {
+      "file": "docs/evidence/accessibility/landing-desktop.json",
+      "checkedAt": "2026-10-21T08:55:43.157Z",
+      "viewport": {
+        "width": 1280,
+        "height": 720,
+        "documentWidth": 1280
+      },
+      "violations": 0,
+      "incompleteChecks": 1,
+      "reducedMotion": true,
+      "visibleCssAnimations": 0
+    },
+    {
+      "file": "docs/evidence/accessibility/landing-mobile.json",
+      "checkedAt": "2026-10-21T08:55:52.344Z",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "documentWidth": 390
+      },
+      "violations": 0,
+      "incompleteChecks": 1,
+      "reducedMotion": true,
+      "visibleCssAnimations": 0
+    },
+    {
+      "file": "docs/evidence/accessibility/overview-desktop.json",
+      "checkedAt": "2026-10-21T08:46:30.441Z",
+      "viewport": {
+        "width": 1280,
+        "height": 720,
+        "documentWidth": 1280
+      },
+      "violations": 0,
+      "incompleteChecks": 1,
+      "reducedMotion": true,
+      "visibleCssAnimations": 0
+    },
+    {
+      "file": "docs/evidence/accessibility/overview-mobile.json",
+      "checkedAt": "2026-10-21T08:56:32.894Z",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "documentWidth": 390
+      },
+      "violations": 0,
+      "incompleteChecks": 1,
+      "reducedMotion": true,
+      "visibleCssAnimations": 0
+    },
+    {
+      "file": "docs/evidence/accessibility/preferences-desktop.json",
+      "checkedAt": "2026-10-21T08:53:43.347Z",
+      "viewport": {
+        "width": 1280,
+        "height": 720,
+        "documentWidth": 1280
+      },
+      "violations": 0,
+      "incompleteChecks": 1,
+      "reducedMotion": true,
+      "visibleCssAnimations": 0
+    },
+    {
+      "file": "docs/evidence/accessibility/queue-desktop.json",
+      "checkedAt": "2026-10-21T08:46:21.014Z",
+      "viewport": {
+        "width": 1280,
+        "height": 720,
+        "documentWidth": 1280
+      },
+      "violations": 0,
+      "incompleteChecks": 1,
+      "reducedMotion": true,
+      "visibleCssAnimations": 0
+    }
+  ],
+  "automatedViolations": 0,
+  "actualOsPreferenceTest": {
+    "initialReduceMotion": false,
+    "enabledDuringChecks": true,
+    "browserObservedReduce": true,
+    "restoredOriginalSetting": true,
+    "browserObservedAfterRestore": false
+  },
+  "viewportRestored": true,
+  "scope": "Opt-in development UI audits in the in-app browser; no production visit or provider call.",
+  "limitations": [
+    "Zero detected violations is not full WCAG certification.",
+    "Raw reports retain incomplete contrast checks for gradients/overlap; no automated pass is claimed for those checks.",
+    "Physical microphone, speaker output and cross-browser coverage are separate."
+  ]
+}

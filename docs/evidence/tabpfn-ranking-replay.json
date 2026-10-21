@@ -1,0 +1,319 @@
+{
+  "checkedAt": "2026-10-21T08:49:40.865Z",
+  "mode": "Recorded live TabPFN output replayed through the actual local VOX engine; no fresh provider inference",
+  "source": "docs/evidence/tabpfn-evaluation.json",
+  "originalProviderObservedAt": "2026-10-20T12:16:34.855Z",
+  "datasetVersion": "vox-synthetic-escalation-v1",
+  "heldOutRows": 16,
+  "ruleClassification": {
+    "positiveWhen": "SLA rule score >= 50",
+    "correct": 14
+  },
+  "tabpfnClassification": {
+    "positiveWhen": "recorded probability >= 0.5",
+    "correct": 15
+  },
+  "changedRanks": 11,
+  "safetyFloorViolations": 0,
+  "applicationHttpRequests": 0,
+  "status": "completed",
+  "before": [
+    "HELD-12",
+    "HELD-03",
+    "HELD-04",
+    "HELD-05",
+    "HELD-11",
+    "HELD-13",
+    "HELD-15",
+    "HELD-07",
+    "HELD-06",
+    "HELD-16",
+    "HELD-08",
+    "HELD-01",
+    "HELD-02",
+    "HELD-09",
+    "HELD-10",
+    "HELD-14"
+  ],
+  "after": [
+    "HELD-12",
+    "HELD-03",
+    "HELD-04",
+    "HELD-05",
+    "HELD-13",
+    "HELD-07",
+    "HELD-11",
+    "HELD-15",
+    "HELD-10",
+    "HELD-06",
+    "HELD-16",
+    "HELD-08",
+    "HELD-01",
+    "HELD-02",
+    "HELD-09",
+    "HELD-14"
+  ],
+  "rows": [
+    {
+      "id": "HELD-01",
+      "features": [
+        2,
+        44,
+        0,
+        0
+      ],
+      "authoredLabel": 0,
+      "recordedProbability": 0.003006455022841692,
+      "ruleScore": 20,
+      "combinedScore": 20,
+      "beforeRank": 12,
+      "afterRank": 13,
+      "reason": "TabPFN synthetic escalation estimate: 0%; illustrative, not calibrated on customer outcomes."
+    },
+    {
+      "id": "HELD-02",
+      "features": [
+        5,
+        26,
+        0,
+        0
+      ],
+      "authoredLabel": 0,
+      "recordedProbability": 0.0010094752069562674,
+      "ruleScore": 20,
+      "combinedScore": 20,
+      "beforeRank": 13,
+      "afterRank": 14,
+      "reason": "TabPFN synthetic escalation estimate: 0%; illustrative, not calibrated on customer outcomes."
+    },
+    {
+      "id": "HELD-03",
+      "features": [
+        3,
+        5,
+        1,
+        1
+      ],
+      "authoredLabel": 1,
+      "recordedProbability": 0.9560843706130981,
+      "ruleScore": 80,
+      "combinedScore": 85,
+      "beforeRank": 2,
+      "afterRank": 2,
+      "reason": "TabPFN synthetic escalation estimate: 96%; illustrative, not calibrated on customer outcomes."
+    },
+    {
+      "id": "HELD-04",
+      "features": [
+        5,
+        2,
+        0,
+        1
+      ],
+      "authoredLabel": 1,
+      "recordedProbability": 0.9967833757400513,
+      "ruleScore": 78,
+      "combinedScore": 85,
+      "beforeRank": 3,
+      "afterRank": 3,
+      "reason": "TabPFN synthetic escalation estimate: 100%; illustrative, not calibrated on customer outcomes."
+    },
+    {
+      "id": "HELD-05",
+      "features": [
+        11,
+        3,
+        0,
+        0
+      ],
+      "authoredLabel": 1,
+      "recordedProbability": 0.9940490126609802,
+      "ruleScore": 60,
+      "combinedScore": 72,
+      "beforeRank": 4,
+      "afterRank": 4,
+      "reason": "TabPFN synthetic escalation estimate: 99%; illustrative, not calibrated on customer outcomes."
+    },
+    {
+      "id": "HELD-06",
+      "features": [
+        1,
+        20,
+        1,
+        0
+      ],
+      "authoredLabel": 0,
+      "recordedProbability": 0.0024428940378129482,
+      "ruleScore": 42,
+      "combinedScore": 42,
+      "beforeRank": 9,
+      "afterRank": 10,
+      "reason": "TabPFN synthetic escalation estimate: 0%; illustrative, not calibrated on customer outcomes."
+    },
+    {
+      "id": "HELD-07",
+      "features": [
+        15,
+        7,
+        0,
+        1
+      ],
+      "authoredLabel": 1,
+      "recordedProbability": 0.9986515045166016,
+      "ruleScore": 58,
+      "combinedScore": 71,
+      "beforeRank": 8,
+      "afterRank": 6,
+      "reason": "TabPFN synthetic escalation estimate: 100%; illustrative, not calibrated on customer outcomes."
+    },
+    {
+      "id": "HELD-08",
+      "features": [
+        4,
+        12,
+        0,
+        1
+      ],
+      "authoredLabel": 0,
+      "recordedProbability": 0.1597650647163391,
+      "ruleScore": 38,
+      "combinedScore": 38,
+      "beforeRank": 11,
+      "afterRank": 12,
+      "reason": "TabPFN synthetic escalation estimate: 16%; illustrative, not calibrated on customer outcomes."
+    },
+    {
+      "id": "HELD-09",
+      "features": [
+        22,
+        32,
+        0,
+        0
+      ],
+      "authoredLabel": 0,
+      "recordedProbability": 0.015188290737569332,
+      "ruleScore": 20,
+      "combinedScore": 20,
+      "beforeRank": 14,
+      "afterRank": 15,
+      "reason": "TabPFN synthetic escalation estimate: 2%; illustrative, not calibrated on customer outcomes."
+    },
+    {
+      "id": "HELD-10",
+      "features": [
+        31,
+        16,
+        0,
+        0
+      ],
+      "authoredLabel": 1,
+      "recordedProbability": 0.9825739860534668,
+      "ruleScore": 20,
+      "combinedScore": 43,
+      "beforeRank": 15,
+      "afterRank": 9,
+      "reason": "TabPFN synthetic escalation estimate: 98%; illustrative, not calibrated on customer outcomes."
+    },
+    {
+      "id": "HELD-11",
+      "features": [
+        1,
+        3,
+        0,
+        0
+      ],
+      "authoredLabel": 0,
+      "recordedProbability": 0.021761607378721237,
+      "ruleScore": 60,
+      "combinedScore": 60,
+      "beforeRank": 5,
+      "afterRank": 7,
+      "reason": "TabPFN synthetic escalation estimate: 2%; illustrative, not calibrated on customer outcomes."
+    },
+    {
+      "id": "HELD-12",
+      "features": [
+        7,
+        4,
+        1,
+        0
+      ],
+      "authoredLabel": 1,
+      "recordedProbability": 0.9626340866088867,
+      "ruleScore": 82,
+      "combinedScore": 86,
+      "beforeRank": 1,
+      "afterRank": 1,
+      "reason": "TabPFN synthetic escalation estimate: 96%; illustrative, not calibrated on customer outcomes."
+    },
+    {
+      "id": "HELD-13",
+      "features": [
+        9,
+        9,
+        1,
+        1
+      ],
+      "authoredLabel": 1,
+      "recordedProbability": 0.9939307570457458,
+      "ruleScore": 60,
+      "combinedScore": 72,
+      "beforeRank": 6,
+      "afterRank": 5,
+      "reason": "TabPFN synthetic escalation estimate: 99%; illustrative, not calibrated on customer outcomes."
+    },
+    {
+      "id": "HELD-14",
+      "features": [
+        8,
+        28,
+        0,
+        0
+      ],
+      "authoredLabel": 0,
+      "recordedProbability": 0.002017826773226261,
+      "ruleScore": 20,
+      "combinedScore": 20,
+      "beforeRank": 16,
+      "afterRank": 16,
+      "reason": "TabPFN synthetic escalation estimate: 0%; illustrative, not calibrated on customer outcomes."
+    },
+    {
+      "id": "HELD-15",
+      "features": [
+        2,
+        -1,
+        0,
+        0
+      ],
+      "authoredLabel": 1,
+      "recordedProbability": 0.4867263734340668,
+      "ruleScore": 60,
+      "combinedScore": 60,
+      "beforeRank": 7,
+      "afterRank": 8,
+      "reason": "TabPFN synthetic escalation estimate: 49%; illustrative, not calibrated on customer outcomes."
+    },
+    {
+      "id": "HELD-16",
+      "features": [
+        18,
+        22,
+        1,
+        0
+      ],
+      "authoredLabel": 0,
+      "recordedProbability": 0.18591323494911194,
+      "ruleScore": 42,
+      "combinedScore": 42,
+      "beforeRank": 10,
+      "afterRank": 11,
+      "reason": "TabPFN synthetic escalation estimate: 19%; illustrative, not calibrated on customer outcomes."
+    }
+  ],
+  "limitations": [
+    "Authored labels and features, not customer outcomes.",
+    "Offline replay verifies the runtime effect; it is not a second live TabPFN request.",
+    "Rank changes do not establish better customer outcomes or probability calibration."
+  ]
+}

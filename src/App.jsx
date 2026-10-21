@@ -1288,11 +1288,11 @@ export default function App() {
                         <span className="tiny-line" /> YOUR OPERATIONS WORKSPACE
                       </div>
                       <h1>
-                        A little direction. A lot less busywork<span>.</span>
+                        Give VOX the prep. Keep the decisions<span>.</span>
                       </h1>
                       <p>
-                        Give VOX an outcome. It plans, researches and prepares
-                        the safe work. You review what needs your judgment.
+                        Choose the work, review the plan and let VOX prepare it.
+                        Each proposed reply comes back to you for approval.
                       </p>
                     </div>
                     <button

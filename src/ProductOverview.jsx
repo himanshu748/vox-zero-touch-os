@@ -26,11 +26,11 @@ export function OperationsPreview({ workspace }) {
         <span className="ops-preview-badge">Product preview</span>
       </div>
       <div className="ops-preview-body">
-        <div className="ops-preview-kicker">ONE GOAL. A CLEAR HANDOFF.</div>
+        <div className="ops-preview-kicker">FROM QUEUE TO REVIEW</div>
         <h2>
-          Your afternoon,
+          Two replies.
           <br />
-          <span>back on your terms.</span>
+          <span>Ready for your review.</span>
         </h2>
         <div className="ops-preview-command">
           <AudioLines size={20} />
@@ -49,7 +49,7 @@ export function OperationsPreview({ workspace }) {
             ],
             [
               Workflow,
-              "Do the safe work",
+              "Prepare the next step",
               "Find guidance, save labels and prepare replies.",
             ],
             [
@@ -102,12 +102,12 @@ export function ProductWorkflows() {
       <div className="product-workflows-heading">
         <div>
           <div className="landing-eyebrow">
-            LESS SETUP. MORE FOLLOW-THROUGH.
+            CHOOSE THE JOB
           </div>
-          <h2 id="product-workflows-title">What’s on your plate?</h2>
+          <h2 id="product-workflows-title">What should VOX prepare?</h2>
         </div>
         <p>
-          Start with a useful workflow. Make the instruction your own.
+          Choose a starting point and edit the instruction.
           <br />
           You review the plan before anything runs.
         </p>

@@ -1,106 +1,112 @@
 # VOX
 
-Your voice-controlled support ticket assistant.
+**Give VOX the prep. Keep the decisions.**
 
-Tell VOX: “Triage my support tickets, find guidance and draft two replies.” It reads the queue, prioritizes urgent tickets, looks up guidance and saves draft answers. You review the generated plan before it runs and approve or reject each reply. A spoken briefing reports the saved results.
+VOX is an open-source operations co-worker for makers and small teams. Its first working workflow is support: give it a queue, approve a plan, and return to two replies ready for review. Gemma prepares the work; server-side permissions decide what can run.
 
-Try it with 24 fictional tickets at **https://getvox.tech/judge**. The AI calls, saved ticket updates, approvals and workflow history are real; customer sends are simulated. This build does not connect to your Gmail, Zendesk or other customer inbox. Gemma plans and drafts, ElevenLabs handles voice, and Mastra and Temporal execute and preserve the workflow. [Integration evidence and boundaries](docs/SPONSORS.md).
+[Try the hosted workspace](https://getvox.tech/judge) · [Watch the 2:25 walkthrough](https://www.youtube.com/watch?v=K9MYbrX1T74) · [Run local Gemma](docs/LOCAL.md) · [Read the technical evidence](docs/SPONSORS.md)
 
-## Hosted workspace
+The preview contains **24 fictional tickets**. Model requests, saved labels, drafts, decisions and workflow history are real. Sends are simulated. This release has no Gmail, Zendesk or other customer-inbox connection.
 
-[Try VOX as a judge](https://getvox.tech/judge). No account is required. Eight explicitly approved live passes were enabled across all browsers; seven remained after the recorded verification run. The page shows current availability. Each pass has one plan, two drafts, one voice upload (20 seconds / 2 MB), and two briefing generations. A pass lasts 24 hours; failed attempts count. The rules-only demo remains available when live passes are exhausted: it uses fixed priorities and reply templates, with the same review workflow. Only the originating session can decide its drafts, and every send is simulated. [Judge guide](docs/JUDGES.md).
+## Try one complete workflow
 
-The [owner workspace](https://getvox.tech/app) keeps its verified Auth0 owner requirement for live calls and approvals. DigitalOcean remains disconnected by owner choice. The sponsor-only expansion uses self-hosted Temporal with Tiger; the hosted voice journey now runs on free Render in Virginia beside Tiger. [Integration evidence and limits](docs/SPONSORS.md).
+Open [getvox.tech/judge](https://getvox.tech/judge). Choose a live evaluation pass or the rules-only demo, then enter:
 
-## Run
+> Triage all support tickets, research fixes, tag urgent ones, and draft two replies. Ask me before sending anything.
 
-**Local open-weight AI:** [setup and isolation](docs/LOCAL.md) · [measured lazy payoff and manual timing sheet](docs/LAZY_PAYOFF.md). `VOX_MODEL_MODE=local npm run dev` uses local Gemma for intent, planning and drafting, starts isolated local Temporal/SQLite persistence, and skips external providers. This is separate from the rules-only demo and does not change the hosted site. The proposed article revision is [a file-only draft](docs/DEV_POST_DRAFT.md).
+1. Read the proposed plan and approve its scope.
+2. Follow triage, research, saved labels and reply preparation.
+3. Read each draft, its sources and the advisory review. Approve one simulated send and reject the other.
+4. Open the briefing and export the saved evidence.
 
-Requires Node.js 22.18 or newer. SQLite uses Node's built-in experimental `node:sqlite` API.
+Live judge access uses a shared allowance of eight sessions. **Three remained after the October 21 verification**; the page shows current availability. Each pass permits one plan attempt, one voice upload, two drafts and two briefing generations. It expires after 24 hours, and failed attempts consume allowance. The rules-only demo remains available after live passes run out. Only the originating session can approve its drafts. [Judge guide](docs/JUDGES.md).
 
-```bash
+## Choose how to run it
+
+| Mode | Model and services | What it proves |
+| --- | --- | --- |
+| Hosted live evaluation | Hosted Gemma, voice, research and connected adapters | Real provider requests and a durable approval workflow |
+| Local open-weight AI | Gemma through a loopback-only Ollama endpoint | Local intent normalization, planning and drafting; cloud steps produce explicit skip receipts |
+| Rules-only demo | Deterministic priorities and reply templates | The product journey and approval controls, without model inference |
+
+A configured model failure stops at a checkpoint. It never silently becomes a template.
+
+### Local Gemma
+
+Requires Node.js 22.18+, dependencies installed with `npm ci`, Ollama running, and the Temporal CLI on `PATH` (`brew install temporal` on macOS).
+
+```sh
+ollama pull gemma3:4b
+VOX_MODEL_MODE=local npm run dev
+```
+
+Open **http://127.0.0.1:4320/app**. This entry path ignores `.env`, isolates its data and Temporal dev server, accepts only loopback model endpoints, and disables cloud calls. It retains request reservations and the same approval gate. Tested on MacBook Air M4, 16 GB. [Setup, isolation and fallback limits](docs/LOCAL.md).
+
+### Standard development
+
+```sh
 npm ci
 cp .env.example .env
-# Fill the server credentials. Never commit .env.
 npm run dev
 ```
 
-- Landing: http://localhost:4310/
-- Workspace: http://localhost:4310/app
-- Evidence: http://localhost:4310/app#evidence
-- Health: http://localhost:4310/healthz
+Open **http://localhost:4310**. With no provider credentials, this path uses the labelled rules-only demo. Add server-side credentials to `.env` for provider-backed development; never expose them through Vite variables or commit them. The [environment example](.env.example) lists the settings. [Voice and model configuration](docs/VOICE-FLOW.md) · [Advanced adapters](docs/ADVANCED-INTEGRATIONS.md).
 
-Without provider credentials, the app explicitly uses local rules and templates. A configured provider failure does not silently fall back to local generation. Each guest session has an isolated workspace. Production live providers require HTTPS, Auth0 and a verified allowed owner email; ordinary owner-workspace provider routes and approvals reject guests. The separate `/judge` route is the explicitly bounded public exception.
+## How execution works
 
-## Voice to execution
+```mermaid
+flowchart LR
+  A[Voice or text] --> B[Validated plan]
+  B --> C{Human approves scope}
+  C --> D[Temporal schedules / Mastra executes]
+  D --> E[Triage, research, labels, drafts]
+  E --> F{Individual reply decisions}
+  F --> G[Saved outcome, briefing and receipts]
+```
 
-1. Choose the voice button and consent to ElevenLabs processing. Record up to 60 seconds, or upload an audio command smaller than 8 MB.
-2. Review and edit the transcript. Voice provenance follows the saved plan and run.
-3. Create a streamed Gemma plan. A configured, unexpired Tinker adapter first normalizes the allowed intent. Inspect the ticket scope, action cards, requested draft count, provider mode and boundaries.
-4. Approve the plan. Mastra runs inspection, triage, research, labels, drafts and briefing as named workflow steps. Only requested steps execute.
-5. Review each proposed simulated send. Mastra suspends at its approval gate until the individual decisions are complete. Approvals can be filtered by run.
-6. Play the ElevenLabs briefing. Replays use persisted generated audio; changing the briefing creates a different cache key.
-7. Export the saved evidence. No external message is sent.
+- **Models propose structured data.** Vercel AI SDK streams into fixed React cards. Zod validates the complete plan; partial output and model-generated HTML cannot execute actions. Local Gemma also handles intent normalization; a configured, unexpired Tinker adapter performs that job on the hosted path.
+- **Temporal schedules; Mastra runs activities.** Named steps preserve progress and suspend for individual reply decisions. Hosted Temporal persists workflow history in restricted Tiger schemas. Mastra stores snapshots in libSQL.
+- **Each provider call reserves its slot first.** Completed responses reuse their saved result. If a request started but has no saved response, automatic replay is blocked because its charge may be uncertain. This is a conservative replay policy, not an exactly-once guarantee for external APIs.
+- **Evidence follows saved work.** Application state, cursors, decisions, receipts and the idempotency ledger live in SQLite. Hosted Atlas snapshots must acknowledge writes; startup hydrates local state from them. Sources remain untrusted input. Ultramarine advice cannot authorize a send.
+- **The server enforces ownership.** HttpOnly, SameSite session cookies isolate judges. Auth0 binds owner access to a verified allowed identity. Foreign-origin mutations and cross-session decisions are rejected. The public judge route has its own bounded authorization.
 
-The expansion adds bounded TabPFN escalation estimates, Tiger hybrid retrieval and Ultramarine advisory draft review. Their combined hosted voice journey passed, including a full service restart while approvals were pending. [Implementation and evaluation limits](docs/ADVANCED-INTEGRATIONS.md).
+[Workflow and voice architecture](docs/VOICE-FLOW.md) · [Provider reservation code](server/provider-task.mjs) · [PRD implementation status](docs/PRD_STATUS.md)
 
-The submission targets **17 partner categories**. Ultramarine is a working advisory tool but is explicitly excluded from the prize claims, alongside DigitalOcean and Arduino. Tinker's existing private checkpoint was extended through **November 5, 2026 at 23:59 UTC** within the approved promotional budget; no retraining or top-up was used. [Retention evidence](docs/evidence/tinker-retention.json).
+## Measurements and their limits
 
-A requested draft count is limited to six. The deliberate label interruption retries once before its write. Model requests have no automatic SDK retries. Provider access, rate-limit, availability and validation failures receive safe checkpoint explanations without exposing upstream bodies. Completed model responses are cached before the draft step commits, so resuming a failed step reuses them.
+| Verification | Recorded result | Evidence |
+| --- | --- | --- |
+| Local Gemma preparation | 24 triaged, 7 labels, 2 drafts in 25.09 s; startup and human review excluded | [Single-run receipt](docs/evidence/lazy-payoff.json) |
+| Ten resident-model runs | 10/10 completed; preparation median 17.19 s, p95 31.97 s | [All runs and percentiles](docs/evidence/local-performance.json) |
+| Tinker intent LoRA | 12/16 to 16/16 exact matches; median latency rose from 2,385 to 7,870 ms | [Held-out evaluation](docs/evidence/tinker-evaluation.json) |
+| Latest hosted voice journey | 24 triaged, 7 labels, 2 drafts, 1 simulated send, 1 rejection; 16 successful receipts; Temporal completed | [October 21 API verification](docs/evidence/hosted-ultramarine-verification.json) |
+| Two Ultramarine SDK reviews | Exactly $0.00034095 in existing promotional credit; settled balances and token deltas reconciled | [Actual cost proof](docs/evidence/ultramarine-hosted-cost.json) |
+| Hosted restart | Same execution and pending approvals; completed provider calls did not repeat | [Earlier restart proof](docs/evidence/hosted-expansion.json) |
 
-## Provider configuration
+The latest hosted test used a recorded voice file and scripted public-API approvals. Browser interaction was checked separately. It does not establish physical microphone/speaker performance. Ultramarine's measured debit covers those two reviews only; an earlier rejected review consumed a separate $0.00020585. Full multi-provider cost and manual time savings remain unmeasured.
 
-For hosted Google Gemma, set `GEMMA_PROVIDER=google`, `GOOGLE_GENERATIVE_AI_API_KEY` and `GEMMA_MODEL`. The verified model on October 20, 2026 was `gemma-4-26b-a4b-it`. For a self-hosted OpenAI-compatible endpoint, set `GEMMA_PROVIDER=compatible`, `GEMMA_BASE_URL`, the exact model id and optional `GEMMA_API_KEY`.
+The local planner produced valid schemas in 30/30 cases and the exact requested actions in 19/30. These are authored synthetic tests, not customer accuracy. The real local Qwen fallback, llama.cpp path, physical voice hardware and a second live Auth0 account remain unverified. [Manual timing protocol](docs/LAZY_PAYOFF.md) · [Remaining work](docs/REMAINING.md).
 
-The AI SDK adapter uses the installed version's `instructions` API. Google Gemma emits prompt-constrained JSON, validated with Zod. Compatible endpoints can opt into native schema output with `GEMMA_STRUCTURED_OUTPUTS=true`. Partial streamed output cannot execute tools. The UI renders fixed, allowlisted React cards rather than model-supplied HTML.
+## Verify a change
 
-For voice, set `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID`, `ELEVENLABS_STT_MODEL` and `ELEVENLABS_TTS_MODEL`. The verified models were `scribe_v2` and `eleven_multilingual_v2`, with an available public preset voice. Use a dedicated key limited to transcription, synthesis, voice reading and model access. The VOX key has an owner-approved 5,000-credit cap per refresh period for the bounded judge allowance. Its original permissions and November 19 expiry are unchanged; auto top-up was verified off. No purchase or top-up was made.
-
-Recordings stay in memory and are not saved by VOX. Browser recordings are normalized to mono WAV so their duration can be validated before provider processing. Transcripts and successful request metadata are saved in the owner workspace. Closing an in-flight transcription aborts processing. Provider retention follows the account terms.
-
-Generated briefings are saved separately in a bounded SQLite audio cache, keyed by owner, run, text, voice and model. Concurrent identical requests share one generation. Reset clears the owner's cache. Browser speech is a labeled fallback only when ElevenLabs voice is not configured.
-
-## Mastra and durability
-
-`server/workflow-runtime.mjs` registers `vox-support-v1` with Mastra and file-backed libSQL storage. Named activities feed into a persisted approval suspension. No Mastra admin server is exposed.
-
-`data/vox.sqlite` stores workspace state, activity cursors, model-response caches, decisions, request receipts and the idempotency ledger. `data/mastra.sqlite` stores Mastra snapshots. A suspended run resumes its saved Mastra instance. Recovery after an unfinished attempt uses the saved application cursor and ledger; a new Mastra attempt skips completed activities. A crash before a provider response is committed can leave an uncertain provider charge, so provider work remains bounded by the plan's call ceiling.
-
-An opaque HttpOnly, SameSite cookie identifies the guest session. Auth0 identities use stable issuer/subject-bound owners. Foreign sessions cannot retrieve voice provenance, execute another session's plan, decide its drafts or read its generated audio. JSON mutation routes reject foreign browser origins.
-
-## Hosted adapters
-
-Set `PUBLIC_ORIGIN`, Auth0's issuer/client credentials/session secret and `AUTH0_ALLOWED_EMAIL` for a public deployment. Auth0 callback is `/auth/callback`; login/logout are under `/auth`. Only `openid profile email` are requested.
-
-`MONGODB_URI` enables acknowledged Atlas workspace, session and audio snapshots. Startup hydrates SQLite from Atlas; failed acknowledgments return an error. Run one web/worker instance. A revision check rejects concurrent writers. Speech cache entries expire after seven days.
-
-`TEMPORAL_ADDRESS`, namespace and scoped API key enable an external Temporal worker. Alternatively, `TEMPORAL_SELF_HOSTED=true`, the restricted `TEMPORAL_POSTGRES_URI` and `TIGER_CA_PEM` start the checksum-verified full server with loopback-only RPCs and persistent Tiger workflow/visibility schemas. A provider-free retry/approval startup workflow must finish before HTTP starts. `npm run build` precompiles its deterministic workflow. Temporal owns scheduling, retries and approval signals; Mastra executes validated activities. Only owner/run identifiers enter Temporal payloads. `node scripts/verify-temporal.mjs` verifies restart/retry against a real local Temporal server without model calls.
-
-`SERPAPI_API_KEY` enables up to two live searches per approved research plan. URLs, timestamps and provider search IDs are retained. `BACKBOARD_API_KEY` stores and recalls the workspace's reply-style preference. A returned memory ID follows the next plan. `SENTRY_DSN` enables actual AI SDK and tool tracing with prompt/response recording disabled and exact environment-secret redaction.
-
-`BROWSERBASE_API_KEY` and project ID enable two bounded Stagehand actions against VOX's hosted synthetic helpdesk: fill and save one internal note. An HttpOnly, three-minute signed grant permits only the approved run/ticket/note. The saved field, session ID and ledger are checked before execution continues. No external helpdesk credentials or customer data are used. Stagehand executes two explicit approved actions against the fixed form. Model-based selector self-healing is disabled; no Google credential is sent to Browserbase. Gemma plans and drafts through Vercel AI SDK on Render. The browser stays open until the acknowledged save response and persisted field agree.
-
-On Render, use `npm ci --include=dev && npm run build`, `npm start`, `/healthz`, one instance and Node 22.18+. Store keys in a secret file and set `VOX_ENV_FILE=/etc/secrets/vox.env`. Do not put keys in Vite client variables. Atlas must allow only the service's outbound ranges. Hosted provider verification is distinct from local tests and physical microphone checks.
-
-## Verification
-
-```bash
+```sh
 npm test
 npm run typecheck
 npm run build
-npm start
 ```
 
-54 automated checks pass. Type checking covers the AI SDK adapter. Browser verification exercised the real provider chain with a synthetic spoken file: live Scribe transcription → live Gemma plan → two live Gemma drafts → Mastra approval suspension/resume → live ElevenLabs briefing. Replay and process restart reused the saved audio. The expanded hosted pass produced 15 successful provider receipts, real Temporal history through completion, and a Mastra success state. A full service stop/resume preserved both approvals and every completed provider receipt. Two Google internal-error failures required explicit checkpoint resumes. Physical microphone testing was deferred by the user. [Hosted evidence](docs/evidence/hosted-expansion.json).
+The merged `22fcfa4` build passed **58 tests, typecheck and production build**. [CI receipt](https://github.com/himanshu748/vox-zero-touch-os/actions/runs/39640659579). Automated transport tests cover local-mode isolation, strict review schemas and zero automatic SDK retries. Browser checks cover desktop/mobile layouts, keyboard approval controls and accessible navigation; fresh OS reduced-motion verification was not repeated for the latest copy and product-preview changes.
 
-The workspace and landing share Geist typography, soft white surfaces, near-black headings, cobalt accents and motion tokens. Mobile/tablet/desktop checks cover menus, dialogs, plan cards, approvals and evidence.
+The dependency audit retains a transitive formatter denial-of-service advisory through Mastra's frontmatter chain, affecting five package entries. VOX does not expose frontmatter parsing or user-controlled format strings. No forced downgrade was applied. [Verification record](docs/VERIFICATION.md).
 
-The dependency audit currently reports one unpatched transitive formatter denial-of-service advisory through Mastra's frontmatter dependency chain (five affected package entries). VOX does not expose frontmatter parsing or user-controlled format strings. No unsafe forced dependency downgrade was applied.
+## Deployment and operating boundaries
 
-See [verification](docs/VERIFICATION.md), [live voice architecture](docs/VOICE-FLOW.md), [motion](docs/MOTION.md), [asset provenance](docs/ASSETS.md) and [remaining PRD requirements](docs/REMAINING.md).
+The hosted app runs on one free Render service in Virginia. Free hosting may sleep. Use **one application writer**: Atlas revision checks reject concurrent writers, and this is not a horizontally scaled deployment.
 
-The [PRD completion checklist](docs/PRD_STATUS.md) distinguishes verified implementation, local measurements, intentional exclusions and remaining human checks. Local benchmarking uses no cloud services; Ultramarine remains active only in the hosted advisory-review path.
+For an existing deployment, the build command is `npm ci --include=dev && npm run build`, the start command is `npm start`, and the health route is `/healthz`. Use HTTPS, `PUBLIC_ORIGIN`, Auth0's restricted callback/origin settings, and a server-side secret file selected by `VOX_ENV_FILE`. Atlas allows the service's outbound ranges. Self-hosted Temporal starts with loopback-only RPCs and must pass a provider-free startup workflow before HTTP opens. [Deployment details](docs/ADVANCED-INTEGRATIONS.md).
 
-## References
+The project records **18 partner categories**, including Ultramarine, two development tools and the `.tech` domain. DigitalOcean and Arduino are excluded. This count describes implemented uses; it does not guarantee prize eligibility. [Integration ledger](docs/SPONSORS.md).
 
-[Vercel AI SDK](https://ai-sdk.dev/docs), [Google-hosted Gemma](https://ai.google.dev/gemma/docs/core/gemma_on_gemini_api), [Mastra workflows](https://mastra.ai/docs/workflows/overview), [Mastra human approval](https://mastra.ai/docs/workflows/human-in-the-loop), [ElevenLabs transcription](https://elevenlabs.io/docs/api-reference/speech-to-text/convert), [ElevenLabs speech](https://elevenlabs.io/docs/api-reference/text-to-speech/convert).
+## Read next
+
+[Published article draft](docs/DEV_POST_DRAFT.md) · [Original PRD](docs/PRD.md) · [Grant readiness and missing user evidence](docs/GRANT_READINESS.md) · [Motion system](docs/MOTION.md) · [Asset provenance](docs/ASSETS.md) · [MIT license](LICENSE)

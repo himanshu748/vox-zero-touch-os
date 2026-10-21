@@ -1,0 +1,94 @@
+{
+  "verifiedAt": "2026-10-21T17:16:46.342Z",
+  "origin": "https://getvox.tech",
+  "deployedCommit": "22fcfa46d715c14a7c808b06fdfc56880de157ce",
+  "deploymentId": "dep-dbcf1mvf3r2c73cr6rig",
+  "method": "Isolated anonymous judge session through the public HTTP API; scripted plan approval and one approve/one reject. Browser UI separately verified in the local rules-only journey and deployed landing. Not a physical microphone/speaker test.",
+  "runId": "786aad1a-af8b-4a7c-9d3e-d8578a492f7b",
+  "status": "completed",
+  "input": {
+    "kind": "voice",
+    "provider": "ElevenLabs",
+    "model": "scribe_v2",
+    "recordedWavSeconds": 7.7905625,
+    "transcript": "Triage all support tickets, research fixes, tag urgent ones, and draft two replies. Ask me before sending anything"
+  },
+  "metrics": {
+    "tickets": 24,
+    "triaged": 24,
+    "labels": 7,
+    "drafts": 2,
+    "pending": 0,
+    "sent": 1,
+    "rejected": 1,
+    "urgent": 6,
+    "retries": 2
+  },
+  "orchestration": {
+    "mastra": "success",
+    "temporal": "COMPLETED",
+    "temporalEvents": 21,
+    "decisionSignals": 1
+  },
+  "providerReceipts": {
+    "total": 16,
+    "byProvider": {
+      "ElevenLabs": 2,
+      "Backboard": 2,
+      "Tinker": 1,
+      "Gemma endpoint": 3,
+      "TabPFN": 1,
+      "Tiger Data": 2,
+      "SerpApi": 2,
+      "Browserbase": 1,
+      "Ultramarine": 2
+    }
+  },
+  "decisions": [
+    {
+      "ticketId": "VX-1050",
+      "status": "sent"
+    },
+    {
+      "ticketId": "VX-1055",
+      "status": "rejected"
+    }
+  ],
+  "ledgerEntries": 36,
+  "voiceBriefing": {
+    "provider": "ElevenLabs",
+    "bytes": 260431,
+    "sha256": "1af1aba3cb46460a208cff8c1d3e61993099a8ec81f397515e583948a3d3edd8",
+    "identicalCachedReplay": true,
+    "generationsUsed": 1
+  },
+  "judgeAllowanceAfter": {
+    "capacity": 8,
+    "remaining": 3,
+    "resetOrExpanded": false
+  },
+  "ultramarineActualCostUSD": 0.00034095,
+  "costEvidence": "ultramarine-hosted-cost.json",
+  "precedingAttempts": {
+    "rejectedReview": "ultramarine-rejected-review.json",
+    "planningOutage": {
+      "provider": "Gemma endpoint",
+      "savedReceiptsBeforeFailure": [
+        "ElevenLabs",
+        "Backboard",
+        "Backboard",
+        "Tinker"
+      ],
+      "runsCreated": 0,
+      "ultramarineRequests": 0,
+      "passRemainedConsumed": true
+    }
+  },
+  "limitations": [
+    "Synthetic tickets and simulated sends only.",
+    "Ultramarine cost covers two advisory reviews; full multi-provider unit cost is not measured.",
+    "Earlier failed review consumed another $0.00020585 in promotional credit, recorded separately.",
+    "Physical microphone and speaker hardware remain unverified.",
+    "No new full service restart was injected in this check; earlier restart evidence remains a separate run."
+  ]
+}

@@ -32,7 +32,7 @@ Google project billing was verified disabled before the free-tier embedding call
 
 ## Ultramarine review
 
-Ultramarine is **not entered for a prize**. This working native-HTTP advisory integration is retained transparently in runtime receipts; no claim is made that it satisfies the prize category's SDK and actual-cost criteria.
+Ultramarine is included in the 18-category target. The official OpenAI Node SDK targets Paper Instruments, sends the same strict JSON schema validated by the server, and disables SDK retries. [Hosted SDK/cost proof](evidence/ultramarine-hosted-cost.json): two reviews consumed **$0.00034095** in existing promotional credit.
 
 `PAPERINSTRUMENTS_API_KEY` enables one advisory `ultramarine-1-flash` review per generated draft, bounded by the plan's draft count. Sources, ticket text and draft content are untrusted reference data. Strict output validation requires a summary and bounded issues. A blocking issue cannot accompany a ready-for-human verdict. Review advice never authorizes sending.
 
@@ -55,3 +55,16 @@ Free Render instances can sleep; no uptime or multi-worker production SLA is cla
 `getvox.tech` uses Render-managed HTTPS. Auth0's approved callback is `https://getvox.tech/auth/callback`; logout and web origins use the same apex. The www alias redirects to the apex. Registration used the claimed MLH benefit; automatic renewal is disabled.
 
 DigitalOcean remains disconnected by the owner's choice. No Arduino hardware proof exists. Copilot and Entire are development integrations with captured evidence, not runtime APIs. The physical microphone test remains deferred; recorded speech is tested separately. Integration configuration does not itself prove contest eligibility.
+
+### Reproduce actual credit measurement
+
+The following tools make no inference calls and buy no credits. Snapshot usage before and after a separately approved hosted run; export its saved state. The reconciler strips account identity and refuses mismatched request/token counts, outstanding reservations and different billing periods.
+
+```sh
+node --env-file=.env scripts/ultramarine-usage.mjs /tmp/usage-before.json
+# Complete a separately approved bounded run and save state.json.
+node --env-file=.env scripts/ultramarine-usage.mjs /tmp/usage-after.json
+node scripts/ultramarine-cost-proof.mjs /tmp/usage-before.json /tmp/usage-after.json /tmp/state.json RUN_ID DEPLOYED_SHA /tmp/cost-proof.json
+```
+
+Per-request UI costs remain estimates. The measured balance debit covers Ultramarine only. An earlier rejected review separately consumed $0.00020585; it stopped before approvals and was never automatically replayed.

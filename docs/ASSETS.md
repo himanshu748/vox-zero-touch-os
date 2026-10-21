@@ -27,3 +27,4 @@ The current VOX preview was scraped locally through the browser for its layout, 
 ## Public provider proof
 
 - `docs/evidence/sentry-judge-trace.png` is an unedited browser screenshot captured October 21 from Sentry Agent Activity for the completed anonymous hosted judge run. It shows actual model/tool spans, token usage and latency. Prompt/output capture is disabled. The selected tool-root view omits client IP and authentication information. Sentry cost is estimated, not billed. This image is provider evidence, separate from generated brand artwork.
+- `docs/evidence/judge-workflow-clarity.png` is an unedited October 21 screenshot of that saved hosted run after the product wording update. It shows the existing instruction and saved result, not a newly repeated set of provider calls.

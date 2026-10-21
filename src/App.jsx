@@ -170,6 +170,7 @@ function Logo({ small = false }) {
   );
 }
 function Modal({ title, subtitle, children, onClose, wide = false }) {
+  const reduceMotion = useReducedMotion();
   const ref = useRef(),
     closeRef = useRef(onClose);
   closeRef.current = onClose;
@@ -226,11 +227,11 @@ function Modal({ title, subtitle, children, onClose, wide = false }) {
         aria-modal="true"
         aria-labelledby="modal-title"
         className={`modal ${wide ? "wide" : ""}`}
-        initial={{ opacity: 0, y: 16, scale: 0.99 }}
+        initial={reduceMotion ? false : { opacity: 0, y: 16, scale: 0.99 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: 8 }}
+        exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 8 }}
         transition={{
-          duration: VOX_MOTION.duration.standard,
+          duration: reduceMotion ? 0.1 : VOX_MOTION.duration.standard,
           ease: VOX_MOTION.ease,
         }}
         onClick={(e) => e.stopPropagation()}
@@ -3044,9 +3045,9 @@ export default function App() {
           <motion.div
             role={toast.kind === "error" ? "alert" : "status"}
             className={`toast ${toast.kind}`}
-            initial={{ opacity: 0, y: 15 }}
+            initial={reduceMotion ? false : { opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
+            exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 10 }}
           >
             {toast.kind === "error" ? (
               <XCircle size={18} />

@@ -1,147 +1,186 @@
 ---
-title: "VOX: tell your support queue what to do, then review the replies"
+title: "VOX: I asked for two support replies. Then I turned the server off."
 tags: devchallenge, hf26challenge
 published: false
 ---
 
 ## What I Built
 
-VOX is a support ticket assistant you can direct by voice or text. Give it one instruction, review its plan, then let it prioritize tickets, find guidance and prepare replies. Each reply waits for your decision.
+During a hosted test, I stopped VOX while two replies were waiting for approval. When the service came back, it had the same Temporal execution, the same pending approvals and the same completed provider receipts. It picked up the saved work without repeating the completed requests.
 
-For example:
+That is the kind of support assistant I wanted: one I could give a job to, leave alone and still understand when I came back.
 
-> Triage all tickets, research fixes, tag urgent ones, and draft two replies. Ask before sending anything.
+**VOX is a support ticket assistant you can direct by voice or text.** Ask it to prioritize the queue, find guidance and draft replies. It proposes a plan, does the approved preparation and waits for you to decide on each reply.
 
-That instruction becomes a set of action cards: inspect the queue, prioritize, research, update internal labels, prepare drafts and report the result. VOX shows which tickets and tools are in scope before execution starts.
+[Try VOX](https://getvox.tech/judge) · [Source, MIT license and setup](https://github.com/himanshu748/vox-zero-touch-os) · [Judge guide](https://github.com/himanshu748/vox-zero-touch-os/blob/main/docs/JUDGES.md)
 
-I built this for the repetitive first pass through a support queue: working out what is urgent, finding the relevant playbook and getting a useful answer ready for review. It fits **Slow and Steady** by taking that preparation off the user's plate while keeping the final decisions visible.
+The hosted build contains **24 fictional tickets**. Its AI requests, saved updates and workflow history are real. Customer sends are simulated; it does not connect to a real inbox.
 
-This release uses **24 fictional tickets**. The provider calls and saved updates are real; sends are simulated. It does not connect to a real customer inbox.
+### What one instruction actually does
+
+Here is the instruction from the anonymous hosted test:
+
+> Triage all support tickets, research fixes, tag urgent ones, and draft two replies. Ask me before sending anything.
+
+VOX turns that into six cards you can inspect before starting:
+
+1. Read the tickets and response deadlines.
+2. Prioritize the queue and save the reasons.
+3. Retrieve support guidance and search for relevant references.
+4. Add internal attention labels and save one browser-based review note.
+5. Prepare two replies for individual review.
+6. Report what changed in a spoken briefing.
+
+You approve the plan first. Later, each reply has its own approve or reject action. Rejecting one preserves the draft.
+
+That is the **Slow and Steady** payoff: leave the preparation to VOX, then spend your attention on the answers that need judgment. I have not timed a manual baseline, so I am not claiming a number of minutes saved.
 
 ## Demo
 
-**[Try VOX without an account](https://getvox.tech/judge).**
+**[Open the judge workspace](https://getvox.tech/judge). No account or API key needed.**
 
-1. Choose **Start live evaluation** if a pass is available. Use the same browser throughout.
-2. Type the instruction above, or record/upload a fictional voice command. Voice requires your consent to ElevenLabs processing.
-3. Create the plan and review its action cards before approving it.
-4. Follow the ticket updates, then approve one draft and reject the other.
-5. Play the briefing and open Evidence to inspect the actual provider requests.
+Choose **Start live evaluation** if a pass is available. Type the instruction above, or consent to ElevenLabs processing and record/upload a fictional command. Review the plan, approve it, then inspect both replies. Try approving one and rejecting the other. Finish with the briefing and Evidence view.
 
-Eight live passes were enabled using existing free/promotional balances. One was used for verification; seven remained at the October 21 check. The page displays current availability. Each pass lasts 24 hours and permits one plan, two drafts, one voice upload and two briefing generations. Failed attempts count.
+Eight live passes were enabled from existing free/promotional balances. One was used for verification; **seven remained at the October 21 check**. The page shows current availability. A pass lasts 24 hours and permits one plan, two drafts, one voice upload and two briefing generations. Failed attempts count.
 
-**Try rules-only demo** remains available without a live pass. It uses fixed priority rules, checked-in guidance and reply templates, with the same plan and approval journey. It makes no model, search, browser-automation or voice-provider calls; persistence and telemetry still operate. It is clearly labelled.
+**Try rules-only demo** uses fixed priority rules, checked-in guidance and reply templates. It lets you practice planning and approvals without reserving a live pass. It makes no model, search, browser-automation or voice-provider requests; persistence and telemetry still operate. The mode is labelled.
 
-The recorded anonymous live run produced:
+![The completed anonymous hosted VOX run: the approved instruction, saved ticket counts and recorded workflow.](https://raw.githubusercontent.com/himanshu748/vox-zero-touch-os/main/docs/evidence/judge-workflow-clarity.png)
 
-| Observed result                       | Value                                     |
-| ------------------------------------- | ----------------------------------------- |
-| Fictional tickets triaged             | 24                                        |
-| Internal labels saved                 | 7                                         |
-| Replies drafted                       | 2                                         |
-| Simulated replies approved / rejected | 1 / 1                                     |
-| Successful external request receipts  | 16                                        |
-| Mastra status                         | success                                   |
-| Temporal history                      | COMPLETED, 21 events, one decision signal |
+The anonymous recorded-voice run completed with:
 
-The two draft decisions were recorded individually in the app. One Temporal signal released its durable wait. The [curated judge receipt](https://github.com/himanshu748/vox-zero-touch-os/blob/main/docs/evidence/judge-hosted.json) preserves the result and its limits. It used a 7.791-second recorded synthetic WAV, not a physical microphone test. Browser playback state and cached replay were checked; physical speaker output was not assessed.
+| Saved result                         | Observed value                              |
+| ------------------------------------ | ------------------------------------------- |
+| Tickets triaged / labels saved       | 24 / 7                                      |
+| Replies drafted                      | 2                                           |
+| Simulated sends / rejected drafts    | 1 / 1                                       |
+| Successful external request receipts | 16                                          |
+| Mastra                               | `success`                                   |
+| Temporal                             | `COMPLETED`, 21 events, one decision signal |
+
+The two reply decisions were recorded separately in the app; one Temporal signal released its durable wait. The [curated receipt](https://github.com/himanshu748/vox-zero-touch-os/blob/main/docs/evidence/judge-hosted.json) records the result and its limits. Voice used a **7.791-second synthetic WAV**. Browser playback and cached replay were checked; physical microphone and speaker output remain unverified.
+
+The server-stop experiment in the opening was an earlier owner-authenticated run. The anonymous run above separately proves the no-signup judge path. Both are documented; their counts are not combined into one fictional test.
 
 ## Code
 
-**[Public source and MIT license](https://github.com/himanshu748/vox-zero-touch-os).**
+**[github.com/himanshu748/vox-zero-touch-os](https://github.com/himanshu748/vox-zero-touch-os)**
 
-The repository includes setup instructions, synthetic fixtures, server adapters, the React workspace, tests and curated evidence. Credentials, checkpoint identifiers, private databases and prior chat history are excluded.
-
-Development began October 20, within the Week 3 window. The original recorded judge run used commit `626740356df86c84a767c5f51cda501e45eeaf8d`; later guard and clarity changes are recorded in the repository history. The evidence distinguishes the original provider run from later checks rather than claiming a complete new live run at every commit.
+The repository includes the React workspace, adapters, synthetic data, approval rules, tests and curated receipts. Development started October 20, within this challenge's window. The source is MIT-licensed; dependencies and models retain their own licenses and terms. Credentials, private databases and checkpoint identifiers are excluded.
 
 ## How I Built It
 
-### A generated plan with a fixed execution boundary
+### Give the model a smaller job
 
-ElevenLabs transcribes the command. A private Qwen3-8B LoRA adapter trained with Tinker normalizes a few allowed intent fields: whether research is requested, the bounded draft count and whether to add internal labels. Gemma generates the readable plan and reply drafts through Vercel AI SDK.
+ElevenLabs transcribes the command. A private Qwen3-8B LoRA adapter trained with Tinker normalizes three allowed intent fields: research, draft count and internal tagging. Gemma produces the readable plan and replies through Vercel AI SDK.
 
-The interface renders allowlisted React action cards from validated data. It never executes generated HTML or a partial streamed instruction. Approving a plan starts the saved workflow; each simulated send needs a separate, single-use decision from the originating session.
+The UI renders fixed React cards from validated data. A partial streamed response cannot execute actions. Model output never becomes executable HTML or arbitrary tool code.
 
-### Work that can stop and resume
+Approval is enforced in the server, where the current session must own the draft, its status must still be pending and its decision must not have expired. Clicking twice cannot send twice. The public judge session is separate from the Auth0-protected owner workspace.
 
-Mastra runs the validated activities and pauses at the review gate. Temporal schedules the durable workflow, retries the deliberately interrupted internal-label activity and waits for the decision signal. MongoDB Atlas preserves application state, provider reservations, decisions and receipts. Tiger holds separate restricted workflow schemas and the small knowledge corpus.
+This follows a lesson from my earlier agent work. [ToolTrap](https://dev.to/himanshu_748/tooltrap-tool-results-are-data-wasnt-enough-25oh) made me examine what reached a customer, and [EmbodiWeave](https://dev.to/himanshu_748/embodiweave-my-agent-read-its-own-failure-and-repeated-it-so-i-made-the-graph-enforce-it-4cd9) made me put consequential constraints in the system's action path. In VOX, the model's promise to ask permission is backed by an approval endpoint that checks it.
 
-A hosted stop/resume at the approval gate preserved the same Temporal execution and completed request receipts. Resuming skipped completed work. This matters because repeating a model request after an interruption can consume credit even when the application has not finished saving its result.
+### Retrying a workflow can repeat a billable request
 
-VOX persists a reservation before a bounded advanced-provider call. Failed or uncertain calls still count; an uncertain request cannot be automatically replayed. Free Render can sleep, and this one-writer deployment has no uptime guarantee.
+Mastra executes the validated activities and pauses for reply decisions. Temporal schedules durable work and retries the deliberately interrupted internal-label step. Atlas preserves application checkpoints, decisions and provider reservations; Tiger persists Temporal history in restricted schemas.
 
-### Prediction and retrieval, with small-data limits
+There is an awkward boundary between calling a provider and saving its answer. If the process dies there, a retry cannot assume the provider did nothing.
 
-TabPFN-3.5-Plus estimates escalation from 48 authored scenarios. Its estimate can raise attention but cannot lower the deterministic SLA/impact floor. A separate 16-example synthetic holdout had 15 correct labels. This is not calibrated customer risk.
+The advanced-provider wrapper checks the saved reservation before it makes another request:
 
-Tiger combines pgvector similarity and full-text search over five authored playbooks. A six-question fixture retrieved the intended playbook for 6/6 hybrid queries versus 5/6 keyword-only queries. One paraphrase had no keyword match. Those reference links identify the playbooks' sources; they are not evidence that VOX fetched the linked documents.
+```js
+const saved = current()?.providerTasks?.[key];
+if (saved?.status === "completed") return saved.result;
+if (saved)
+  throw new Error(
+    "This provider request already started without a saved result. Automatic replay is blocked.",
+  );
+```
 
-SerpApi supplies up to two fresh searches. Browserbase and Stagehand save one internal review note through the actual hosted helpdesk form using explicit selectors. The browser action is real; the helpdesk is fictional. Backboard saves and recalls the bounded reply-style preference.
+[Full implementation](https://github.com/himanshu748/vox-zero-touch-os/blob/main/server/provider-task.mjs).
 
-### Fine-tuning improved this task, but was slower
+VOX commits the reservation before calling the provider and commits the result before advancing. An uncertain request stops for inspection. That can be inconvenient, but it keeps an interruption from becoming an automatic series of repeated calls. It is not a universal exactly-once billing guarantee.
 
-The Tinker experiment used 53 authored training pairs and 16 held-out commands. Exact intent matches rose from **12/16 to 16/16**. Output tokens fell from 320 to 240, but median latency increased from **2,385 ms to 7,870 ms**. The small fixed evaluation supports a task-specific improvement, not a production accuracy claim or speedup. [Dataset, evaluation and limitations](https://github.com/himanshu748/vox-zero-touch-os/blob/main/docs/ADVANCED-INTEGRATIONS.md).
+In the hosted restart test, the same workflow and completed receipts survived. The run then finished after the individual reply decisions. [Hosted restart evidence](https://github.com/himanshu748/vox-zero-touch-os/blob/main/docs/evidence/hosted-expansion.json).
 
-The same private checkpoint is retained through **November 5, 2026 at 23:59 UTC**, covering the announced judging week with a buffer. Estimated storage through expiry is $0.004852 at the published rate, within the approved $0.25 promotional budget. That is an estimate, not an invoice. No retraining, purchase or top-up was used. [Retention receipt](https://github.com/himanshu748/vox-zero-touch-os/blob/main/docs/evidence/tinker-retention.json).
+### Better intent matching cost us latency
 
-### Traces helped distinguish a provider error from a workflow error
+The Tinker experiment used **53 authored training pairs and 16 held-out commands**:
 
-Sentry captures actual model/tool spans with prompt and output capture disabled. In an earlier expanded hosted run, Gemma returned an internal provider error during drafting. The failed model span helped identify the failing boundary; an explicit resume reused completed activities and cached successful responses. The application now reports a safe checkpoint explanation rather than displaying the upstream error body or silently switching to templates.
+| Measurement          | Base Qwen3-8B | Fine-tuned adapter |
+| -------------------- | ------------: | -----------------: |
+| Exact intent matches |         12/16 |              16/16 |
+| Output tokens        |           320 |                240 |
+| Median latency       |      2,385 ms |           7,870 ms |
 
-![Actual Sentry Agent Activity from the anonymous hosted judge run, showing a Gemma span with latency and token usage; prompt input capture is disabled.](https://raw.githubusercontent.com/himanshu748/vox-zero-touch-os/main/docs/evidence/sentry-judge-trace.png)
+The adapter improved exact matching on this small fixed set and produced fewer output tokens. It was also considerably slower. I kept all three measurements because the improvement claim only makes sense with that tradeoff beside it. These are synthetic task results, not production accuracy.
 
-The screenshot is from the later successful judge run. Its selected Gemma span reports 17.05 seconds and about 1.8K tokens. Sentry's displayed cost is an estimate; provider-billed cost is unavailable. The label interruption visible in the timeline is an intentional retry demonstration, distinct from the earlier real Gemma failure.
+The same private checkpoint is retained through **November 5 at 23:59 UTC**, covering the announced judging week with a buffer. Estimated remaining storage is **$0.004852** within the approved $0.25 promotional budget. No retraining, purchase or top-up was used. [Evaluation](https://github.com/himanshu748/vox-zero-touch-os/blob/main/docs/evidence/tinker-evaluation.json) · [Retention receipt](https://github.com/himanshu748/vox-zero-touch-os/blob/main/docs/evidence/tinker-retention.json).
 
-The regression suite has 44 passing tests covering ownership, isolated judge sessions, bounded use, approvals, persistence, retries and validated planning. SDK tests use mocks or injected transports where stated; they do not substitute for the hosted receipts. Type checking and the production build pass.
+### Sources help, but a sourced reply can still need rejection
+
+Tiger combines pgvector similarity and full-text search over five authored playbooks. In a six-question fixture, hybrid retrieval found 6/6 expected playbooks versus 5/6 for keywords alone. TabPFN-3.5-Plus adds escalation estimates from 48 authored scenarios; it can raise attention but cannot lower the deterministic deadline/impact floor. Its separate synthetic holdout had 15/16 correct labels.
+
+SerpApi adds fresh search results. Backboard recalls the bounded reply-style preference. Browserbase and Stagehand save an internal note through the hosted form using explicit selectors.
+
+Each of those jobs is bounded, and each has a limitation. The playbooks are authored summaries. The prediction data is synthetic. Search snippets are untrusted. In an earlier live test, a search returned irrelevant dictionary/general-interest references and that draft was rejected. In the anonymous test, one draft was approved and the other rejected. An advisory review does not remove the need to read the answer.
+
+### Trace the failure before changing the workflow
+
+An earlier hosted drafting attempt failed with a real Gemma internal error. Sentry's model span identified the provider boundary. Explicit resume reused completed activities and cached successful responses; VOX now shows a safe checkpoint explanation without exposing the upstream error body or silently switching to templates.
+
+![Actual Sentry Agent Activity from the later successful anonymous judge run, with a selected Gemma span and prompt capture disabled.](https://raw.githubusercontent.com/himanshu748/vox-zero-touch-os/main/docs/evidence/sentry-judge-trace.png)
+
+This screenshot is from the later successful judge run. Its selected span reports **17.05 seconds and about 1.8K tokens**. Sentry's displayed cost is estimated; provider-billed cost is unavailable. The red internal-label interruption in the timeline was an injected retry test, separate from the real Gemma error.
+
+The regression suite has **44 passing tests**, including session isolation, quota persistence, single-use decisions, retries and validated planning. Type checking and the production build pass. SDK tests use mocks or injected transports where stated; the hosted receipts are the live evidence.
 
 ## Why Does Open Innovation Matter?
 
-The useful part of this project is visible and changeable: the intent dataset, plan schema, action cards, orchestration and approval rules are in the repository. An open-weight model can be adapted to the narrow intent task, and the Gemma adapter also supports an OpenAI-compatible endpoint so a different deployment can replace the hosted model.
+The intent dataset, plan schema, action cards, orchestration and approval rules are inspectable in the repository. Open weights let me adapt a narrow task and publish the comparison, including the slower result. Gemma's adapter also supports an OpenAI-compatible endpoint, so another deployment can replace the hosted model without redesigning the workflow.
 
-That let me measure a concrete tradeoff: fine-tuning improved exact intent matching on my fixture while making inference slower. Keeping the data and evaluation visible makes that result inspectable and repeatable.
+The boundaries matter as much as the model. Someone reproducing this can inspect how a request is reserved, why a draft can be rejected and which evidence survives an interruption.
 
-Openness does not make this hosted build offline or automatically private. Voice and model requests still go to configured providers. The demo uses fictional inputs, separate judge sessions and explicit processing consent. Its limits are part of what a user needs to understand before relying on it.
+This hosted release still sends requests to configured cloud providers. It does not run offline or keep every input local. That is why the judge workspace uses fictional inputs, isolated sessions and explicit voice-processing consent.
 
 ## My Agent Session
 
-Copilot CLI reviewed the non-secret research module. The [captured review](https://github.com/himanshu748/vox-zero-touch-os/blob/main/docs/evidence/copilot-research-review.txt) and [usage receipt](https://github.com/himanshu748/vox-zero-touch-os/blob/main/docs/evidence/copilot-research-usage.json) show that development use separately from runtime integrations.
+Copilot CLI reviewed the non-secret research module; the [review](https://github.com/himanshu748/vox-zero-touch-os/blob/main/docs/evidence/copilot-research-review.txt) and [usage receipt](https://github.com/himanshu748/vox-zero-touch-os/blob/main/docs/evidence/copilot-research-usage.json) record that development use.
 
-Entire captured that authorized review session: [checkpoint](https://github.com/himanshu748/vox-zero-touch-os/blob/main/docs/evidence/entire-checkpoint.json) and [session export](https://github.com/himanshu748/vox-zero-touch-os/blob/main/docs/evidence/entire-review-session.jsonl). It contains the scoped review, not my earlier private chat history.
-
-## The Lazy Payoff
-
-One instruction prepared a queue for review: priorities, seven labels and two draft replies. The remaining work was to inspect the answers and make two decisions. I have not measured a manual baseline, so I am not claiming minutes saved.
-
-One search returned irrelevant material and that draft was rejected. An advisory model review cannot guarantee a correct answer. The human review step is necessary, and real helpdesk delivery is future work.
+Entire captured the authorized review: [checkpoint](https://github.com/himanshu748/vox-zero-touch-os/blob/main/docs/evidence/entire-checkpoint.json) and [session export](https://github.com/himanshu748/vox-zero-touch-os/blob/main/docs/evidence/entire-review-session.jsonl). Earlier private chat history was excluded. These are development tools, not runtime APIs.
 
 ## Prize Categories
 
-I am entering the following **17 categories**, with the exact implementation and proof boundaries in the [integration ledger](https://github.com/himanshu748/vox-zero-touch-os/blob/main/docs/SPONSORS.md):
+I am entering **17 categories**. The [integration ledger](https://github.com/himanshu748/vox-zero-touch-os/blob/main/docs/SPONSORS.md) separates configuration, observed use and eligibility boundaries.
 
-| Category                         | Contribution                                                                                            |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| Best Use of Render               | Hosts the frontend, API and bounded workflow runtime.                                                   |
-| Best Use of TabPFN               | Escalation estimates inside the ticket workflow.                                                        |
-| Best Use of Tinker               | Real task-specific LoRA training and baseline comparison.                                               |
-| Best Use of Gemma                | Streamed plans and generated reply drafts.                                                              |
-| Best Use of Auth0 for AI Agents  | Verified owner sign-in and protected owner workspace. Public judge decisions use separate VOX sessions. |
-| Best Use of Backboard            | Saved and recalled reply-style memory.                                                                  |
-| Best Use of ElevenLabs           | Command transcription and spoken briefings.                                                             |
-| Best Use of Browserbase          | Stagehand actions against the hosted synthetic form.                                                    |
-| Best Use of Entire               | Captured development session linked above.                                                              |
-| Best Use of GitHub Copilot       | Actual CLI review and saved development evidence.                                                       |
-| Best Use of Mastra               | Validated activities and the human review gate.                                                         |
-| Best Use of MongoDB Atlas        | Persistent workspaces, decisions, quota reservations and receipts.                                      |
-| Best Use of Sentry Agent Tracing | Actual spans, latency/tokens and the debugging account above.                                           |
-| Best Use of SerpApi              | Live search references for reply preparation.                                                           |
-| Best Use of a .tech Domain       | [getvox.tech](https://getvox.tech), claimed through the Hacktoberfest benefit.                          |
-| Best Use of Temporal             | Durable execution, retry and restart/resume proof.                                                      |
-| Best Use of Tiger Data           | pgvector/full-text retrieval and restricted workflow persistence.                                       |
+| Category                         | Its job in VOX                                                         |
+| -------------------------------- | ---------------------------------------------------------------------- |
+| Best Use of Render               | Hosts the UI, API and workflow runtime.                                |
+| Best Use of TabPFN               | Escalation estimates in the wider ticket workflow.                     |
+| Best Use of Tinker               | Real intent fine-tuning and baseline comparison.                       |
+| Best Use of Gemma                | Streamed plans and generated replies.                                  |
+| Best Use of Auth0 for AI Agents  | Verified owner sign-in; judge sessions use separate VOX authorization. |
+| Best Use of Backboard            | Save and recall reply-style memory.                                    |
+| Best Use of ElevenLabs           | Transcribe commands and generate briefings.                            |
+| Best Use of Browserbase          | Stagehand actions against the hosted synthetic form.                   |
+| Best Use of Entire               | Captured development session linked above.                             |
+| Best Use of GitHub Copilot       | Actual CLI review with saved evidence.                                 |
+| Best Use of Mastra               | Validated activities and the review gate.                              |
+| Best Use of MongoDB Atlas        | Workspaces, decisions, quotas and receipt persistence.                 |
+| Best Use of Sentry Agent Tracing | Actual spans, latency/tokens and debugging evidence.                   |
+| Best Use of SerpApi              | Fresh references for reply preparation.                                |
+| Best Use of a .tech Domain       | [getvox.tech](https://getvox.tech), claimed through Hacktoberfest.     |
+| Best Use of Temporal             | Durable execution, retry and restart/resume proof.                     |
+| Best Use of Tiger Data           | Hybrid retrieval and restricted workflow persistence.                  |
 
-Ultramarine remains visible as a working advisory review tool, but **I am not entering its prize category**. DigitalOcean and Arduino are also excluded.
+Ultramarine remains a working advisory tool, but **I am not entering its prize category**. DigitalOcean and Arduino are also excluded.
 
-## Credits and related reading
+## Limits and what comes next
 
-This project was built with AI coding assistance. Its source is MIT-licensed; dependencies and models retain their own licenses and terms. [Asset provenance](https://github.com/himanshu748/vox-zero-touch-os/blob/main/docs/ASSETS.md) describes the generated artwork. All evaluation fixtures and helpdesk identities are synthetic.
+The live judge budget is finite. Free Render may sleep. The deployment supports one application writer. Physical microphone/speaker testing, a second live unauthorized-account walkthrough and production accuracy remain unverified. The helpdesk is fictional, and no customer message leaves it.
 
-Two related community examples helped frame the final explanation: [“Pausing a LangGraph Agent Mid-Run for a Human Approval” by royalpinto007](https://dev.to/royalpinto007/pausing-a-langgraph-agent-mid-run-for-a-human-approval-3nde) and [“Build a Live Supervisor Dashboard for AI Support Calls” by sonam_gupta_dba00ec9473e5](https://dev.to/sonam_gupta_dba00ec9473e5/build-a-live-supervisor-dashboard-for-ai-support-calls-22bp). VOX uses Mastra and Temporal for its own ticket workflow.
+The next useful test is a timed comparison with someone working through the same queue manually. That would tell me whether the preparation VOX saves outweighs the time spent checking its answers.
+
+## AI disclosure and credits
+
+VOX was built and this article prepared with AI coding and writing assistance. All evaluation fixtures and helpdesk identities are synthetic. [Asset provenance](https://github.com/himanshu748/vox-zero-touch-os/blob/main/docs/ASSETS.md) distinguishes generated brand artwork from actual browser/provider evidence. The linked ToolTrap and EmbodiWeave posts are my earlier work; VOX is a new project for this challenge window.

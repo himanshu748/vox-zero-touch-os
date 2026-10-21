@@ -23,7 +23,7 @@ export default function JudgeAccess({
           {starting
             ? "Meet your 24-ticket support queue."
             : info.mode === "live"
-              ? "Your live evaluation is ready."
+              ? "Your live support workspace."
               : info.mode === "expired"
                 ? "Your live pass has expired."
                 : "Your rules-only demo."}
@@ -33,7 +33,9 @@ export default function JudgeAccess({
             ? "VOX prioritizes tickets, finds guidance and drafts replies from one voice or text instruction. Review its plan, let it do the work, then approve or reject each reply. These tickets are fictional and sends are simulated."
             : info.mode === "live"
               ? "Real providers. Fictional tickets. Only this browser session can review your replies. Your pass lasts 24 hours."
-              : "Fixed rules prioritize the tickets and templates prepare replies. You can review the plan and practice approvals. Browser speech can read the briefing; this mode makes no live AI or voice-provider requests."}
+              : info.mode === "expired"
+                ? "Your live pass is no longer active. Switch to the rules-only demo to keep exploring the fictional helpdesk."
+                : "Fixed rules prioritize the tickets and templates prepare replies. You can review the plan and practice approvals. Browser speech can read the briefing; this mode makes no live AI or voice-provider requests."}
         </p>
         {starting ? (
           <small>

@@ -1,0 +1,66 @@
+{
+  "status": "rejected; not successful review evidence",
+  "observedAt": "2026-10-21T17:00:47.317Z",
+  "origin": "https://getvox.tech",
+  "runId": "3b3f1e9a-ee40-44ec-9d13-c5296ee99fda",
+  "deployedCommit": "e0e06d1e5690305a60fed87d64c0b7b53e8042c1",
+  "failure": "The first review response failed validation. The original adapter did not retain a rejected response or its specific validation issue. No exact rejected field is claimed.",
+  "billing": {
+    "source": "https://api.paperinstruments.com/v1/usage",
+    "chargedNanodollars": 205850,
+    "chargedUSD": 0.00020585,
+    "funding": "Existing promotional balance; no purchase or top-up.",
+    "usageDelta": {
+      "requests": 1,
+      "prompt_tokens": 659,
+      "completion_tokens": 214,
+      "total_tokens": 873
+    },
+    "before": {
+      "observedAt": "2026-10-21T16:49:30.843Z",
+      "source": "https://api.paperinstruments.com/v1/usage",
+      "unit": "nanodollars; 1 USD = 1000000000 nanodollars",
+      "usage": {
+        "billing_status": "active",
+        "available_nanodollars": 4998637550,
+        "reserved_nanodollars": 0,
+        "period_start": 1790812800,
+        "period_end": 1793491200,
+        "requests": 7,
+        "prompt_tokens": 4253,
+        "cached_prompt_tokens": 0,
+        "completion_tokens": 1449,
+        "reasoning_tokens": 173,
+        "total_tokens": 5702
+      }
+    },
+    "after": {
+      "observedAt": "2026-10-21T17:00:47.317Z",
+      "source": "https://api.paperinstruments.com/v1/usage",
+      "unit": "nanodollars; 1 USD = 1000000000 nanodollars",
+      "usage": {
+        "billing_status": "active",
+        "available_nanodollars": 4998431700,
+        "reserved_nanodollars": 0,
+        "period_start": 1790812800,
+        "period_end": 1793491200,
+        "requests": 8,
+        "prompt_tokens": 4912,
+        "cached_prompt_tokens": 0,
+        "completion_tokens": 1663,
+        "reasoning_tokens": 190,
+        "total_tokens": 6575
+      }
+    }
+  },
+  "safety": {
+    "automaticReplay": false,
+    "providerReservation": "uncertain; retained",
+    "draftApprovalCreated": false,
+    "externalMessagesSent": 0,
+    "savedGemmaDraftBodies": 2,
+    "triaged": 24,
+    "labels": 7
+  },
+  "followup": "Constrain the model with the same strict JSON schema used by server validation. Log only bounded validation codes/paths and a validated request ID, never model text or upstream messages. Verify on a separate bounded pass; do not replay this uncertain request."
+}

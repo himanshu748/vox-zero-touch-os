@@ -238,7 +238,7 @@ export function RunHandoff({ run, onReview, onOpen, openLabel }) {
             : interrupted
               ? "Inspect the failure and saved work before choosing whether to resume."
               : ready
-                ? `${run.metrics.triaged} triaged · ${run.metrics.labels} labels · ${run.metrics.sent} simulated sends · ${run.metrics.rejected} rejected`
+                ? `${run.metrics.triaged} triaged · ${run.metrics.labels} labels · ${run.metrics.sent} simulated ${run.metrics.sent === 1 ? "send" : "sends"} · ${run.metrics.rejected} rejected`
                 : "Follow the steps and return here when the replies are ready."}
         </p>
       </div>

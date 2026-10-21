@@ -48,7 +48,7 @@ For hosted Google Gemma, set `GEMMA_PROVIDER=google`, `GOOGLE_GENERATIVE_AI_API_
 
 The AI SDK adapter uses the installed version's `instructions` API. Google Gemma emits prompt-constrained JSON, validated with Zod. Compatible endpoints can opt into native schema output with `GEMMA_STRUCTURED_OUTPUTS=true`. Partial streamed output cannot execute tools. The UI renders fixed, allowlisted React cards rather than model-supplied HTML.
 
-For voice, set `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID`, `ELEVENLABS_STT_MODEL` and `ELEVENLABS_TTS_MODEL`. The verified models were `scribe_v2` and `eleven_multilingual_v2`, with an available public preset voice. Use a dedicated key limited to transcription, synthesis, voice reading and model access. The locally configured VOX key has a 1,000-credit cap per refresh period and expires after 30 days.
+For voice, set `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID`, `ELEVENLABS_STT_MODEL` and `ELEVENLABS_TTS_MODEL`. The verified models were `scribe_v2` and `eleven_multilingual_v2`, with an available public preset voice. Use a dedicated key limited to transcription, synthesis, voice reading and model access. The VOX key has an owner-approved 5,000-credit cap per refresh period for the bounded judge allowance. Its original permissions and November 19 expiry are unchanged; auto top-up was verified off. No purchase or top-up was made.
 
 Recordings stay in memory and are not saved by VOX. Browser recordings are normalized to mono WAV so their duration can be validated before provider processing. Transcripts and successful request metadata are saved in the owner workspace. Closing an in-flight transcription aborts processing. Provider retention follows the account terms.
 

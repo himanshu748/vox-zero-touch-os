@@ -78,5 +78,18 @@
     "Provider-free mode still uses persistence and telemetry.",
     "Free Render may sleep; no uptime SLA.",
     "Tinker checkpoint expires October 27, 2026."
-  ]
+  ],
+  "voiceQuota": {
+    "keyCreditCap": 5000,
+    "previousKeyCreditCap": 1000,
+    "scope": "per credit refresh period",
+    "status": "owner approved; saved and verified in provider UI",
+    "verifiedAt": "2026-10-21T05:34:56.317700+00:00",
+    "permissionsUnchanged": true,
+    "expiryUnchanged": true,
+    "autoTopUpEnabledAtCheck": false,
+    "purchaseOrTopUp": false,
+    "postChangeHostedVerification": "completed session and cached briefing playback; no additional billable voice request",
+    "remainingLivePassesAtCheck": 7
+  }
 }

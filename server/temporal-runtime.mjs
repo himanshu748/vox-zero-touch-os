@@ -104,6 +104,8 @@ export async function createTemporalRuntime({ store, execute, event }) {
             runId: handle.firstExecutionRunId,
             namespace,
             status: "running",
+            statusSource: "workflow_start",
+            statusObservedAt: new Date().toISOString(),
           };
         });
       } catch (error) {
@@ -112,6 +114,21 @@ export async function createTemporalRuntime({ store, execute, event }) {
         await client.workflow.getHandle(workflowId).signal("ownerDecision");
       }
       await store.flush?.();
+    },
+    async status(owner, id) {
+      const run = store.get(owner).runs.find((item) => item.id === id);
+      if (!run?.temporal) return null;
+      const description = await connection.withDeadline(Date.now() + 5000, () =>
+        client.workflow.getHandle(run.temporal.workflowId).describe(),
+      );
+      return {
+        workflowId: run.temporal.workflowId,
+        runId: description.runId,
+        namespace,
+        status: description.status.name,
+        statusSource: "temporal_describe",
+        statusObservedAt: new Date().toISOString(),
+      };
     },
     async history(owner, id) {
       const run = store.get(owner).runs.find((item) => item.id === id);

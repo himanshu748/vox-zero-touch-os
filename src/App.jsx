@@ -9,6 +9,7 @@ import { workflowFromSearch } from "../shared/workflow-presets.mjs";
 import { voiceAvailability } from "../shared/voice-access.mjs";
 import { recordingWave } from "./voice-audio";
 import { VOX_MOTION } from "./motion-system";
+import { startWorkspacePolling } from "./workspace-polling";
 import {
   readWorkspaceRoute,
   workspaceHash,
@@ -396,9 +397,11 @@ export default function App() {
     document
       .querySelector("meta[name=theme-color]")
       ?.setAttribute("content", "#f7f8fb");
-    sync();
-    const timer = setInterval(sync, 1500);
-    return () => clearInterval(timer);
+    const stopPolling = startWorkspacePolling(sync);
+    return () => {
+      stopPolling();
+      ++syncRequest.current;
+    };
   }, []);
   useEffect(() => {
     const restore = () => {

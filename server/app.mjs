@@ -29,6 +29,27 @@ import {
   judgeStatus,
   reserveJudgeRequest,
 } from "./judge-access.mjs";
+
+function currentRun(state, run) {
+  return {
+    ...run,
+    metrics: summary(state, run),
+    briefing: run.finishedAt ? briefing(state, run) : null,
+    ...(run.temporal && {
+      temporal: {
+        ...run.temporal,
+        lastKnownStatus: run.temporal.status,
+        lastKnownStatusSource: run.temporal.statusSource || "workflow_start",
+        lastKnownStatusObservedAt:
+          run.temporal.statusObservedAt || run.createdAt,
+        status: null,
+        statusSource: "not_queried",
+        statusObservedAt: null,
+      },
+    }),
+  };
+}
+
 export function createApp(
   store,
   {
@@ -286,11 +307,7 @@ export function createApp(
                 Date.now() - Date.parse(plan.createdAt) <= 900000,
             ) || null
         : undefined,
-      runs: s.runs.map((r) => ({
-        ...r,
-        metrics: summary(s, r),
-        briefing: r.finishedAt ? briefing(s, r) : null,
-      })),
+      runs: s.runs.map((r) => currentRun(s, r)),
       integrations: integrationStatus(s.receipts, {
         storage: store.storageMode,
         identity: identityEnabled,
@@ -862,24 +879,42 @@ export function createApp(
         .send(result.audio);
     }),
   );
-  app.get("/api/evidence", (req, res) => {
-    const s = store.get(req.owner);
-    res
-      .set("Content-Disposition", 'attachment; filename="vox-evidence.json"')
-      .json({
-        exportedAt: new Date().toISOString(),
-        mode: "synthetic sandbox",
-        session: req.owner.slice(0, 8),
-        runs: s.runs,
-        ledger: s.ledger,
-        receipts: s.receipts,
-        transcripts: s.transcripts || [],
-        integrations: integrationStatus(s.receipts, {
-          storage: store.storageMode,
-          identity: identityEnabled,
+  app.get(
+    "/api/evidence",
+    wrap(async (req, res) => {
+      const s = store.get(req.owner);
+      const runs = s.runs.map((run) => currentRun(s, run));
+      // Status only: avoid downloading full workflow histories during an export.
+      // A failed lookup must not pass off the stored start status as current.
+      await Promise.all(
+        runs.map(async (run) => {
+          if (!run.temporal) return;
+          try {
+            const status = await engine.temporalStatus(req.owner, run.id);
+            if (!status) throw new Error("Temporal status unavailable");
+            run.temporal = { ...run.temporal, ...status };
+          } catch {
+            run.temporal.statusSource = "unavailable";
+          }
         }),
-      });
-  });
+      );
+      res
+        .set("Content-Disposition", 'attachment; filename="vox-evidence.json"')
+        .json({
+          exportedAt: new Date().toISOString(),
+          mode: "synthetic sandbox",
+          session: req.owner.slice(0, 8),
+          runs,
+          ledger: s.ledger,
+          receipts: s.receipts,
+          transcripts: s.transcripts || [],
+          integrations: integrationStatus(s.receipts, {
+            storage: store.storageMode,
+            identity: identityEnabled,
+          }),
+        });
+    }),
+  );
   app.use("/api", (_, res) =>
     res.status(404).json({ error: "API route not found." }),
   );

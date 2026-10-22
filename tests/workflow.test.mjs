@@ -179,6 +179,75 @@ test("approval is owner-bound, explicit and single-use; rejection preserves the 
   assert.equal(state.runs[0].metrics.sent, 1);
   assert.equal((await b("state")).data.runs.length, 0);
 });
+test("evidence reflects both reply decisions without rewriting historical briefing events", async (t) => {
+  const { client, store, engine } = await fixture(t);
+  const request = client();
+  const a = (path, body) => request(`${path}?workspace=judge`, body);
+  await a("judge/activate", { mode: "sandbox" });
+  const owner = store.owners().find((id) => id.startsWith("judge:"));
+  const plan = (
+    await a("plans", {
+      command: "Triage all tickets and draft two replies. Ask before sending.",
+    })
+  ).data;
+  await a("runs", { planId: plan.id });
+  const ready = await until(readyState);
+  function readyState() {
+    // until is synchronous; inspect the isolated store while the worker runs.
+    const state = store.get(owner);
+    return state.runs[0]?.status === "awaiting_approval" && state;
+  }
+  const runId = ready.runs[0].id;
+  const initialBriefing = ready.runs[0].briefing;
+  const drafts = ready.tickets.flatMap((ticket) => ticket.drafts);
+  assert.equal(drafts.length, 2);
+  await a(`approvals/${drafts[0].id}`, { decision: "approve" });
+  const partial = (await a("state")).data.runs[0];
+  const partialExport = (await a("evidence")).data.runs[0];
+  assert.deepEqual(partialExport.metrics, partial.metrics);
+  assert.equal(partialExport.briefing, partial.briefing);
+  assert.equal(partialExport.metrics.pending, 1);
+  await a(`approvals/${drafts[1].id}`, { decision: "reject" });
+  const state = (await a("state")).data;
+  const exported = (await a("evidence")).data;
+  const current = state.runs.find((run) => run.id === runId);
+  assert.deepEqual(exported.runs[0].metrics, current.metrics);
+  assert.equal(exported.runs[0].briefing, current.briefing);
+  assert.equal(current.metrics.sent, 1);
+  assert.equal(current.metrics.rejected, 1);
+  assert.equal(current.metrics.pending, 0);
+  assert.match(current.briefing, /0 replies await/);
+  assert.equal(store.get(owner).runs[0].briefing, initialBriefing);
+  assert.deepEqual(exported.runs[0].events, current.events);
+  assert.deepEqual(exported.receipts, []);
+
+  store.mutate(owner, (s) => {
+    s.runs[0].temporal = { workflowId: `vox-${runId}`, status: "running" };
+  });
+  engine.temporalStatus = async (requestedOwner, id) => {
+    assert.equal(requestedOwner, owner);
+    assert.equal(id, runId);
+    return {
+      status: "COMPLETED",
+      statusSource: "temporal_describe",
+      statusObservedAt: new Date().toISOString(),
+    };
+  };
+  assert.equal((await a("state")).data.runs[0].temporal.status, null);
+  const verified = (await a("evidence")).data.runs[0].temporal;
+  assert.equal(verified.status, "COMPLETED");
+  assert.equal(verified.statusSource, "temporal_describe");
+  assert.equal(verified.lastKnownStatus, "running");
+  engine.temporalStatus = async () => {
+    throw new Error("private transport error");
+  };
+  const unavailable = (await a("evidence")).data.runs[0].temporal;
+  assert.equal(unavailable.status, null);
+  assert.equal(unavailable.lastKnownStatus, "running");
+  assert.equal(unavailable.statusSource, "unavailable");
+  assert(!JSON.stringify(unavailable).includes("private transport"));
+});
+
 test("cross-origin writes, forged plans and unknown fields are denied", async (t) => {
   const { client } = await fixture(t);
   const a = client();

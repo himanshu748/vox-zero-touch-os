@@ -526,6 +526,7 @@ export function createEngine(
     start,
     approvalsChanged: start,
     temporalHistory: (owner, id) => temporal?.history(owner, id),
+    temporalStatus: (owner, id) => temporal?.status(owner, id),
     snapshot: runtime.snapshot,
     cancel(id) {
       controllers.get(id)?.abort();

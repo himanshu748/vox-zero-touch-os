@@ -17,77 +17,72 @@ export function OperationsPreview({ workspace }) {
     <div
       className="ops-preview"
       role="region"
-      aria-label="Support operations product preview"
+      aria-label="Illustrative support workflow preview"
     >
       <div className="ops-preview-toolbar">
         <span>
-          <AudioLines size={17} /> VOX <i>/</i> Operations
+          <AudioLines size={17} /> VOX <i>/</i> Handoff
         </span>
-        <span className="ops-preview-badge">Product preview</span>
+        <span className="ops-preview-badge">Illustrative preview</span>
       </div>
       <div className="ops-preview-body">
-        <div className="ops-preview-kicker">FROM QUEUE TO REVIEW</div>
+        <div className="ops-preview-kicker">
+          THE PREP IS DONE. YOU HAVE THE FINAL SAY.
+        </div>
         <h2>
-          Two replies.
+          A queue full of work.
           <br />
-          <span>Ready for your review.</span>
+          <span>Two replies to review.</span>
         </h2>
         <div className="ops-preview-command">
           <AudioLines size={20} />
           <p>
-            “Prepare the queue. Draft two replies.
+            “Triage the queue. Draft two replies.
             <br />
-            Leave the decisions to me.”
+            Ask me before sending anything.”
           </p>
         </div>
-        <ol className="ops-preview-steps">
-          {[
-            [
-              Inbox,
-              "Make sense of the queue",
-              "Inspect, prioritize and explain the urgent work.",
-            ],
-            [
-              Workflow,
-              "Prepare the next step",
-              "Find guidance, save labels and prepare replies.",
-            ],
-            [
-              ShieldCheck,
-              "Hand back the decisions",
-              "Review each draft and hear the saved result.",
-            ],
-          ].map(([Icon, title, detail], index) => (
-            <li key={title}>
-              <span className="ops-step-icon">
-                <Icon size={17} />
-              </span>
-              <div>
-                <strong>{title}</strong>
-                <p>{detail}</p>
-              </div>
-              <span className="ops-step-number">0{index + 1}</span>
-            </li>
-          ))}
-        </ol>
+        <div className="ops-prepared">
+          <span>
+            <Check size={14} /> Queue prioritized
+          </span>
+          <span>
+            <Check size={14} /> Drafts saved
+          </span>
+        </div>
+        <div className="ops-reply-preview">
+          <div className="ops-reply-label">
+            <span>REPLY 01 / 02</span>
+            <span>
+              <ShieldCheck size={13} /> Needs your review
+            </span>
+          </div>
+          <h3>Production deploy fails with exit code 137</h3>
+          <p className="ops-reply-to">To Maya Chen · fictional customer</p>
+          <p className="ops-reply-body">
+            Hi Maya — exit code 137 can indicate memory pressure. Could you
+            share the peak memory usage and the worker count before this change?
+          </p>
+          <div className="ops-reply-source">
+            <FileText size={14} /> Review the context and source before
+            deciding.
+          </div>
+        </div>
         <div className="ops-preview-footer">
           <span>
-            <span className="ops-status-dot" />
             {workspace
-              ? `${workspace.tickets.length} fictional tickets to explore`
-              : "A fictional helpdesk, ready to explore"}
+              ? `${workspace.tickets.length} fictional tickets`
+              : "24 fictional tickets"}{" "}
+            · simulated sends
           </span>
-          <a
-            href="/judge?workflow=clear-queue"
-            aria-label="Try the full support workflow"
-          >
-            <ArrowRight size={19} />
+          <a href="/judge?workflow=clear-queue">
+            Try this workflow <ArrowRight size={15} />
           </a>
         </div>
       </div>
       <div className="ops-preview-note">
-        <ShieldCheck size={15} /> Your instruction starts the work. Your
-        approval controls the send.
+        <ShieldCheck size={15} /> Every reply waits for your individual
+        approval.
       </div>
     </div>
   );
@@ -101,9 +96,7 @@ export function ProductWorkflows() {
     >
       <div className="product-workflows-heading">
         <div>
-          <div className="landing-eyebrow">
-            CHOOSE THE JOB
-          </div>
+          <div className="landing-eyebrow">CHOOSE THE JOB</div>
           <h2 id="product-workflows-title">What should VOX prepare?</h2>
         </div>
         <p>
@@ -173,14 +166,14 @@ export function ProductWorkflows() {
 }
 
 export function WorkflowLauncher({ command, onSelect, disabled }) {
+  const selected = workflowPresets.find((preset) => preset.command === command);
   return (
     <section
       className="workflow-launcher"
       aria-label="Choose a starting workflow"
     >
       <div className="workflow-launcher-heading">
-        <span>START WITH AN OUTCOME</span>
-        <span>Each shortcut is editable</span>
+        <span className="sr-only">Choose a starting point</span>
       </div>
       <div className="workflow-launcher-grid">
         {workflowPresets.map((preset, index) => (
@@ -193,8 +186,8 @@ export function WorkflowLauncher({ command, onSelect, disabled }) {
           >
             <span className="launcher-number">0{index + 1}</span>
             <span>
-              <strong>{preset.title}</strong>
-              <small>{preset.outcome}</small>
+              <strong>{preset.label}</strong>
+              <small className="sr-only">{preset.outcome}</small>
             </span>
             {command === preset.command ? (
               <Check size={16} />
@@ -204,6 +197,10 @@ export function WorkflowLauncher({ command, onSelect, disabled }) {
           </button>
         ))}
       </div>
+      <p className="preset-outcome">
+        {selected?.outcome ||
+          "Custom instruction. You’ll review the scope before anything runs."}
+      </p>
     </section>
   );
 }
@@ -242,7 +239,10 @@ export function RunHandoff({ run, onReview, onOpen, openLabel }) {
                 : "Follow the steps and return here when the replies are ready."}
         </p>
       </div>
-      <button className="button primary" onClick={pending ? onReview : onOpen}>
+      <button
+        className={`button ${pending || !ready ? "primary" : "secondary"}`}
+        onClick={pending ? onReview : onOpen}
+      >
         {pending
           ? "Review replies"
           : openLabel || (ready ? "Open outcome" : "Follow the run")}

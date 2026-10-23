@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import {
   ArrowRight,
@@ -184,6 +184,29 @@ export default function Landing() {
     [example, setExample] = useState(0),
     [faq, setFaq] = useState(0),
     [workspace, setWorkspace] = useState(null);
+  const menuButton = useRef(null),
+    nav = useRef(null);
+  useEffect(() => {
+    if (!menu) return;
+    const dismiss = (event) => {
+      if (event.type === "keydown" && event.key === "Escape") {
+        setMenu(false);
+        menuButton.current?.focus();
+      }
+      if (
+        event.type === "pointerdown" &&
+        !nav.current?.contains(event.target) &&
+        !menuButton.current?.contains(event.target)
+      )
+        setMenu(false);
+    };
+    document.addEventListener("keydown", dismiss);
+    document.addEventListener("pointerdown", dismiss);
+    return () => {
+      document.removeEventListener("keydown", dismiss);
+      document.removeEventListener("pointerdown", dismiss);
+    };
+  }, [menu]);
   const reduced = useReducedMotion();
   const preview = useWorkflowPreview(example, reduced);
   useEffect(() => {
@@ -209,7 +232,12 @@ export default function Landing() {
       <header className="landing-nav">
         <div className="landing-nav-inner">
           <Brand />
-          <nav className={menu ? "expanded" : ""} aria-label="Main navigation">
+          <nav
+            ref={nav}
+            id="landing-navigation"
+            className={menu ? "expanded" : ""}
+            aria-label="Main navigation"
+          >
             <a href="#how-it-works" onClick={() => setMenu(false)}>
               How it works
             </a>
@@ -222,9 +250,11 @@ export default function Landing() {
             </a>
           </nav>
           <div className="landing-nav-right">
-            <OpenLink />
+            <OpenLink secondary>Try the demo</OpenLink>
             <button
               className="landing-menu"
+              ref={menuButton}
+              aria-controls="landing-navigation"
               aria-label={menu ? "Close menu" : "Open menu"}
               aria-expanded={menu}
               onClick={() => setMenu(!menu)}
@@ -290,8 +320,8 @@ export default function Landing() {
                 transition={{ ...enter.transition, delay: 0.14 }}
               >
                 Give VOX the support queue and approve its plan. It sorts the
-                urgent work, finds guidance and prepares two replies. You
-                decide what goes forward.
+                urgent work, finds guidance and prepares two replies. You decide
+                what goes forward.
               </motion.p>
               <motion.div
                 className="hero-ctas"
@@ -306,7 +336,7 @@ export default function Landing() {
                   className="hero-tour"
                 >
                   <span>
-                    <ArrowDown size={16} />
+                    <Play size={16} />
                   </span>
                   See the walkthrough
                 </a>
@@ -335,8 +365,8 @@ export default function Landing() {
           </div>
           <div className="landing-container hero-bottom">
             <span>
-              An operations co-worker for makers and small teams.
-              Support is the first working workflow.
+              An operations co-worker for makers and small teams. Support is the
+              first working workflow.
             </span>
             <a href="#how-it-works">
               SEE THE TICKET WORKFLOW
@@ -598,7 +628,7 @@ export default function Landing() {
                     </span>
                   </div>
                   <h3>
-                  The queue is here.
+                    The queue is here.
                     <br />
                     <span>So is the next step.</span>
                   </h3>
@@ -714,7 +744,8 @@ export default function Landing() {
               </div>
               <h2>
                 Delegate the prep.
-                <br />Keep the final say.
+                <br />
+                Keep the final say.
               </h2>
               <p>
                 Read the draft, check its sources and decide whether it should
@@ -824,7 +855,8 @@ export default function Landing() {
                 </div>
                 <h3>
                   Read the plan.
-                  <br />Then start the work.
+                  <br />
+                  Then start the work.
                 </h3>
                 <p>
                   Vercel AI SDK turns structured responses into readable plan
@@ -867,9 +899,9 @@ export default function Landing() {
                   Check what changed.
                 </h3>
                 <p>
-                  Follow each saved action to its sources, provider receipts
-                  and approval decision. Export the run when you want to check
-                  the details.
+                  Follow each saved action to its sources, provider receipts and
+                  approval decision. Export the run when you want to check the
+                  details.
                 </p>
                 <a href="/judge#evidence" className="landing-text-link">
                   Open the evidence console
@@ -890,7 +922,8 @@ export default function Landing() {
         <section className="faq-section landing-container">
           <Reveal className="faq-heading">
             <div className="landing-eyebrow">
-              <span />BEFORE YOU TRY IT
+              <span />
+              BEFORE YOU TRY IT
             </div>
             <h2>Know what you’re trying.</h2>
             <p>The models, the data and the limits of this release.</p>
@@ -919,9 +952,7 @@ export default function Landing() {
               <span className="cta-wave">
                 <AudioLines size={42} strokeWidth={1.1} />
               </span>
-              <div className="landing-eyebrow">
-                YOUR FIRST HANDOFF IS READY
-              </div>
+              <div className="landing-eyebrow">YOUR FIRST HANDOFF IS READY</div>
               <h2>
                 Give VOX the queue.
                 <br />

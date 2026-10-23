@@ -688,9 +688,6 @@ summary:focus-visible {
   .app-shell .page-heading p {
     font-size: 13px;
   }
-  .app-shell .page-heading > .button {
-    display: none;
-  }
   .app-shell .voice-card {
     padding: 16px;
   }

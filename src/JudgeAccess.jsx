@@ -1,89 +1,200 @@
-import React from "react";
-import { ArrowRight, ShieldCheck, Sparkles } from "lucide-react";
+import React, { useEffect, useRef } from "react";
+import { ArrowRight, ShieldCheck, Sparkles, ChevronDown } from "lucide-react";
 
-export default function JudgeAccess({
-  info,
-  busy,
-  onActivate,
-  savedPlan,
-  onReviewPlan,
-}) {
-  if (!info) return null;
-  const starting = info.mode === "unclaimed";
+export function JudgeModeStatus({ info, modelLabel, busy, onActivate }) {
+  const details = useRef(null);
+  useEffect(() => {
+    const dismiss = (event) => {
+      if (!details.current?.open) return;
+      if (event.type === "keydown" && event.key === "Escape") {
+        details.current.open = false;
+        details.current.querySelector("summary")?.focus();
+      } else if (
+        event.type === "pointerdown" &&
+        !details.current.contains(event.target)
+      ) {
+        details.current.open = false;
+      }
+    };
+    document.addEventListener("keydown", dismiss);
+    document.addEventListener("pointerdown", dismiss);
+    return () => {
+      document.removeEventListener("keydown", dismiss);
+      document.removeEventListener("pointerdown", dismiss);
+    };
+  }, []);
+  if (!info || info.mode === "unclaimed") return null;
+  const live = info.mode === "live",
+    expired = info.mode === "expired";
   return (
-    <section
-      className={`judge-access ${starting ? "is-welcome" : ""}`}
-      aria-label="Judge workspace access"
-    >
-      <div className="judge-access-copy">
-        <span className="eyebrow">
-          <ShieldCheck size={14} /> YOUR OPERATIONS CO-WORKER
+    <details ref={details} className="workspace-mode">
+      <summary>
+        <ShieldCheck size={15} />
+        <span>
+          {live ? "Live AI" : expired ? "Pass expired" : "Rules-only"}
         </span>
-        <h2>
-          {starting
-            ? "Take VOX for a working test drive."
-            : info.mode === "live"
-              ? "Your live support workspace."
-              : info.mode === "expired"
-                ? "Your live pass has expired."
-                : "Your rules-only demo."}
-        </h2>
+        <span className="mode-safety">· simulated sends</span>
+        <ChevronDown size={13} />
+      </summary>
+      <div className="mode-popover">
+        <strong>
+          {live
+            ? modelLabel || "Configured Gemma endpoint"
+            : expired
+              ? "Your saved work is available"
+              : "Rules and reply templates"}
+        </strong>
         <p>
-          {starting
-            ? "Start with 24 fictional support tickets. Give VOX a goal, review its plan, and return to the reply decisions. Live AI uses a limited free pass. The rules-only demo lets you explore the workflow without one. Sends are simulated."
-            : info.mode === "live"
-              ? "Real providers. Fictional tickets. Only this browser session can review your replies. Your pass lasts 24 hours."
-              : info.mode === "expired"
-                ? "Your live pass is no longer active. Switch to the rules-only demo to keep exploring the fictional helpdesk."
-                : "Fixed rules prioritize the tickets and templates prepare replies. You can review the plan and practice approvals. Browser speech can read the briefing; this mode makes no live AI or voice-provider requests."}
+          {live
+            ? "Real providers, fictional tickets. Your private pass lasts 24 hours; provider quotas apply. Every send is simulated."
+            : expired
+              ? "Switch to rules-only to prepare another plan. Your existing replies and decisions remain saved."
+              : "No live AI, search or voice-provider requests. Your changes are saved; sends are simulated."}
         </p>
-        {starting ? (
-          <small>
-            {info.available
-              ? `${info.remainingSessions} live passes available. Repeat plans, voice uploads and briefings within an active pass. Each run prepares at most two drafts. Provider quotas apply. Please use fictional inputs only.`
-              : "Live passes are currently reserved or unavailable. The rules-only demo still lets you try planning, ticket updates and reply approvals."}
-          </small>
-        ) : info.mode === "live" ? (
-          <div className="judge-usage" aria-label="Live requests used">
-            <span>Plans {info.used.plan}</span>
-            <span>Voice uploads {info.used.transcribe}</span>
-            <span>Briefings {info.used.speech}</span>
-          </div>
-        ) : null}
-      </div>
-      <div className="judge-access-actions">
-        {savedPlan && (
-          <button
-            className="button primary"
-            disabled={busy}
-            onClick={onReviewPlan}
-          >
-            Review saved plan <ArrowRight size={16} />
-          </button>
-        )}
-        {starting && info.available && (
-          <button
-            className="button primary"
-            disabled={busy}
-            onClick={() => onActivate("live")}
-          >
-            <Sparkles size={16} /> Start live evaluation{" "}
-            <ArrowRight size={16} />
-          </button>
+        {live && (
+          <p className="mode-usage">
+            {info.used.plan} plans · {info.used.transcribe} voice uploads ·{" "}
+            {info.used.speech} briefings
+          </p>
         )}
         {info.mode !== "sandbox" && (
           <button
             className="button secondary"
             disabled={busy}
-            onClick={() => onActivate("sandbox")}
+            onClick={() => {
+              details.current.open = false;
+              onActivate("sandbox");
+            }}
           >
-            {starting ? "Try rules-only demo" : "Switch to rules-only demo"}
+            Switch to rules-only
           </button>
         )}
-        <a href="/app" className="text-button">
-          Owner workspace
-        </a>
       </div>
-    </section>
+    </details>
+  );
+}
+
+export default function JudgeAccess({
+  info,
+  busy,
+  savedPlan,
+  onActivate,
+  onReviewPlan,
+}) {
+  if (!info) return null;
+  const starting = info.mode === "unclaimed";
+  return (
+    <>
+      {starting && (
+        <section
+          className="judge-welcome"
+          aria-labelledby="judge-welcome-title"
+        >
+          <span className="eyebrow">YOUR FIRST HANDOFF</span>
+          <h1 id="judge-welcome-title">
+            A queue of work.
+            <br />
+            <span>A few decisions for you.</span>
+          </h1>
+          <p className="judge-welcome-intro">
+            Try VOX on 24 fictional support tickets. Review the plan, let it
+            prepare the work, then decide on each reply. Nothing is sent to a
+            real customer.
+          </p>
+          <div
+            className={`judge-mode-options ${!info.available ? "one-option" : ""}`}
+          >
+            {info.available && (
+              <div className="judge-mode-option">
+                <Sparkles size={21} className="judge-mode-icon" />
+                <div>
+                  <h2>Live AI</h2>
+                  <p>
+                    Gemma plans and drafts, with connected research and voice.
+                  </p>
+                  <small>
+                    {info.remainingSessions} shared passes left · yours lasts 24
+                    hours
+                  </small>
+                </div>
+                <button
+                  className="button primary"
+                  disabled={busy}
+                  onClick={() => onActivate("live")}
+                >
+                  Start live evaluation <ArrowRight size={16} />
+                </button>
+              </div>
+            )}
+            <div className="judge-mode-option">
+              <ShieldCheck size={21} className="judge-mode-icon" />
+              <div>
+                <h2>Rules-only demo</h2>
+                <p>
+                  Fixed rules prioritize the queue. Templates prepare two
+                  replies for your review.
+                </p>
+                <small>No live pass or provider requests.</small>
+              </div>
+              <button
+                className={`button ${info.available ? "secondary" : "primary"}`}
+                disabled={busy}
+                onClick={() => onActivate("sandbox")}
+              >
+                {busy ? "Opening your workspace…" : "Start rules-only demo"}{" "}
+                <ArrowRight size={16} />
+              </button>
+            </div>
+          </div>
+          {!info.available && (
+            <p className="live-unavailable">
+              <Sparkles size={16} />
+              <span>
+                Live AI is unavailable right now. You can explore the same plan
+                and reply approvals with rules-only.
+              </span>
+            </p>
+          )}
+          <ol className="welcome-steps" aria-label="The workflow">
+            <li>
+              <span>1</span>Review the plan
+            </li>
+            <li>
+              <span>2</span>VOX prepares the work
+            </li>
+            <li>
+              <span>3</span>Decide on each reply
+            </li>
+          </ol>
+        </section>
+      )}
+      {info.mode === "expired" && (
+        <div className="saved-plan-bar">
+          <p>Your live pass expired. Saved work remains available.</p>
+          <button
+            className="button secondary"
+            disabled={busy}
+            onClick={() => onActivate("sandbox")}
+          >
+            Continue with rules-only
+          </button>
+        </div>
+      )}
+      {savedPlan && (
+        <div className="saved-plan-bar">
+          <p>
+            <strong>Your plan is saved.</strong> Review it when you’re ready to
+            start.
+          </p>
+          <button
+            className="button secondary"
+            disabled={busy}
+            onClick={onReviewPlan}
+          >
+            Review saved plan <ArrowRight size={16} />
+          </button>
+        </div>
+      )}
+    </>
   );
 }

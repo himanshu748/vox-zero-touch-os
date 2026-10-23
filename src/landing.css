@@ -557,6 +557,7 @@
   color: #3657ff;
 }
 .demo-mic {
+  position: relative;
   display: grid;
   place-items: center;
   width: 45px;
@@ -2536,7 +2537,8 @@
     padding: 7px 8px;
   }
   .demo-mic {
-    position: static;
+    position: relative;
+    inset: auto;
     height: 36px;
     width: 36px;
     margin: 0 0 21px;
@@ -4026,9 +4028,6 @@
   line-height: 1.7;
   color: #66758c;
 }
-.demo-mic {
-  position: relative;
-}
 .mic-signal-ring {
   position: absolute;
   inset: -7px;
@@ -4107,9 +4106,6 @@
   .landing-page .landing-hero h1 > .hero-line {
     line-height: 1.045;
   }
-  .landing-page .demo-mic {
-    position: relative;
-  }
   .landing-page .demo-plan .generative-action.story-active {
     box-shadow: none;
   }
@@ -4133,4 +4129,98 @@
     transform: none !important;
     opacity: 1 !important;
   }
+}
+
+/* Entry-point hierarchy and readable interaction feedback. */
+.landing-page .hero-layout {
+  padding-top: 50px;
+  padding-bottom: 36px;
+}
+.landing-page .landing-hero .hero-copy h1 {
+  font-size: clamp(58px, 5.7vw, 82px);
+  letter-spacing: -4px;
+}
+.landing-page .hero-art.product-hero-art {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+.landing-page .demo-mic,
+.landing-page .cta-wave {
+  color: #fff;
+}
+.landing-page .landing-eyebrow > span {
+  background: #3657ff;
+}
+.landing-page .approval-illustration-actions > span:last-child {
+  background: #3657ff;
+  color: #fff;
+  border-color: #3657ff;
+}
+.landing-page .landing-menu {
+  min-width: 44px;
+  min-height: 44px;
+}
+.landing-page .demo-plan-foot,
+.landing-page .build-honesty,
+.landing-page .final-cta p {
+  font-size: 12px;
+}
+.landing-page .landing-nav a:focus-visible,
+.landing-page footer a:focus-visible {
+  outline: 2px solid #3657ff;
+  outline-offset: 4px;
+}
+@media (hover: hover) {
+  .landing-page .landing-button.solid:hover {
+    background: #2445d9;
+  }
+  .landing-page .landing-button.outline:hover {
+    background: #eef2ff;
+    border-color: #abb9fa;
+  }
+  .landing-page .landing-nav nav a:hover,
+  .landing-page .landing-footer a:hover {
+    color: #2445d9;
+  }
+  .landing-page .example-tabs button:hover,
+  .landing-page .mini-ticket:hover {
+    background: #eef2ff;
+  }
+}
+@media (max-width: 740px) {
+  .landing-page .hero-layout {
+    padding-top: 36px;
+    padding-bottom: 24px;
+  }
+  .landing-page .landing-hero .hero-copy h1 {
+    font-size: clamp(47px, 11.7vw, 68px);
+    letter-spacing: -2.8px;
+  }
+  .landing-page .hero-ctas {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .landing-page .hero-ctas > .landing-button {
+    justify-content: center;
+    min-height: 48px;
+  }
+  .landing-page .hero-tour {
+    justify-content: center;
+    min-height: 44px;
+  }
+  .landing-page .hero-caption {
+    font-size: 12px;
+  }
+  .landing-page .hero-art.product-hero-art {
+    margin-top: 32px;
+  }
+  .landing-page .landing-nav nav a {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+}
+.landing-page .ops-preview-footer a {
+  color: #fff;
 }
